@@ -1,0 +1,48 @@
+/* Ensure the body and html take full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content should take up remaining space */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Full height */
+  margin-left: 250px; /* Adjust for the sidebar */
+}
+
+/* Header - Fixed at the top */
+.header {
+  position: fixed;
+  top: 0;
+  left: 250px; /* Adjust for sidebar */
+  width: calc(100% - 250px); /* Prevent overlap with sidebar */
+  background: #007bff; /* Bootstrap primary color */
+  color: white;
+  padding: 15px;
+  text-align: center;
+  z-index: 1000;
+}
+
+/* Content Section - Prevents being hidden behind header */
+.main-content {
+  flex: 1;
+  padding: 80px 20px 60px; /* Padding to avoid overlap */
+}
+
+/* Footer - Fixed at the bottom */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 250px;
+  width: calc(100% - 250px);
+  background: #343a40; /* Dark Bootstrap color */
+  color: white;
+  padding: 15px;
+  text-align: center;
+  z-index: 1000;
+}
