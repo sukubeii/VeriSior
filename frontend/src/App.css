@@ -1,42 +1,67 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Add this to your CSS file (e.g., App.css) */
+
+/* General app container styles */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* For pages with vertical navbar */
+.private-layout {
+  display: flex;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Public layout - full width */
+.public-layout .main-content {
+  padding-top: 60px; /* Height of the horizontal public navbar */
+  min-height: calc(100vh - 60px);
+  width: 100%;
+}
+
+/* Adjustments for private pages with sidebar */
+.main-content.with-sidebar {
+  margin-left: 250px; /* Match the width of your expanded sidebar */
+  width: calc(100% - 250px);
+  transition: margin-left 0.3s ease, width 0.3s ease;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* When sidebar is collapsed */
+.sidebar-collapsed .main-content.with-sidebar {
+  margin-left: 80px; /* Match the width of your collapsed sidebar */
+  width: calc(100% - 80px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-content.with-sidebar {
+    margin-left: 80px;
+    width: calc(100% - 80px);
   }
-  to {
-    transform: rotate(360deg);
+  
+  .sidebar-collapsed .main-content.with-sidebar {
+    margin-left: 0;
+    width: 100%;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Styles for role switcher */
+.role-switcher {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1100;
 }
 
-.card {
-  padding: 2em;
+/* Ensures content within the layout has proper padding */
+.private-layout > .main-content > div {
+  padding: 20px;
 }
 
-.read-the-docs {
-  color: #888;
+/* Override when login modal is open - prevents scrolling */
+body.modal-open {
+  overflow: hidden;
 }
