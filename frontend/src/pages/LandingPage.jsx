@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import PublicNavBar from "../components/common/PublicNavBar";
 import image1 from "../images/tempo1.jpeg";
 import image2 from "../images/tempo2.jpeg";
 import image3 from "../images/tempo3.jpeg";
 import image4 from "../images/tempo4.jpeg";
 import image5 from "../images/tempo5.jpeg";
-import logo from "../images/logo1.png";
 // Import profile images
 import beaProfile from "../images/bea-profile.jpeg";
 import reeceProfile from "../images/reece-profile.jpg";
@@ -22,7 +21,6 @@ const LandingPage = () => {
     { src: image5 }
   ];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // State for contact form
   const [contactForm, setContactForm] = useState({
@@ -53,26 +51,8 @@ const LandingPage = () => {
       contactNumber: "",
       message: ""
     });
-    // Show success message (you can implement this however you want)
+    // Show success message
     alert("Thank you for your message! We'll get back to you soon.");
-  };
-
-  // Scroll to section function
-  const scrollToSection = (sectionId) => {
-    const section = document.getElementById(sectionId);
-    if (section) {
-      // Calculate position accounting for the fixed navbar height
-      const navbarHeight = 60; // This should match your navbar height
-      const sectionPosition = section.getBoundingClientRect().top + window.pageYOffset;
-      const offsetPosition = sectionPosition - navbarHeight;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
-    }
-    // Close mobile menu if open
-    setIsMobileMenuOpen(false);
   };
 
   useEffect(() => {
@@ -82,148 +62,10 @@ const LandingPage = () => {
     return () => clearInterval(interval);
   }, [images.length]);
 
-  // Handle window resize for responsive navigation
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
     <div style={{ backgroundColor: "#f0faff", minHeight: "100vh" }}>
-      {/* Public Navigation Bar */}
-      <nav
-        className="navbar navbar-expand-lg fixed-top"
-        style={{
-          background: "linear-gradient(90deg,rgb(0, 183, 255),rgb(0, 204, 255))",
-          padding: "5px 0",
-          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-          color: "white",
-          height: "60px"
-        }}
-      >
-        <div className="container">
-          <div className="d-flex align-items-center">
-            <img src={logo} alt="VeriSior Logo" style={{ height: "40px" }} />
-            <h2 className="ms-2 my-0 d-flex align-items-center" style={{ fontSize: "1.5rem" }}>VeriSior</h2>
-          </div>
-
-          {/* Mobile menu toggle button */}
-          <button
-            className="navbar-toggler"
-            type="button"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            style={{ border: "none", color: "white" }}
-          >
-            <span className="navbar-toggler-icon">
-              ☰
-            </span>
-          </button>
-
-          {/* Desktop & Mobile Navigation */}
-          <div className={`collapse navbar-collapse ${isMobileMenuOpen ? 'show' : ''}`} id="navbarNav">
-            <ul className="navbar-nav ms-auto text-center">
-              <li className="nav-item">
-                <a href="#home"
-                  onClick={(e) => { e.preventDefault(); scrollToSection("home"); }}
-                  className="nav-link text-white fw-bold text-uppercase px-3">
-                  Home
-                </a>
-              </li>
-              <li className="nav-item">
-                <a href="#about"
-                  onClick={(e) => { e.preventDefault(); scrollToSection("about"); }}
-                  className="nav-link text-white fw-bold text-uppercase px-3">
-                  About
-                </a>
-              </li>
-              <li className="nav-item">
-                <a href="#services"
-                  onClick={(e) => { e.preventDefault(); scrollToSection("services"); }}
-                  className="nav-link text-white fw-bold text-uppercase px-3">
-                  Services
-                </a>
-              </li>
-              <li className="nav-item">
-                <a href="#contact"
-                  onClick={(e) => { e.preventDefault(); scrollToSection("contact"); }}
-                  className="nav-link text-white fw-bold text-uppercase px-3">
-                  Contact
-                </a>
-              </li>
-              <li className="nav-item">
-                <a href="#support"
-                  onClick={(e) => { e.preventDefault(); scrollToSection("support"); }}
-                  className="nav-link text-white fw-bold text-uppercase px-3">
-                  Support
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Mobile Navigation Overlay */}
-          {isMobileMenuOpen && (
-            <div
-              className="position-fixed bg-white w-100 shadow-lg"
-              style={{
-                top: "60px",
-                left: 0,
-                zIndex: 1000,
-                padding: "15px 0",
-                display: "block"
-              }}
-            >
-              <ul className="navbar-nav text-center">
-                <li className="nav-item py-2">
-                  <a
-                    href="#home"
-                    onClick={(e) => { e.preventDefault(); scrollToSection("home"); }}
-                    className="nav-link text-dark fw-bold text-uppercase">
-                    Home
-                  </a>
-                </li>
-                <li className="nav-item py-2">
-                  <a
-                    href="#about"
-                    onClick={(e) => { e.preventDefault(); scrollToSection("about"); }}
-                    className="nav-link text-dark fw-bold text-uppercase">
-                    About
-                  </a>
-                </li>
-                <li className="nav-item py-2">
-                  <a
-                    href="#services"
-                    onClick={(e) => { e.preventDefault(); scrollToSection("services"); }}
-                    className="nav-link text-dark fw-bold text-uppercase">
-                    Services
-                  </a>
-                </li>
-                <li className="nav-item py-2">
-                  <a
-                    href="#contact"
-                    onClick={(e) => { e.preventDefault(); scrollToSection("contact"); }}
-                    className="nav-link text-dark fw-bold text-uppercase">
-                    Contact
-                  </a>
-                </li>
-                <li className="nav-item py-2">
-                  <a
-                    href="#support"
-                    onClick={(e) => { e.preventDefault(); scrollToSection("support"); }}
-                    className="nav-link text-dark fw-bold text-uppercase">
-                    Support
-                  </a>
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
-      </nav>
+      {/* Public Navigation Bar - Now using the updated component */}
+      <PublicNavBar />
 
       {/* Add padding to account for fixed navbar */}
       <div style={{ paddingTop: "60px" }}></div>
@@ -269,40 +111,40 @@ const LandingPage = () => {
       </section>
 
       {/* About Section */}
-<section id="about" className="py-5">
-  <div className="container py-3">
-    <h2 className="text-center mb-4" style={{ color: "#0080ff" }}>About Us</h2>
+      <section id="about" className="py-5">
+        <div className="container py-3">
+          <h2 className="text-center mb-4" style={{ color: "#0080ff" }}>About Us</h2>
 
-    {/* About Intro Card */}
-    <div className="card shadow-lg mb-5 border-0" style={{ backgroundColor: "#e6f7ff" }}>
-      <div className="card-body p-4">
-        <p className="text-center mb-0">
-          We are a dedicated team of 3rd-year college students from <strong>STI College - Novaliches</strong>, committed to developing an efficient and secure web-based application for senior citizen ID authentication and publication.
-        </p>
-        <p className="text-center mt-2">
-          Our project streamlines the registration process, ensuring that senior citizens can easily obtain their official identification cards with minimal hassle. By leveraging modern web technologies and advanced security protocols, we strive to create a user-friendly and highly reliable system.
-        </p>
-        <p className="text-center mt-2">
-          Our goal is to enhance accessibility while maintaining the integrity and confidentiality of user data. Through this initiative, we aim to contribute to a more inclusive and technology-driven solution for senior citizen identification and verification.
-        </p>
-      </div>
-    </div>
-
-    {/* Team Members Container */}
-    <div className="row mt-4">
-      {/* Beatriz Mae Buan - Project Manager */}
-      <div className="col-12 col-md-6 mb-4">
-        <div className="d-flex flex-column flex-sm-row align-items-center align-items-sm-start h-100 border rounded p-3">
-          <img src={beaProfile} alt="Beatriz Mae Buan" className="rounded-circle mb-3 mb-sm-0" style={{ width: "100px", height: "100px", objectFit: "cover" }} />
-          <div className="text-center text-sm-start ms-sm-3">
-            <h4 className="mb-2" style={{ color: "#0080ff" }}>Beatriz Mae Buan</h4>
-            <p className="mb-1"><strong>Role:</strong> Project Manager</p>
-            <p className="mb-1"><strong>About:</strong> A third-year student at STI Novaliches with a passion for project leadership and system development. I also run a crochet business and enjoy playing volleyball.</p>
-            <p className="mb-1"><strong>Technical Skills:</strong> Java, JavaScript, HTML, CSS, Graphic Design, Video Editing</p>
-            <p className="mb-0"><strong>Soft Skills:</strong> Effective Communication, Teamwork, Time Management, Adaptability, Critical Thinking</p>
+          {/* About Intro Card */}
+          <div className="card shadow-lg mb-5 border-0" style={{ backgroundColor: "#e6f7ff" }}>
+            <div className="card-body p-4">
+              <p className="text-center mb-0">
+                We are a dedicated team of 3rd-year college students from <strong>STI College - Novaliches</strong>, committed to developing an efficient and secure web-based application for senior citizen ID authentication and publication.
+              </p>
+              <p className="text-center mt-2">
+                Our project streamlines the registration process, ensuring that senior citizens can easily obtain their official identification cards with minimal hassle. By leveraging modern web technologies and advanced security protocols, we strive to create a user-friendly and highly reliable system.
+              </p>
+              <p className="text-center mt-2">
+                Our goal is to enhance accessibility while maintaining the integrity and confidentiality of user data. Through this initiative, we aim to contribute to a more inclusive and technology-driven solution for senior citizen identification and verification.
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {/* Team Members Container */}
+          <div className="row mt-4">
+            {/* Beatriz Mae Buan - Project Manager */}
+            <div className="col-12 col-md-6 mb-4">
+              <div className="d-flex flex-column flex-sm-row align-items-center align-items-sm-start h-100 border rounded p-3">
+                <img src={beaProfile} alt="Beatriz Mae Buan" className="rounded-circle mb-3 mb-sm-0" style={{ width: "100px", height: "100px", objectFit: "cover" }} />
+                <div className="text-center text-sm-start ms-sm-3">
+                  <h4 className="mb-2" style={{ color: "#0080ff" }}>Beatriz Mae Buan</h4>
+                  <p className="mb-1"><strong>Role:</strong> Project Manager</p>
+                  <p className="mb-1"><strong>About:</strong> A third-year student at STI Novaliches with a passion for project leadership and system development. I also run a crochet business and enjoy playing volleyball.</p>
+                  <p className="mb-1"><strong>Technical Skills:</strong> Java, JavaScript, HTML, CSS, Graphic Design, Video Editing</p>
+                  <p className="mb-0"><strong>Soft Skills:</strong> Effective Communication, Teamwork, Time Management, Adaptability, Critical Thinking</p>
+                </div>
+              </div>
+            </div>
 
             {/* Reece Roque - System Analyst */}
             <div className="col-12 col-md-6 mb-4">
@@ -335,9 +177,9 @@ const LandingPage = () => {
             {/* Mr. X - Lead Programmer */}
             <div className="col-12 col-md-6 mb-4">
               <div className="d-flex flex-column flex-sm-row align-items-center align-items-sm-start h-100 border rounded p-3">
-                <img src={mrXProfile} alt="Mr. X" className="rounded-circle mb-3 mb-sm-0" style={{ width: "100px", height: "100px", objectFit: "cover" }} />
+                <img src={mrXProfile} alt="Mr. Yoso" className="rounded-circle mb-3 mb-sm-0" style={{ width: "100px", height: "100px", objectFit: "cover" }} />
                 <div className="text-center text-sm-start ms-sm-3">
-                  <h4 className="mb-2" style={{ color: "#0080ff" }}>Mr. X</h4>
+                  <h4 className="mb-2" style={{ color: "#0080ff" }}>Mr. Yoso</h4>
                   <p className="mb-1"><strong>Role:</strong> Lead Programmer</p>
                   <p className="mb-1"><strong>About:</strong> A skilled developer with extensive experience in secure system architecture.</p>
                   <p className="mb-1"><strong>Technical Skills:</strong> Full-stack Development, Security Implementation, Database Management, API Integration</p>
@@ -421,7 +263,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
 
       {/* Contact Section */}
       <section id="contact" className="py-5">
@@ -609,7 +450,7 @@ const LandingPage = () => {
           backgroundColor: "#00f7ff",
           color: "#0080ff",
           fontWeight: "bold",
-          borderRadius: "0", /* Changed to square */
+          borderRadius: "0",
           width: "50px",
           height: "50px",
           bottom: "20px",
@@ -625,8 +466,7 @@ const LandingPage = () => {
         ↑
       </button>
 
-
-      {/* Bootstrap JS - Important for accordion functionality */}
+      {/* Bootstrap JS */}
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
