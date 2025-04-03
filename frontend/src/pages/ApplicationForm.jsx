@@ -210,8 +210,15 @@ const ApplicationForm = () => {
     };
 
     return (
-        <div className="container py-5">
-            <h2 className="text-center mb-4" style={{ color: "#0080ff" }}>
+        <div className="container" style={{ paddingTop: "80px", paddingBottom: "30px" }}>
+            <h2 className="text-center mb-4 position-sticky" style={{ 
+                color: "#0080ff", 
+                top: "60px", 
+                backgroundColor: "white", 
+                padding: "15px 0", 
+                zIndex: 999,
+                marginTop: 0 
+            }}>
                 Senior Citizen Application Form
             </h2>
             <form onSubmit={handleSubmit} className="card p-4 shadow-lg border-0">
@@ -266,6 +273,7 @@ const ApplicationForm = () => {
                     </div>
                 </div>
 
+                {/* Rest of the form remains the same */}
                 <div className="row">
                     <div className="col-md-3 mb-3">
                         <label className="form-label">Suffix</label>
@@ -586,6 +594,58 @@ const ApplicationForm = () => {
                         />
                         {touched.barangayProof && errors.barangayProof && (
                             <div className="invalid-feedback">{errors.barangayProof}</div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Terms and Conditions Section */}
+                <div className="mb-4 border p-3 rounded bg-light">
+                    <h4 className="mb-3">Terms and Conditions</h4>
+                    <div style={{ height: "200px", overflowY: "scroll", border: "1px solid #ddd", padding: "15px", marginBottom: "15px" }}>
+                        <h5>Senior Citizen ID Application Agreement</h5>
+                        <p>
+                            By submitting this application form, I hereby declare that all information provided is true and correct to the best of my knowledge.
+                            I understand that any falsification, misrepresentation, or omission of facts in this application may result in the denial or revocation of my Senior Citizen ID.
+                        </p>
+                        <h5>Privacy Notice</h5>
+                        <p>
+                            I consent to the collection, use, and processing of my personal information for the purpose of issuing a Senior Citizen ID and for other related government services.
+                            I understand that my personal information will be protected in accordance with the Data Privacy Act of 2012.
+                        </p>
+                        <h5>Terms of Use</h5>
+                        <p>
+                            1. The Senior Citizen ID is property of the government and must be surrendered upon request.
+                        </p>
+                        <p>
+                            2. I shall immediately report any loss or damage to the ID to the proper authorities.
+                        </p>
+                        <p>
+                            3. I understand that the use of the Senior Citizen ID is subject to verification and that misuse may lead to legal consequences.
+                        </p>
+                        <p>
+                            4. I acknowledge that this ID shall be used solely for the purpose it was issued and shall not be transferred, loaned, or used by any person other than myself.
+                        </p>
+                        <h5>Consent to Verification</h5>
+                        <p>
+                            I authorize the verification of all information provided in this application, including contacting references, government agencies, and other relevant entities.
+                        </p>
+                    </div>
+                    <div className="form-check mb-3">
+                        <input
+                            type="checkbox"
+                            className={`form-check-input ${touched.termsAgreed && errors.termsAgreed ? "is-invalid" : ""}`}
+                            id="termsCheckbox"
+                            name="termsAgreed"
+                            checked={formData.termsAgreed}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            required
+                        />
+                        <label className="form-check-label" htmlFor="termsCheckbox">
+                            I have read and agree to the Terms and Conditions
+                        </label>
+                        {touched.termsAgreed && errors.termsAgreed && (
+                            <div className="invalid-feedback">{errors.termsAgreed}</div>
                         )}
                     </div>
                 </div>
