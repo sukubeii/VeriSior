@@ -91,7 +91,7 @@ const LandingPage = () => {
           style={{
             width: "90%",
             maxWidth: "800px",
-            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
             borderRadius: "10px",
             boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.3)",
             zIndex: 10
@@ -100,13 +100,68 @@ const LandingPage = () => {
           <h2 className="text-center mb-4" style={{ color: "#0080ff", fontSize: "clamp(1.8rem, 5vw, 2.5rem)", fontWeight: "bold" }}>
             WELCOME TO VERISIOR
           </h2>
-          <p className="mb-0" style={{ fontSize: "clamp(0.9rem, 2vw, 1.2rem)", color: "#333", lineHeight: "1.6" }}>
+          <p className="mb-4" style={{ fontSize: "clamp(0.9rem, 2vw, 1.2rem)", color: "#333", lineHeight: "1.6" }}>
             VeriSior provides a secure platform for senior citizen ID registration, authentication, and verification.
             Our system ensures that senior citizens can easily register and receive their identification cards without hassle.
-            We prioritize security by implementing advanced encryption methods to protect user data.
-            Efficiency is at the core of our services, allowing for seamless ID processing and verification.
-            With a user-friendly interface, VeriSior guarantees accessibility and ease of use for all individuals.
           </p>
+
+          {/* Services Cards */}
+          <div className="row mt-4">
+            <div className="col-md-4 mb-4">
+              <div className="card h-100 shadow-sm">
+                <div className="card-body text-center p-3">
+                  <div className="mb-2" style={{ fontSize: "2rem", color: "#0080ff" }}>
+                    <i className="fas fa-id-card"></i>
+                  </div>
+                  <h5 className="mb-2">ID Registration</h5>
+                  <p className="mb-0" style={{ fontSize: "0.9rem" }}>Streamlined process for senior citizens to register for their official identification cards.</p>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-4 mb-4">
+              <div className="card h-100 shadow-sm">
+                <div className="card-body text-center p-3">
+                  <div className="mb-2" style={{ fontSize: "2rem", color: "#0080ff" }}>
+                    <i className="fas fa-user-check"></i>
+                  </div>
+                  <h5 className="mb-2">Authentication</h5>
+                  <p className="mb-0" style={{ fontSize: "0.9rem" }}>Secure authentication system to verify the identity of senior citizens accurately.</p>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-4 mb-4">
+              <div className="card h-100 shadow-sm">
+                <div className="card-body text-center p-3">
+                  <div className="mb-2" style={{ fontSize: "2rem", color: "#0080ff" }}>
+                    <i className="fas fa-check-circle"></i>
+                  </div>
+                  <h5 className="mb-2">Verification</h5>
+                  <p className="mb-0" style={{ fontSize: "0.9rem" }}>Comprehensive verification process to ensure the validity of provided information.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Apply Now Button */}
+          <div className="mt-4">
+            <button
+              onClick={() => window.location.href = "/apply"}
+              className="btn btn-lg"
+              style={{
+                backgroundColor: "#0080ff",
+                color: "white",
+                fontWeight: "bold",
+                padding: "12px 30px",
+                borderRadius: "30px",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                transition: "transform 0.2s ease-in-out"
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+              onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
+            >
+              Apply for Senior Citizen ID
+            </button>
+          </div>
         </div>
       </section>
 
@@ -184,79 +239,6 @@ const LandingPage = () => {
                   <p className="mb-1"><strong>About:</strong> A skilled developer with extensive experience in secure system architecture.</p>
                   <p className="mb-1"><strong>Technical Skills:</strong> Full-stack Development, Security Implementation, Database Management, API Integration</p>
                   <p className="mb-0"><strong>Soft Skills:</strong> Problem-solving, Attention to Detail, Efficient Coding, System Design</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section id="services" className="py-5" style={{ backgroundColor: "#e6f7ff" }}>
-        <div className="container py-3">
-          <h2 className="text-center mb-4" style={{ color: "#0080ff" }}>Our Services</h2>
-          <div className="row">
-            <div className="col-md-4 mb-4">
-              <div className="card h-100 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="mb-3" style={{ fontSize: "clamp(2rem, 5vw, 3rem)", color: "#0080ff" }}>
-                    <i className="fas fa-id-card"></i>
-                  </div>
-                  <h4 className="mb-3">ID Registration</h4>
-                  <p className="mb-0">Streamlined process for senior citizens to register for their official identification cards.</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4 mb-4">
-              <div className="card h-100 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="mb-3" style={{ fontSize: "clamp(2rem, 5vw, 3rem)", color: "#0080ff" }}>
-                    <i className="fas fa-user-check"></i>
-                  </div>
-                  <h4 className="mb-3">Authentication</h4>
-                  <p className="mb-0">Secure authentication system to verify the identity of senior citizens accurately.</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4 mb-4">
-              <div className="card h-100 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="mb-3" style={{ fontSize: "clamp(2rem, 5vw, 3rem)", color: "#0080ff" }}>
-                    <i className="fas fa-check-circle"></i>
-                  </div>
-                  <h4 className="mb-3">Verification</h4>
-                  <p className="mb-0">Comprehensive verification process to ensure the validity of provided information.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* New row for Apply for an ID button */}
-          <div className="row justify-content-center">
-            <div className="col-md-4 mb-4">
-              <div className="card h-100 shadow-sm">
-                <div className="card-body text-center p-4">
-                  <div className="mb-3" style={{ fontSize: "clamp(2rem, 5vw, 3rem)", color: "#0080ff" }}>
-                    <i className="fas fa-file-alt"></i>
-                  </div>
-                  <h4 className="mb-3">Apply for an ID</h4>
-                  <p className="mb-3">Start the senior citizen ID application process by filling out the registration form.</p>
-                  <button
-                    onClick={() => window.location.href = "/apply"}
-                    className="btn"
-                    style={{
-                      backgroundColor: "#0080ff",
-                      color: "white",
-                      fontWeight: "bold",
-                      padding: "10px 20px",
-                      border: "none",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                      transition: "background-color 0.3s ease-in-out"
-                    }}
-                  >
-                    Apply Now
-                  </button>
                 </div>
               </div>
             </div>
