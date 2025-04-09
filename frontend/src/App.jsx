@@ -5,7 +5,12 @@ import ApplicationForm from "./pages/ApplicationForm";
 import PublicNavBar from "./components/common/PublicNavBar";
 import PrivateNavBar from "./components/specific/PrivateNavBar";
 import Footer from "./components/common/Footer";
-import RoleSwitcher from "./components/specific/RoleSwitcher"; // Import the role switcher
+import RoleSwitcher from "./components/specific/RoleSwitcher";
+import Dashboard from "./components/specific/Dashboard";
+import IDManagement from "./components/specific/IDManagement";
+import Profile from "./components/specific/Profile";
+import RoleManagement from "./components/specific/RoleManagement";
+import Settings from "./components/specific/Settings";
 
 // Create a wrapper component to use React Router hooks
 function AppContent() {
@@ -26,6 +31,7 @@ function AppContent() {
     return pathname === "/super-admin" || pathname === "/admin" || pathname === "/employee" ||
            pathname.startsWith("/dashboard") || pathname.startsWith("/profile") ||
            pathname.startsWith("/role-management") || pathname.startsWith("/id-management") ||
+           pathname.startsWith("/admin-management") || pathname.startsWith("/employee-management") ||
            pathname.startsWith("/settings");
   };
 
@@ -103,11 +109,13 @@ function AppContent() {
           <Route path="/apply" element={<ApplicationForm />} />
           
           {/* Private Routes (should be protected with authentication) */}
-          <Route path="/dashboard" element={<h2>Dashboard</h2>} />
-          <Route path="/profile" element={<h2>Profile</h2>} />
-          <Route path="/role-management" element={<h2>Role Management</h2>} />
-          <Route path="/id-management" element={<h2>ID Management</h2>} />
-          <Route path="/settings" element={<h2>Settings</h2>} />
+          <Route path="/dashboard" element={<Dashboard role={userRole} />} />
+          <Route path="/profile" element={<Profile role={userRole} />} />
+          <Route path="/role-management" element={<RoleManagement role={userRole} />} />
+          <Route path="/id-management" element={<IDManagement role={userRole} />} />
+          <Route path="/settings" element={<Settings role={userRole} />} />
+          <Route path="/admin-management" element={<h2>Admin Management</h2>} />
+          <Route path="/employee-management" element={<h2>Employee Management</h2>} />
           
           {/* Role-specific pages */}
           <Route path="/admin" element={
