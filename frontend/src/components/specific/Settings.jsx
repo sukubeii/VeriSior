@@ -13,7 +13,6 @@ const Settings = ({ role }) => {
     systemNotifs: true
   });
   const [maintenanceStats, setMaintenanceStats] = useState({
-    lastBackup: 'April 10, 2024, 2:30 AM',
     cacheSize: '256MB'
   });
 
@@ -65,26 +64,6 @@ const Settings = ({ role }) => {
 
   const handleUpdatePreferences = () => {
     showNotification('Notification preferences updated successfully!', 'success');
-  };
-
-  const handleBackupNow = () => {
-    // Update the last backup time
-    const now = new Date();
-    const formattedTime = now.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-    
-    setMaintenanceStats(prev => ({
-      ...prev,
-      lastBackup: formattedTime
-    }));
-    
-    showNotification('Database backup completed successfully!', 'success');
   };
 
   const handleClearCache = () => {
@@ -209,25 +188,13 @@ const Settings = ({ role }) => {
         <div className="row">
           <div className="col-12">
             <div className="card">
-              <div className="card-header">
-                <h5 className="mb-0">System Maintenance</h5>
-              </div>
               <div className="card-body">
+                <h5 className="card-title">System Maintenance</h5>
+                <p className="card-text">
+                  Manage system maintenance tasks and monitor system health.
+                </p>
+                
                 <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <div className="card bg-light">
-                      <div className="card-body">
-                        <h6 className="card-title">Database Backup</h6>
-                        <p className="card-text">Last backup: {maintenanceStats.lastBackup}</p>
-                        <button 
-                          className="btn btn-primary"
-                          onClick={handleBackupNow}
-                        >
-                          Backup Now
-                        </button>
-                      </div>
-                    </div>
-                  </div>
                   <div className="col-md-6 mb-3">
                     <div className="card bg-light">
                       <div className="card-body">
