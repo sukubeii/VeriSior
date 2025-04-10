@@ -3,21 +3,47 @@ import RoleLayout from '../common/RoleLayout';
 
 const IDManagement = ({ role }) => {
   const [notifications, setNotifications] = useState([]);
-  const [applications, setApplications] = useState([
+  const [activeTab, setActiveTab] = useState('new');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [dateFilter, setDateFilter] = useState('');
+
+  const [newApplications, setNewApplications] = useState([
     {
       id: 'SC-2024-001',
       name: 'Juan Dela Cruz',
       status: 'Pending',
-      dateApplied: '2024-04-01'
+      dateApplied: '2024-04-01',
+      type: 'New'
     },
     {
       id: 'SC-2024-002',
       name: 'Maria Santos',
       status: 'Approved',
-      dateApplied: '2024-04-02'
+      dateApplied: '2024-04-02',
+      type: 'New'
     }
   ]);
   
+  const [renewalApplications, setRenewalApplications] = useState([
+    {
+      id: 'SC-2024-003',
+      name: 'Pedro Reyes',
+      status: 'Pending',
+      dateApplied: '2024-04-03',
+      type: 'Renewal',
+      previousID: 'SC-2023-045'
+    },
+    {
+      id: 'SC-2024-004',
+      name: 'Ana Garcia',
+      status: 'Approved',
+      dateApplied: '2024-04-04',
+      type: 'Renewal',
+      previousID: 'SC-2023-032'
+    }
+  ]);
+
   const [tasks, setTasks] = useState([
     {
       id: 'T-2024-001',
@@ -49,30 +75,54 @@ const IDManagement = ({ role }) => {
   };
 
   // Admin functions
-  const handleApproveID = (id) => {
-    setApplications(prev => 
-      prev.map(app => 
-        app.id === id ? { ...app, status: 'Approved' } : app
-      )
-    );
+  const handleApproveID = (id, isRenewal) => {
+    const updateApplications = (applications, setApplications) => {
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === id ? { ...app, status: 'Approved' } : app
+        )
+      );
+    };
+
+    if (isRenewal) {
+      updateApplications(renewalApplications, setRenewalApplications);
+    } else {
+      updateApplications(newApplications, setNewApplications);
+    }
     showNotification(`ID ${id} has been approved`, 'success');
   };
 
-  const handleRejectID = (id) => {
-    setApplications(prev => 
-      prev.map(app => 
-        app.id === id ? { ...app, status: 'Rejected' } : app
-      )
-    );
+  const handleRejectID = (id, isRenewal) => {
+    const updateApplications = (applications, setApplications) => {
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === id ? { ...app, status: 'Rejected' } : app
+        )
+      );
+    };
+
+    if (isRenewal) {
+      updateApplications(renewalApplications, setRenewalApplications);
+    } else {
+      updateApplications(newApplications, setNewApplications);
+    }
     showNotification(`ID ${id} has been rejected`, 'danger');
   };
 
-  const handleRevokeID = (id) => {
-    setApplications(prev => 
-      prev.map(app => 
-        app.id === id ? { ...app, status: 'Revoked' } : app
-      )
-    );
+  const handleRevokeID = (id, isRenewal) => {
+    const updateApplications = (applications, setApplications) => {
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === id ? { ...app, status: 'Revoked' } : app
+        )
+      );
+    };
+
+    if (isRenewal) {
+      updateApplications(renewalApplications, setRenewalApplications);
+    } else {
+      updateApplications(newApplications, setNewApplications);
+    }
     showNotification(`ID ${id} has been revoked`, 'warning');
   };
 
@@ -81,18 +131,115 @@ const IDManagement = ({ role }) => {
   };
 
   const handlePrintID = (id) => {
-    showNotification(`Printing ID ${id}`, 'info');
+    // In a real application, this would generate a PDF with the ID card
+    // using the approved template and applicant information
+    showNotification('Generating ID card...', 'info');
+
+    // Simulate ID generation delay
+    setTimeout(() => {
+      // Create a dummy ID card data
+      const idCardData = {
+        id: id,
+        template: "Standard ID Card",
+        applicantName: newApplications.find(app => app.id === id)?.name || "Unknown",
+        dateGenerated: new Date().toISOString(),
+        qrCode: `https://verisior.com/verify/${id}`
+      };
+
+      // Create a simple HTML representation of the ID card
+      const idCardHTML = `
+        <html>
+          <head>
+            <title>ID Card - ${id}</title>
+            <style>
+              body { font-family: Arial, sans-serif; }
+              .id-card {
+                width: 3.375in;
+                height: 2.125in;
+                border: 1px solid #000;
+                padding: 20px;
+                margin: 20px;
+                position: relative;
+              }
+              .id-card h2 { margin: 0 0 10px 0; }
+              .id-card p { margin: 5px 0; }
+              .qr-code {
+                position: absolute;
+                right: 20px;
+                top: 20px;
+                width: 60px;
+                height: 60px;
+                border: 1px solid #000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="id-card">
+              <h2>VERISIOR ID CARD</h2>
+              <p><strong>ID:</strong> ${idCardData.id}</p>
+              <p><strong>Name:</strong> ${idCardData.applicantName}</p>
+              <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+              <div class="qr-code">QR</div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(idCardHTML);
+      printWindow.document.close();
+
+      // Print the window
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+        showNotification(`ID ${id} has been sent to printer`, 'success');
+      }, 500);
+    }, 1500);
   };
 
-  const handleAddNewID = () => {
+  const handleAddNewApplication = () => {
     const newID = {
-      id: `SC-2024-00${applications.length + 1}`,
+      id: `SC-2024-00${newApplications.length + renewalApplications.length + 1}`,
       name: 'New Applicant',
       status: 'Pending',
-      dateApplied: '2024-04-09'
+      dateApplied: new Date().toISOString().split('T')[0],
+      type: activeTab === 'renewal' ? 'Renewal' : 'New'
     };
-    setApplications(prev => [newID, ...prev]);
-    showNotification('New ID application added', 'success');
+
+    if (activeTab === 'renewal') {
+      setRenewalApplications(prev => [newID, ...prev]);
+    } else {
+      setNewApplications(prev => [newID, ...prev]);
+    }
+    showNotification('New application added', 'success');
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleStatusFilterChange = (e) => {
+    setFilterStatus(e.target.value);
+  };
+
+  const handleDateFilterChange = (e) => {
+    setDateFilter(e.target.value);
+  };
+
+  const filterApplications = (applications) => {
+    return applications.filter(app => {
+      const matchesSearch = app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          app.id.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = filterStatus === 'all' || app.status.toLowerCase() === filterStatus.toLowerCase();
+      const matchesDate = !dateFilter || app.dateApplied === dateFilter;
+
+      return matchesSearch && matchesStatus && matchesDate;
+    });
   };
 
   // Employee functions
@@ -130,208 +277,186 @@ const IDManagement = ({ role }) => {
   };
 
   const getIDManagementContent = () => {
-    switch (role) {
-      case "admin":
-        return (
-          <div className="id-management-content">
-            <h1 className="mb-4">ID Management</h1>
-            
-            {/* Notification area */}
-            {notifications.length > 0 && (
-              <div className="mb-4">
-                {notifications.map(notification => (
-                  <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
-                    {notification.message}
-                    <button type="button" className="btn-close" onClick={() => setNotifications(current => 
-                      current.filter(notif => notif.id !== notification.id)
-                    )}></button>
-                  </div>
-                ))}
+    if (role !== "admin") {
+      return (
+        <div className="alert alert-danger">
+          You don't have permission to access this page.
+        </div>
+      );
+    }
+
+    const filteredApplications = activeTab === 'renewal' 
+      ? filterApplications(renewalApplications)
+      : filterApplications(newApplications);
+
+    return (
+      <div className="id-management-content">
+        <h1 className="mb-4">ID Management</h1>
+        
+        {/* Notification area */}
+        {notifications.length > 0 && (
+          <div className="mb-4">
+            {notifications.map(notification => (
+              <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
+                {notification.message}
+                <button type="button" className="btn-close" onClick={() => setNotifications(current => 
+                  current.filter(notif => notif.id !== notification.id)
+                )}></button>
               </div>
-            )}
-            
-            <div className="card">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h5 className="card-title mb-0">ID Applications</h5>
-                  <button className="btn btn-primary" onClick={handleAddNewID}>Add New ID</button>
-                </div>
-                <div className="table-responsive">
-                  <table className="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>ID Number</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>Date Applied</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {applications.map(app => (
-                        <tr key={app.id}>
-                          <td>{app.id}</td>
-                          <td>{app.name}</td>
-                          <td>
-                            <span className={`badge bg-${
-                              app.status === 'Approved' ? 'success' : 
-                              app.status === 'Pending' ? 'warning' : 
-                              app.status === 'Rejected' ? 'danger' : 
-                              'secondary'
-                            }`}>
-                              {app.status}
-                            </span>
-                          </td>
-                          <td>{app.dateApplied}</td>
-                          <td>
-                            <button 
-                              className="btn btn-sm btn-info me-2"
-                              onClick={() => handleViewID(app.id)}
-                            >
-                              View
-                            </button>
-                            
-                            {app.status === 'Pending' && (
-                              <>
-                                <button 
-                                  className="btn btn-sm btn-success me-2"
-                                  onClick={() => handleApproveID(app.id)}
-                                >
-                                  Approve
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-danger"
-                                  onClick={() => handleRejectID(app.id)}
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                            
-                            {app.status === 'Approved' && (
-                              <>
-                                <button 
-                                  className="btn btn-sm btn-secondary me-2"
-                                  onClick={() => handlePrintID(app.id)}
-                                >
-                                  Print
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-danger"
-                                  onClick={() => handleRevokeID(app.id)}
-                                >
-                                  Revoke
-                                </button>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-        );
-      case "employee":
-        return (
-          <div className="id-processing-content">
-            <h1 className="mb-4">ID Processing</h1>
-            
-            {/* Notification area */}
-            {notifications.length > 0 && (
-              <div className="mb-4">
-                {notifications.map(notification => (
-                  <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
-                    {notification.message}
-                    <button type="button" className="btn-close" onClick={() => setNotifications(current => 
-                      current.filter(notif => notif.id !== notification.id)
-                    )}></button>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <div className="card">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h5 className="card-title mb-0">My Tasks</h5>
-                  <button 
-                    className="btn btn-primary"
-                    onClick={handleStartNewTask}
-                  >
-                    Start New Task
+        )}
+
+        {/* Tabs */}
+        <div className="mb-4">
+          <ul className="nav nav-tabs">
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === 'new' ? 'active' : ''}`}
+                onClick={() => setActiveTab('new')}
+              >
+                New Applications
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${activeTab === 'renewal' ? 'active' : ''}`}
+                onClick={() => setActiveTab('renewal')}
+              >
+                Renewals
+              </button>
+            </li>
+          </ul>
+        </div>
+        
+        <div className="card">
+          <div className="card-body">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h5 className="card-title mb-0">
+                {activeTab === 'renewal' ? 'ID Renewal Applications' : 'New ID Applications'}
+              </h5>
+            </div>
+
+            {/* Filters */}
+            <div className="row mb-4">
+              <div className="col-md-4">
+                <div className="input-group">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search by name or ID..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+                  <button className="btn btn-primary">
+                    <i className="fas fa-search"></i>
                   </button>
                 </div>
-                <div className="table-responsive">
-                  <table className="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Task ID</th>
-                        <th>Applicant Name</th>
-                        <th>Status</th>
-                        <th>Assigned Date</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tasks.map(task => (
-                        <tr key={task.id}>
-                          <td>{task.id}</td>
-                          <td>{task.applicantName}</td>
-                          <td>
-                            <span className={`badge bg-${
-                              task.status === 'Completed' ? 'success' : 
-                              task.status === 'In Progress' ? 'info' : 
-                              'warning'
-                            }`}>
-                              {task.status}
-                            </span>
-                          </td>
-                          <td>{task.assignedDate}</td>
-                          <td>
-                            {task.status === 'In Progress' && (
-                              <button 
-                                className="btn btn-sm btn-primary me-2"
-                                onClick={() => handleProcessTask(task.id)}
-                              >
-                                Complete
-                              </button>
-                            )}
-                            
-                            {task.status === 'Pending' && (
-                              <button 
-                                className="btn btn-sm btn-primary me-2"
-                                onClick={() => handleStartTask(task.id)}
-                              >
-                                Start
-                              </button>
-                            )}
-                            
-                            <button 
-                              className="btn btn-sm btn-secondary"
-                              onClick={() => handleViewTaskDetails(task.id)}
-                            >
-                              Details
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              </div>
+              <div className="col-md-4">
+                <select
+                  className="form-control"
+                  value={filterStatus}
+                  onChange={handleStatusFilterChange}
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="revoked">Revoked</option>
+                </select>
+              </div>
+              <div className="col-md-4">
+                <input
+                  type="date"
+                  className="form-control"
+                  value={dateFilter}
+                  onChange={handleDateFilterChange}
+                  placeholder="Filter by date"
+                />
               </div>
             </div>
+
+            <div className="table-responsive">
+              <table className="table table-hover">
+                <thead>
+                  <tr>
+                    <th>ID Number</th>
+                    <th>Name</th>
+                    {activeTab === 'renewal' && <th>Previous ID</th>}
+                    <th>Status</th>
+                    <th>Date Applied</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredApplications.map(app => (
+                    <tr key={app.id}>
+                      <td>{app.id}</td>
+                      <td>{app.name}</td>
+                      {activeTab === 'renewal' && <td>{app.previousID}</td>}
+                      <td>
+                        <span className={`badge bg-${
+                          app.status === 'Approved' ? 'success' : 
+                          app.status === 'Pending' ? 'warning' : 
+                          app.status === 'Rejected' ? 'danger' : 
+                          'secondary'
+                        }`}>
+                          {app.status}
+                        </span>
+                      </td>
+                      <td>{app.dateApplied}</td>
+                      <td>
+                        <button 
+                          className="btn btn-sm btn-info me-2"
+                          onClick={() => handleViewID(app.id)}
+                        >
+                          View
+                        </button>
+                        
+                        {app.status === 'Pending' && (
+                          <>
+                            <button 
+                              className="btn btn-sm btn-success me-2"
+                              onClick={() => handleApproveID(app.id, activeTab === 'renewal')}
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-danger"
+                              onClick={() => handleRejectID(app.id, activeTab === 'renewal')}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                        
+                        {app.status === 'Approved' && (
+                          <>
+                            <button 
+                              className="btn btn-sm btn-secondary me-2"
+                              onClick={() => handlePrintID(app.id)}
+                            >
+                              Print ID
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-danger"
+                              onClick={() => handleRevokeID(app.id, activeTab === 'renewal')}
+                            >
+                              Revoke
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        );
-      default:
-        return (
-          <div className="alert alert-danger">
-            You don't have permission to access this page.
-          </div>
-        );
-    }
+        </div>
+      </div>
+    );
   };
 
   return (
