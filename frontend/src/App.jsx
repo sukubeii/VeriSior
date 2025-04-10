@@ -9,8 +9,11 @@ import RoleSwitcher from "./components/specific/RoleSwitcher";
 import Dashboard from "./components/specific/Dashboard";
 import IDManagement from "./components/specific/IDManagement";
 import Profile from "./components/specific/Profile";
-import RoleManagement from "./components/specific/RoleManagement";
 import Settings from "./components/specific/Settings";
+import PageManagement from "./components/specific/PageManagement";
+import SystemManagement from "./components/specific/SystemManagement";
+import UserManagement from "./components/specific/UserManagement";
+import IDTemplateManagement from "./components/specific/IDTemplateManagement";
 
 // Create a wrapper component to use React Router hooks
 function AppContent() {
@@ -30,30 +33,45 @@ function AppContent() {
   const isRoleSpecificPage = (pathname) => {
     return pathname === "/super-admin" || pathname === "/admin" || pathname === "/employee" ||
            pathname.startsWith("/dashboard") || pathname.startsWith("/profile") ||
-           pathname.startsWith("/role-management") || pathname.startsWith("/id-management") ||
-           pathname.startsWith("/admin-management") || pathname.startsWith("/employee-management") ||
-           pathname.startsWith("/settings");
+           pathname.startsWith("/id-management") ||
+           pathname.startsWith("/settings") || pathname.startsWith("/system-management") ||
+           pathname.startsWith("/user-management") || pathname.startsWith("/id-template") ||
+           pathname.startsWith("/page-management");
   };
 
   // Function to determine available navigation items based on role
   const getNavItems = (role) => {
-    const commonItems = [
-      { path: "/dashboard", label: "Dashboard" },
-      { path: "/profile", label: "Profile" },
-      { path: "/id-management", label: "ID Management" },
-      { path: "/settings", label: "Settings" }
-    ];
-    
-    // Add Role Management for admin and superAdmin
-    if (role === "admin" || role === "superAdmin") {
-      return [
-        ...commonItems.slice(0, 2), // Dashboard and Profile
-        { path: "/role-management", label: "Role Management" },
-        ...commonItems.slice(2) // ID Management and Settings
-      ];
+    switch (role) {
+      case "superAdmin":
+        return [
+          { path: "/dashboard", label: "Dashboard" },
+          { path: "/profile", label: "Profile" },
+          { path: "/user-management", label: "User Management" },
+          { path: "/id-template", label: "ID Template" },
+          { path: "/system-management", label: "System Management" },
+          { path: "/settings", label: "Settings" }
+        ];
+      case "admin":
+        return [
+          { path: "/dashboard", label: "Dashboard" },
+          { path: "/profile", label: "Profile" },
+          { path: "/user-management", label: "Employee Management" },
+          { path: "/id-template", label: "ID Template" },
+          { path: "/id-management", label: "ID Management" },
+          { path: "/page-management", label: "Page Management" },
+          { path: "/settings", label: "Settings" }
+        ];
+      case "employee":
+        return [
+          { path: "/dashboard", label: "Dashboard" },
+          { path: "/profile", label: "Profile" },
+          { path: "/id-processing", label: "ID Processing" },
+          { path: "/customer-service", label: "Customer Service" },
+          { path: "/settings", label: "Settings" }
+        ];
+      default:
+        return [];
     }
-    
-    return commonItems; // For employee role
   };
 
   // Handle role change from the role switcher
@@ -111,11 +129,17 @@ function AppContent() {
           {/* Private Routes (should be protected with authentication) */}
           <Route path="/dashboard" element={<Dashboard role={userRole} />} />
           <Route path="/profile" element={<Profile role={userRole} />} />
-          <Route path="/role-management" element={<RoleManagement role={userRole} />} />
           <Route path="/id-management" element={<IDManagement role={userRole} />} />
           <Route path="/settings" element={<Settings role={userRole} />} />
-          <Route path="/admin-management" element={<h2>Admin Management</h2>} />
-          <Route path="/employee-management" element={<h2>Employee Management</h2>} />
+          <Route path="/page-management" element={<PageManagement role={userRole} />} />
+          <Route path="/system-management" element={<SystemManagement role={userRole} />} />
+          <Route path="/user-management" element={<UserManagement role={userRole} />} />
+          <Route path="/id-template" element={<IDTemplateManagement role={userRole} />} />
+          
+          {/* Redirects for removed components */}
+          <Route path="/admin-management" element={<UserManagement role={userRole} />} />
+          <Route path="/employee-management" element={<UserManagement role={userRole} />} />
+          <Route path="/role-management" element={<UserManagement role={userRole} />} />
           
           {/* Role-specific pages */}
           <Route path="/admin" element={
@@ -128,7 +152,7 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">User Management</h5>
                       <p className="card-text">Manage system users and permissions</p>
-                      <button className="btn btn-primary">View Users</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/user-management')}>View Users</button>
                     </div>
                   </div>
                 </div>
@@ -137,7 +161,7 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">Applications</h5>
                       <p className="card-text">Review and process pending applications</p>
-                      <button className="btn btn-primary">View Applications</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/id-management')}>View Applications</button>
                     </div>
                   </div>
                 </div>
@@ -146,7 +170,7 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">System Logs</h5>
                       <p className="card-text">View system activity and audit logs</p>
-                      <button className="btn btn-primary">View Logs</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/settings')}>View Logs</button>
                     </div>
                   </div>
                 </div>
@@ -163,7 +187,7 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">My Tasks</h5>
                       <p className="card-text">View and manage your assigned tasks</p>
-                      <button className="btn btn-primary">View Tasks</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/id-management')}>View Tasks</button>
                     </div>
                   </div>
                 </div>
@@ -172,7 +196,7 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">My Calendar</h5>
                       <p className="card-text">Schedule and view appointments</p>
-                      <button className="btn btn-primary">Open Calendar</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/profile')}>Open Calendar</button>
                     </div>
                   </div>
                 </div>
@@ -181,7 +205,7 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">Documents</h5>
                       <p className="card-text">Access and manage your documents</p>
-                      <button className="btn btn-primary">View Documents</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/profile')}>View Documents</button>
                     </div>
                   </div>
                 </div>
@@ -198,16 +222,16 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">System Configuration</h5>
                       <p className="card-text">Configure global system settings</p>
-                      <button className="btn btn-primary">Configure</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/system-management')}>Configure</button>
                     </div>
                   </div>
                 </div>
                 <div className="col-md-4 mb-3">
                   <div className="card">
                     <div className="card-body">
-                      <h5 className="card-title">Admin Management</h5>
-                      <p className="card-text">Manage admin accounts and permissions</p>
-                      <button className="btn btn-primary">Manage Admins</button>
+                      <h5 className="card-title">User Management</h5>
+                      <p className="card-text">Manage accounts and permissions</p>
+                      <button className="btn btn-primary" onClick={() => navigate('/user-management')}>Manage Users</button>
                     </div>
                   </div>
                 </div>
@@ -216,7 +240,7 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">Analytics</h5>
                       <p className="card-text">View comprehensive system analytics</p>
-                      <button className="btn btn-primary">View Analytics</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>View Analytics</button>
                     </div>
                   </div>
                 </div>
@@ -225,7 +249,7 @@ function AppContent() {
                     <div className="card-body">
                       <h5 className="card-title">Security Settings</h5>
                       <p className="card-text">Manage system security and access controls</p>
-                      <button className="btn btn-primary">Security Panel</button>
+                      <button className="btn btn-primary" onClick={() => navigate('/system-management')}>Security Panel</button>
                     </div>
                   </div>
                 </div>
