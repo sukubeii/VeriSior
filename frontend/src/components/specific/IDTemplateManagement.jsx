@@ -3,7 +3,30 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const IDTemplateManagement = ({ role }) => {
-  const [templates, setTemplates] = useState([]);
+  const [templates, setTemplates] = useState([
+    {
+      templateID: 1,
+      templateName: "Standard ID Card",
+      templateDescription: "Default template for government IDs",
+      status: "Active",
+      reviewStatus: "Approved",
+      createdAt: "2024-03-15",
+      createdBy: "Admin 1",
+      approvedBy: "Super Admin",
+      approvedAt: "2024-03-16"
+    },
+    {
+      templateID: 2,
+      templateName: "Employee ID Card",
+      templateDescription: "Template for employee identification",
+      status: "Pending Review",
+      reviewStatus: "Submitted",
+      createdAt: "2024-04-08",
+      createdBy: "Admin 2",
+      approvedBy: null,
+      approvedAt: null
+    }
+  ]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -13,42 +36,17 @@ const IDTemplateManagement = ({ role }) => {
     templateFile: null
   });
   const [permissions, setPermissions] = useState({
-    canCreate: false,
-    canEdit: false,
-    canUpload: false,
-    canDelete: false
+    canCreate: role === 'admin',
+    canEdit: role === 'admin',
+    canUpload: role === 'admin',
+    canDelete: role === 'admin',
+    canApprove: role === 'superAdmin'
   });
 
   useEffect(() => {
-    // Fetch template permissions based on role
-    const fetchPermissions = async () => {
-      try {
-        const response = await fetch(`/api/template-permissions/${role}`);
-        const data = await response.json();
-        setPermissions(data);
-      } catch (error) {
-        console.error('Error fetching permissions:', error);
-        toast.error('Failed to load permissions');
-      }
-    };
-
-    // Fetch templates
-    const fetchTemplates = async () => {
-      try {
-        const response = await fetch('/api/templates');
-        const data = await response.json();
-        setTemplates(data);
-      } catch (error) {
-        console.error('Error fetching templates:', error);
-        toast.error('Failed to load templates');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPermissions();
-    fetchTemplates();
-  }, [role]);
+    // Simulate fetching templates
+    setLoading(false);
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -75,22 +73,39 @@ const IDTemplateManagement = ({ role }) => {
     }
 
     try {
-      const url = selectedTemplate 
-        ? `/api/templates/${selectedTemplate.templateID}`
-        : '/api/templates';
-      
-      const response = await fetch(url, {
-        method: selectedTemplate ? 'PUT' : 'POST',
-        body: formDataToSend
-      });
+      // Simulate API call
+      const newTemplate = {
+        templateID: templates.length + 1,
+        templateName: formData.templateName,
+        templateDescription: formData.templateDescription,
+        status: "Pending Review",
+        reviewStatus: "Submitted",
+        createdAt: new Date().toISOString().split('T')[0],
+        createdBy: "Current Admin",
+        approvedBy: null,
+        approvedAt: null
+      };
 
-      if (!response.ok) throw new Error('Failed to save template');
+      if (selectedTemplate) {
+        // Update existing template
+        setTemplates(prev => prev.map(t => 
+          t.templateID === selectedTemplate.templateID 
+            ? { ...t, ...newTemplate, reviewStatus: "Submitted" }
+            : t
+        ));
+        toast.success('Template updated and submitted for review');
+      } else {
+        // Add new template
+        setTemplates(prev => [...prev, newTemplate]);
+        toast.success('New template submitted for review');
+      }
 
-      toast.success(`Template ${selectedTemplate ? 'updated' : 'created'} successfully`);
       setShowModal(false);
-      // Refresh templates list
-      const updatedTemplates = await fetch('/api/templates').then(res => res.json());
-      setTemplates(updatedTemplates);
+      setFormData({
+        templateName: '',
+        templateDescription: '',
+        templateFile: null
+      });
     } catch (error) {
       console.error('Error saving template:', error);
       toast.error('Failed to save template');
@@ -101,14 +116,8 @@ const IDTemplateManagement = ({ role }) => {
     if (!window.confirm('Are you sure you want to delete this template?')) return;
 
     try {
-      const response = await fetch(`/api/templates/${templateID}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) throw new Error('Failed to delete template');
-
+      setTemplates(prev => prev.filter(t => t.templateID !== templateID));
       toast.success('Template deleted successfully');
-      setTemplates(templates.filter(t => t.templateID !== templateID));
     } catch (error) {
       console.error('Error deleting template:', error);
       toast.error('Failed to delete template');
@@ -116,6 +125,11 @@ const IDTemplateManagement = ({ role }) => {
   };
 
   const handleEdit = (template) => {
+    if (template.reviewStatus === "Approved" && role === "admin") {
+      toast.warning('Cannot edit approved templates. Please create a new version instead.');
+      return;
+    }
+    
     setSelectedTemplate(template);
     setFormData({
       templateName: template.templateName,
@@ -135,6 +149,13 @@ const IDTemplateManagement = ({ role }) => {
     setShowModal(true);
   };
 
+  const getStatusBadgeClass = (status, reviewStatus) => {
+    if (status === "Active" && reviewStatus === "Approved") return "bg-success";
+    if (reviewStatus === "Submitted") return "bg-warning";
+    if (reviewStatus === "Rejected") return "bg-danger";
+    return "bg-secondary";
+  };
+
   if (loading) {
     return <div className="text-center mt-5">Loading...</div>;
   }
@@ -145,7 +166,7 @@ const IDTemplateManagement = ({ role }) => {
         <h2>ID Template Management</h2>
         {permissions.canCreate && (
           <button className="btn btn-primary" onClick={handleNewTemplate}>
-            Create New Template
+            Upload New Template
           </button>
         )}
       </div>
@@ -157,7 +178,9 @@ const IDTemplateManagement = ({ role }) => {
               <th>Template Name</th>
               <th>Description</th>
               <th>Status</th>
+              <th>Created By</th>
               <th>Created At</th>
+              <th>Approved By</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -167,13 +190,21 @@ const IDTemplateManagement = ({ role }) => {
                 <td>{template.templateName}</td>
                 <td>{template.templateDescription}</td>
                 <td>
-                  <span className={`badge ${template.isActive ? 'bg-success' : 'bg-danger'}`}>
-                    {template.isActive ? 'Active' : 'Inactive'}
+                  <span className={`badge ${getStatusBadgeClass(template.status, template.reviewStatus)}`}>
+                    {template.reviewStatus}
                   </span>
                 </td>
-                <td>{new Date(template.createdAt).toLocaleDateString()}</td>
+                <td>{template.createdBy}</td>
+                <td>{template.createdAt}</td>
+                <td>{template.approvedBy || '-'}</td>
                 <td>
-                  {(permissions.canEdit || permissions.canUpload) && (
+                  <button
+                    className="btn btn-sm btn-info me-2"
+                    onClick={() => handleEdit(template)}
+                  >
+                    View
+                  </button>
+                  {permissions.canEdit && template.reviewStatus !== "Approved" && (
                     <button
                       className="btn btn-sm btn-primary me-2"
                       onClick={() => handleEdit(template)}
@@ -181,7 +212,7 @@ const IDTemplateManagement = ({ role }) => {
                       Edit
                     </button>
                   )}
-                  {permissions.canDelete && (
+                  {permissions.canDelete && template.reviewStatus !== "Approved" && (
                     <button
                       className="btn btn-sm btn-danger"
                       onClick={() => handleDelete(template.templateID)}
@@ -203,7 +234,7 @@ const IDTemplateManagement = ({ role }) => {
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  {selectedTemplate ? 'Edit Template' : 'Create New Template'}
+                  {selectedTemplate ? 'Edit Template' : 'Upload New Template'}
                 </h5>
                 <button
                   type="button"
@@ -231,6 +262,7 @@ const IDTemplateManagement = ({ role }) => {
                       name="templateDescription"
                       value={formData.templateDescription}
                       onChange={handleInputChange}
+                      rows="3"
                     />
                   </div>
                   <div className="mb-3">
@@ -242,7 +274,16 @@ const IDTemplateManagement = ({ role }) => {
                       onChange={handleFileChange}
                       required={!selectedTemplate}
                     />
+                    <small className="form-text text-muted">
+                      Supported formats: PDF, JPG, PNG
+                    </small>
                   </div>
+                  {role === 'admin' && (
+                    <div className="alert alert-info">
+                      <i className="fas fa-info-circle me-2"></i>
+                      This template will be submitted for review by a Super Admin before it can be used.
+                    </div>
+                  )}
                   <div className="text-end">
                     <button
                       type="button"
@@ -252,7 +293,7 @@ const IDTemplateManagement = ({ role }) => {
                       Cancel
                     </button>
                     <button type="submit" className="btn btn-primary">
-                      {selectedTemplate ? 'Update' : 'Create'}
+                      {selectedTemplate ? 'Update & Submit' : 'Upload & Submit'}
                     </button>
                   </div>
                 </form>
@@ -261,6 +302,9 @@ const IDTemplateManagement = ({ role }) => {
           </div>
         </div>
       )}
+
+      {/* Modal Backdrop */}
+      {showModal && <div className="modal-backdrop show"></div>}
     </div>
   );
 };
