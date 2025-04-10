@@ -14,6 +14,7 @@ import {
   ArcElement,
   DoughnutController
 } from 'chart.js';
+import { useNavigate } from 'react-router-dom';
 
 // Register ChartJS components
 ChartJS.register(
@@ -36,42 +37,42 @@ const SuperAdminDashboard = ({ role }) => {
     {
       id: 1,
       type: 'user',
-      action: 'Login',
+      action: 'ID Approved',
       user: 'Admin 1',
       timestamp: '2024-04-10 10:30:45',
-      details: 'User logged in successfully'
+      details: 'ID application SC-2024-003 approved'
     },
     {
       id: 2,
       type: 'system',
-      action: 'Database Update',
+      action: 'Template Updated',
       user: 'System',
       timestamp: '2024-04-10 10:31:15',
-      details: 'Database backup completed'
+      details: 'New ID template submitted for review'
     },
     {
       id: 3,
       type: 'user',
-      action: 'ID Created',
-      user: 'Employee 1',
+      action: 'ID Rejected',
+      user: 'Admin 2',
       timestamp: '2024-04-10 09:15:22',
-      details: 'New ID SC-2024-003 created for Juan Torres'
+      details: 'ID application SC-2024-004 rejected - incomplete requirements'
     },
     {
       id: 4,
       type: 'user',
-      action: 'ID Approved',
-      user: 'Admin 2',
+      action: 'Page Updated',
+      user: 'Admin 1',
       timestamp: '2024-04-09 16:45:32',
-      details: 'ID SC-2024-002 approved for Maria Santos'
+      details: 'Application form requirements updated'
     },
     {
       id: 5,
       type: 'system',
-      action: 'System Update',
-      user: 'System',
+      action: 'Employee Added',
+      user: 'Admin 2',
       timestamp: '2024-04-09 01:00:00',
-      details: 'Scheduled system maintenance completed'
+      details: 'New employee account created'
     }
   ]);
   
@@ -115,6 +116,15 @@ const SuperAdminDashboard = ({ role }) => {
       important: true
     }
   ]);
+
+  const [adminStats, setAdminStats] = useState({
+    pendingApplications: 18,
+    processedToday: 24,
+    activeEmployees: 42,
+    templatesPendingReview: 3
+  });
+
+  const navigate = useNavigate();
 
   // Update current time every minute
   useEffect(() => {
@@ -231,6 +241,223 @@ const SuperAdminDashboard = ({ role }) => {
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  if (role === 'admin') {
+    return (
+      <RoleLayout role={role}>
+        <div className="admin-dashboard">
+          <div className="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 className="h3 mb-0 text-gray-800">Admin Dashboard</h1>
+            <div className="d-none d-sm-inline-block ml-auto mr-3">
+              <div className="text-right">
+                <div className="text-primary">{formattedDate}</div>
+                <div className="h4">{formattedTime}</div>
+              </div>
+            </div>
+            <div className="d-none d-sm-inline-block">
+              <button 
+                className="btn btn-primary shadow-sm"
+                onClick={() => handleButtonClick('Refresh dashboard')}
+              >
+                <i className="fas fa-sync-alt fa-sm mr-2"></i>Refresh
+              </button>
+            </div>
+          </div>
+          
+          {/* Notification area */}
+          {notifications.length > 0 && (
+            <div className="mb-4">
+              {notifications.map(notification => (
+                <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
+                  {notification.message}
+                  <button type="button" className="btn-close" onClick={() => setNotifications(current => 
+                    current.filter(notif => notif.id !== notification.id)
+                  )}></button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Admin Stats Cards */}
+          <div className="row">
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-primary shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        Pending Applications
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.pendingApplications}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-success shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                        Processed Today
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.processedToday}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-info shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                        Active Employees
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.activeEmployees}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-warning shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                        Templates Pending Review
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.templatesPendingReview}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-file-alt fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Activity Logs Section */}
+          <div className="row">
+            <div className="col-lg-6">
+              <div className="card mb-4">
+                <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                  <h6 className="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                  <button className="btn btn-sm btn-primary" onClick={downloadLogs}>
+                    <i className="fas fa-download fa-sm"></i> Download Logs
+                  </button>
+                </div>
+                <div className="card-body">
+                  <div className="activity-timeline">
+                    {activityLogs.map((log, index) => (
+                      <div key={log.id} className="timeline-item">
+                        <div className="timeline-item-marker">
+                          <div className={`timeline-item-marker-indicator bg-${log.type === 'user' ? 'primary' : 'warning'}`}></div>
+                        </div>
+                        <div className="timeline-item-content pt-0">
+                          <div className="timeline-item-content-header d-flex">
+                            <div className="mr-auto">
+                              <span className="font-weight-bold">{log.action}</span>
+                              <span className="text-muted ml-2">by {log.user}</span>
+                            </div>
+                            <div className="text-xs text-muted">{log.timestamp}</div>
+                          </div>
+                          <div className="timeline-item-content-details small text-muted">
+                            {log.details}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions Section */}
+            <div className="col-lg-6">
+              <div className="card mb-4">
+                <div className="card-header py-3">
+                  <h6 className="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <div className="card border-left-primary h-100">
+                        <div className="card-body">
+                          <h5 className="card-title">ID Applications</h5>
+                          <p className="card-text">Review and process pending ID applications</p>
+                          <button className="btn btn-primary" onClick={() => navigate('/id-management')}>
+                            Process Applications
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <div className="card border-left-success h-100">
+                        <div className="card-body">
+                          <h5 className="card-title">Employee Management</h5>
+                          <p className="card-text">Manage employee accounts and permissions</p>
+                          <button className="btn btn-success" onClick={() => navigate('/user-management')}>
+                            Manage Employees
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <div className="card border-left-info h-100">
+                        <div className="card-body">
+                          <h5 className="card-title">ID Templates</h5>
+                          <p className="card-text">View and manage ID templates</p>
+                          <button className="btn btn-info" onClick={() => navigate('/id-template')}>
+                            Manage Templates
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-6 mb-3">
+                      <div className="card border-left-warning h-100">
+                        <div className="card-body">
+                          <h5 className="card-title">Page Content</h5>
+                          <p className="card-text">Update website content and forms</p>
+                          <button className="btn btn-warning" onClick={() => navigate('/page-management')}>
+                            Manage Content
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </RoleLayout>
+    );
+  }
 
   return (
     <RoleLayout role={role}>
