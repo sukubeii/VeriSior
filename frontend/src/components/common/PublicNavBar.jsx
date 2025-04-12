@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../images/logo1.png";
+import { authService } from "../../services/api";
+import { toast } from "react-toastify";
 
 const PublicNavBar = ({ isApplicationForm = false }) => {
   const navigate = useNavigate();
@@ -8,19 +10,18 @@ const PublicNavBar = ({ isApplicationForm = false }) => {
   const [pendingNavigation, setPendingNavigation] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  
+
   // Login form state
   const [loginForm, setLoginForm] = useState({
     email: "",
-    password: "",
-    role: "admin" // Default role selection
+    password: ""
   });
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Define menu items for public pages
-  const publicMenuItems = ["Home", "About", "Services", "Contact", "Support", "Login"];
-  const publicPaths = ["/", "/about", "/services", "/contact", "/support", "#"];
+  const publicMenuItems = ["Home", "About", "Contact", "Support", "Login"];
+  const publicPaths = ["/", "/about", "/contact", "/support", "#"];
 
   // Scroll to section function
   const scrollToSection = (sectionId) => {
@@ -47,7 +48,7 @@ const PublicNavBar = ({ isApplicationForm = false }) => {
       setIsMobileMenuOpen(false);
       return;
     }
-    
+
     // If we're on the landing page and not navigating to another page
     if (window.location.pathname === "/" && index < publicPaths.length - 1 && publicPaths[index] !== "#") {
       // Scroll to the section instead of navigating
@@ -81,7 +82,7 @@ const PublicNavBar = ({ isApplicationForm = false }) => {
       ...loginForm,
       [name]: value,
     });
-    
+
     // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors({
@@ -97,61 +98,76 @@ const PublicNavBar = ({ isApplicationForm = false }) => {
     return emailRegex.test(email);
   };
 
-  // Validate password strength (simplified for testing)
-  const validatePassword = (password) => {
-    // For testing purposes, accept any password with at least 4 characters
-    return password.length >= 4;
-  };
-
   // Handle login form submission
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    
+
     // Validate form inputs
     const errors = {};
-    
+
     if (!loginForm.email.trim()) {
       errors.email = "Email is required";
     } else if (!validateEmail(loginForm.email)) {
       errors.email = "Please enter a valid email address";
     }
-    
+
     if (!loginForm.password) {
       errors.password = "Password is required";
-    } else if (!validatePassword(loginForm.password)) {
-      errors.password = "Password must be at least 4 characters";
     }
-    
+
     // If there are errors, update state and prevent submission
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
-    
+
     // If validation passes, proceed with login
     setIsSubmitting(true);
-    
-    // Simulate API call for login (replace with your actual authentication logic)
-    setTimeout(() => {
-      console.log("Login form submitted:", loginForm);
-      
-      // On successful login, close modal and navigate to role-specific page
+
+    try {
+      // Call the authentication service
+      const response = await authService.login(loginForm.email, loginForm.password);
+
+      // On successful login, close modal
       setShowLoginModal(false);
-      setIsSubmitting(false);
-      
-      // Navigate based on selected role
-      const rolePath = loginForm.role === "superAdmin" ? "/super-admin" : 
-                      loginForm.role === "admin" ? "/admin" : "/employee";
+
+      // Show success message
+      toast.success("Login successful!");
+
+      // Navigate based on user role
+      const role = response.user.role;
+      const rolePath = role === "super_admin" ? "/super-admin" :
+                      role === "admin" ? "/admin" : "/employee";
       navigate(rolePath);
-      
-      // Reset form
-      setLoginForm({
-        email: "",
-        password: "",
-        role: "admin"
-      });
-    }, 1000);
+    } catch (error) {
+      console.error("Login error:", error);
+
+      // Handle specific error messages
+      let errorMessage = "Login failed. Please check your credentials.";
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = "Invalid email or password.";
+        } else if (error.response.data?.detail) {
+          errorMessage = error.response.data.detail;
+        }
+      }
+
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      // If user is already logged in, redirect to appropriate dashboard
+      const rolePath = currentUser.role === "super_admin" ? "/super-admin" : 
+                      currentUser.role === "admin" ? "/admin" : "/employee";
+      navigate(rolePath);
+    }
+  }, [navigate]);
 
   // Handle window resize for responsive navigation
   useEffect(() => {
@@ -290,7 +306,7 @@ const PublicNavBar = ({ isApplicationForm = false }) => {
         </div>
       )}
 
-      {/* Login Modal with Role Selection */}
+      {/* Login Modal */}
       {showLoginModal && (
         <div className="login-modal" style={{
           position: "fixed",
@@ -355,25 +371,6 @@ const PublicNavBar = ({ isApplicationForm = false }) => {
                 )}
               </div>
               
-              {/* Role selection for testing */}
-              <div className="mb-4">
-                <label htmlFor="role" className="form-label">Role (For Testing)</label>
-                <select
-                  className="form-select"
-                  id="role"
-                  name="role"
-                  value={loginForm.role}
-                  onChange={handleInputChange}
-                >
-                  <option value="admin">Admin</option>
-                  <option value="superAdmin">Super Admin</option>
-                  <option value="employee">Employee</option>
-                </select>
-                <div className="form-text text-muted">
-                  This selection will be removed when backend is implemented.
-                </div>
-              </div>
-              
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="form-check">
                   <input
@@ -398,12 +395,6 @@ const PublicNavBar = ({ isApplicationForm = false }) => {
                 ) : null}
                 {isSubmitting ? 'Logging in...' : 'Login'}
               </button>
-              
-              <div className="text-center mt-3">
-                <p className="mb-0">
-                  Don't have an account? <a href="#" className="text-decoration-none">Sign up</a>
-                </p>
-              </div>
             </form>
           </div>
         </div>
