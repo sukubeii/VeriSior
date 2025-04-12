@@ -12,15 +12,13 @@ const UserManagement = ({ role }) => {
   const allPermissions = [
     { key: 'dashboard', display: 'Dashboard Access' },
     { key: 'profile', display: 'Profile Access' },
-    { key: 'roleManagement', display: 'Role Management Access' },
     { key: 'userManagement', display: 'User Management Access' },
     { key: 'idTemplate', display: 'ID Template Management' },
     { key: 'systemManagement', display: 'System Management' },
     { key: 'idManagement', display: 'ID Management' },
     { key: 'pageManagement', display: 'Page Management' },
     { key: 'employeeManagement', display: 'Employee Management' },
-    { key: 'idProcessing', display: 'ID Processing' },
-    { key: 'customerService', display: 'Customer Service' },
+    { key: 'services', display: 'Services' },
     { key: 'settings', display: 'Settings Access' }
   ];
 
@@ -668,11 +666,53 @@ const UserManagement = ({ role }) => {
     setFilterStatus(e.target.value);
   };
 
+  // Fixed: Updated tab change logic to ensure only one tab is active
   const handleTabChange = (tab) => {
-    setActiveTab(tab);
+    if (tab === 'roles') {
+      setShowRoleSection(true);
+      setActiveTab(''); // Clear activeTab when showing roles
+    } else {
+      setActiveTab(tab);
+      setShowRoleSection(false);
+    }
     setSearchQuery('');
     setFilterStatus('all');
-    setShowRoleSection(false);
+  };
+
+  // New refresh function to update the interface
+  const handleRefresh = () => {
+    // Re-calculate statistics
+    const activeAdmins = admins.filter(admin => admin.status === 'Active').length;
+    const inactiveAdmins = admins.filter(admin => admin.status === 'Inactive').length;
+    const pendingAdmins = admins.filter(admin => admin.status === 'Pending').length;
+
+    const activeEmployees = employees.filter(employee => employee.status === 'Active').length;
+    const inactiveEmployees = employees.filter(employee => employee.status === 'Inactive').length;
+    const pendingEmployees = employees.filter(employee => employee.status === 'Pending').length;
+
+    setUserStats({
+      totalAdmins: admins.length,
+      activeAdmins,
+      inactiveAdmins,
+      pendingAdmins,
+      totalEmployees: employees.length,
+      activeEmployees,
+      inactiveEmployees,
+      pendingEmployees,
+      totalRoles: roles.length
+    });
+
+    // Reload data from localStorage
+    try {
+      const savedRoles = localStorage.getItem('systemRoles');
+      if (savedRoles) {
+        setRoles(JSON.parse(savedRoles));
+      }
+    } catch (error) {
+      console.error("Error loading saved roles:", error);
+    }
+
+    addNotification('Interface refreshed successfully', 'success');
   };
 
   // Render statistics cards for users
@@ -817,14 +857,14 @@ const UserManagement = ({ role }) => {
                   <div className="col-auto">
                     <i className="fas fa-user-clock fa-2x text-gray-300"></i>
                   </div>
-                </div>
-              </div>
+                </div></div>
             </div>
           </div>
         </div>
       );
     }
   };
+
   // Render role stats card
   const renderRoleStats = () => {
     return (
@@ -919,19 +959,21 @@ const UserManagement = ({ role }) => {
                     <td>{role.userCount}</td>
                     <td>{role.createdDate}</td>
                     <td>
-                      <button
-                        className="btn btn-info btn-sm mr-1"
-                        onClick={() => handleEditRole(role.name)}
-                      >
-                        <i className="fas fa-edit fa-sm"></i>
-                      </button>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDeleteRole(role.name)}
-                        disabled={role.name === 'Super Admin'}
-                      >
-                        <i className="fas fa-trash fa-sm"></i>
-                      </button>
+                      <div className="d-flex justify-content-center">
+                        <button
+                          className="btn btn-primary btn-sm mx-1"
+                          onClick={() => handleEditRole(role.name)}
+                        >
+                          <i className="fas fa-edit fa-sm mr-1"></i> Edit
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm mx-1"
+                          onClick={() => handleDeleteRole(role.name)}
+                          disabled={role.name === 'Super Admin'}
+                        >
+                          <i className="fas fa-trash fa-sm mr-1"></i> Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1013,25 +1055,27 @@ const UserManagement = ({ role }) => {
                     <td>{user.lastLogin}</td>
                     <td>
                       <span className={`badge badge-${user.status === 'Active' ? 'success' :
-                          user.status === 'Inactive' ? 'danger' :
-                            'warning'
+                        user.status === 'Inactive' ? 'danger' :
+                          'warning'
                         }`}>
                         {user.status}
                       </span>
                     </td>
                     <td>
-                      <button
-                        className="btn btn-info btn-sm mr-1"
-                        onClick={() => handleEditUser(user)}
-                      >
-                        <i className="fas fa-edit fa-sm"></i>
-                      </button>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        <i className="fas fa-trash fa-sm"></i>
-                      </button>
+                      <div className="d-flex justify-content-center">
+                        <button
+                          className="btn btn-primary btn-sm mx-1"
+                          onClick={() => handleEditUser(user)}
+                        >
+                          <i className="fas fa-edit fa-sm mr-1"></i> Edit
+                        </button>
+                        <button
+                          className="btn btn-danger btn-sm mx-1"
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
+                          <i className="fas fa-trash fa-sm mr-1"></i> Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1042,6 +1086,7 @@ const UserManagement = ({ role }) => {
       </div>
     );
   };
+
   // Render new role modal
   const renderNewRoleModal = () => {
     return (
@@ -1075,7 +1120,7 @@ const UserManagement = ({ role }) => {
                 </div>
 
                 <div className="form-group">
-                  <label>Permissions (View Only - Edit per User)</label>
+                  <label>Permissions</label>
                   <div className="row">
                     {allPermissions.map((perm) => (
                       <div className="col-md-4 mb-2" key={perm.key}>
@@ -1086,7 +1131,6 @@ const UserManagement = ({ role }) => {
                             id={`perm-${perm.key}`}
                             checked={newRoleData.permissions[perm.key] || false}
                             onChange={() => handlePermissionChange(perm.key)}
-                            disabled={true} // Making permissions non-editable
                           />
                           <label className="custom-control-label" htmlFor={`perm-${perm.key}`}>
                             {perm.display}
@@ -1096,7 +1140,7 @@ const UserManagement = ({ role }) => {
                     ))}
                   </div>
                   <small className="form-text text-muted">
-                    Permissions are view-only here. Individual permissions can be assigned to users directly.
+                    Select the permissions that should be included with this role.
                   </small>
                 </div>
               </form>
@@ -1149,7 +1193,7 @@ const UserManagement = ({ role }) => {
                 </div>
 
                 <div className="form-group">
-                  <label>Permissions (View Only - Edit per User)</label>
+                  <label>Permissions</label>
                   <div className="row">
                     {allPermissions.map((perm) => (
                       <div className="col-md-4 mb-2" key={perm.key}>
@@ -1160,7 +1204,7 @@ const UserManagement = ({ role }) => {
                             id={`edit-perm-${perm.key}`}
                             checked={newRoleData.permissions[perm.key] || false}
                             onChange={() => handlePermissionChange(perm.key)}
-                            disabled={true} // Making permissions non-editable
+                            disabled={currentEditRole && currentEditRole.name === 'Super Admin'}
                           />
                           <label className="custom-control-label" htmlFor={`edit-perm-${perm.key}`}>
                             {perm.display}
@@ -1170,7 +1214,9 @@ const UserManagement = ({ role }) => {
                     ))}
                   </div>
                   <small className="form-text text-muted">
-                    Permissions are view-only here. Individual permissions can be assigned to users directly.
+                    {currentEditRole && currentEditRole.name === 'Super Admin'
+                      ? "Super Admin permissions cannot be modified."
+                      : "Modify the permissions that are included with this role."}
                   </small>
                 </div>
               </form>
@@ -1371,14 +1417,23 @@ const UserManagement = ({ role }) => {
     <RoleLayout role={role}>
       <div className="container-fluid">
         {/* Page Heading */}
-        <h1 className="h3 mb-4 text-gray-800">User Management</h1>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h1 className="h3 text-gray-800">User Management</h1>
+          <button
+            className="btn btn-primary"
+            onClick={handleRefresh}
+            title="Refresh Data"
+          >
+            <i className="fas fa-sync-alt fa-sm"></i> Refresh
+          </button>
+        </div>
 
         {/* Tabs */}
         <div className="mb-4">
           <ul className="nav nav-tabs">
             <li className="nav-item">
               <button
-                className={`nav-link ${activeTab === 'admins' ? 'active' : ''}`}
+                className={`nav-link ${!showRoleSection && activeTab === 'admins' ? 'active' : ''}`}
                 onClick={() => handleTabChange('admins')}
               >
                 Admins
@@ -1386,7 +1441,7 @@ const UserManagement = ({ role }) => {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${activeTab === 'employees' ? 'active' : ''}`}
+                className={`nav-link ${!showRoleSection && activeTab === 'employees' ? 'active' : ''}`}
                 onClick={() => handleTabChange('employees')}
               >
                 Employees
@@ -1395,7 +1450,7 @@ const UserManagement = ({ role }) => {
             <li className="nav-item">
               <button
                 className={`nav-link ${showRoleSection ? 'active' : ''}`}
-                onClick={() => setShowRoleSection(!showRoleSection)}
+                onClick={() => handleTabChange('roles')}
               >
                 Roles
               </button>
