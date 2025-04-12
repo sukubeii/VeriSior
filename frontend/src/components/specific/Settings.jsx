@@ -12,9 +12,6 @@ const Settings = ({ role }) => {
     smsNotifs: true,
     systemNotifs: true
   });
-  const [maintenanceStats, setMaintenanceStats] = useState({
-    cacheSize: '256MB'
-  });
 
   // Function to add notification
   const showNotification = (message, type = 'info') => {
@@ -64,16 +61,6 @@ const Settings = ({ role }) => {
 
   const handleUpdatePreferences = () => {
     showNotification('Notification preferences updated successfully!', 'success');
-  };
-
-  const handleClearCache = () => {
-    // Reset cache size
-    setMaintenanceStats(prev => ({
-      ...prev,
-      cacheSize: '0MB'
-    }));
-    
-    showNotification('System cache cleared successfully!', 'success');
   };
 
   const getSettingsContent = () => {
@@ -180,36 +167,6 @@ const Settings = ({ role }) => {
                 >
                   Update Preferences
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">System Maintenance</h5>
-                <p className="card-text">
-                  Manage system maintenance tasks and monitor system health.
-                </p>
-                
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <div className="card bg-light">
-                      <div className="card-body">
-                        <h6 className="card-title">Clear System Cache</h6>
-                        <p className="card-text">Cache size: {maintenanceStats.cacheSize}</p>
-                        <button 
-                          className="btn btn-warning"
-                          onClick={handleClearCache}
-                        >
-                          Clear Cache
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
