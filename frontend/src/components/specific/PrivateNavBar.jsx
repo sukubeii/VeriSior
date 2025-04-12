@@ -41,7 +41,6 @@ const PrivateNavBar = ({ role }) => {
         { label: "Dashboard", path: "/dashboard", icon: "📊", permission: "dashboard" },
         { label: "Profile", path: "/profile", icon: "👤", permission: "profile" },
         { label: "User Management", path: "/user-management", icon: "👥", permission: "userManagement" },
-        { label: "ID Template", path: "/id-template", icon: "🪪", permission: "idTemplate" },
         { label: "System Management", path: "/system-management", icon: "⚙️", permission: "systemManagement" },
         { label: "Settings", path: "/settings", icon: "⚙️", permission: "settings" }
       ],
@@ -49,7 +48,6 @@ const PrivateNavBar = ({ role }) => {
         { label: "Dashboard", path: "/dashboard", icon: "📊", permission: "dashboard" },
         { label: "Profile", path: "/profile", icon: "👤", permission: "profile" },
         { label: "User Management", path: "/user-management", icon: "👥", permission: "userManagement" },
-        { label: "ID Template", path: "/id-template", icon: "🪪", permission: "idTemplate" },
         { label: "ID Management", path: "/id-management", icon: "🪪", permission: "idManagement" },
         { label: "Page Management", path: "/page-management", icon: "📄", permission: "pageManagement" },
         { label: "Settings", path: "/settings", icon: "⚙️", permission: "settings" }
@@ -57,40 +55,64 @@ const PrivateNavBar = ({ role }) => {
       employee: [
         { label: "Dashboard", path: "/dashboard", icon: "📊", permission: "dashboard" },
         { label: "Profile", path: "/profile", icon: "👤", permission: "profile" },
-        { label: "ID Processing", path: "/id-processing", icon: "🔄", permission: "idProcessing" },
-        { label: "Customer Service", path: "/customer-service", icon: "💬", permission: "customerService" },
+        { label: "ID Management", path: "/id-management", icon: "🪪", permission: "idManagement" },
+        { label: "Services", path: "/services", icon: "💬", permission: "services" },
         { label: "Settings", path: "/settings", icon: "⚙️", permission: "settings" }
       ]
     };
 
-    // Define all possible navigation items
-    const allNavItems = [
-      { label: "Dashboard", path: "/dashboard", icon: "📊", permission: "dashboard" },
-      { label: "Profile", path: "/profile", icon: "👤", permission: "profile" },
-      { label: "User Management", path: "/user-management", icon: "👥", permission: "userManagement" },
-      { label: "ID Template", path: "/id-template", icon: "🪪", permission: "idTemplate" },
-      { label: "System Management", path: "/system-management", icon: "⚙️", permission: "systemManagement" },
-      { label: "ID Management", path: "/id-management", icon: "🪪", permission: "idManagement" },
-      { label: "Page Management", path: "/page-management", icon: "📄", permission: "pageManagement" },
-      { label: "ID Processing", path: "/id-processing", icon: "🔄", permission: "idProcessing" },
-      { label: "Customer Service", path: "/customer-service", icon: "💬", permission: "customerService" },
-      { label: "Settings", path: "/settings", icon: "⚙️", permission: "settings" }
-    ];
-
-    // If we have custom permissions, filter the navigation items based on permissions
+    // If we have custom permissions, filter based on role and permissions
     if (rolePermissions) {
+      // Define all possible navigation items
+      const allNavItems = [
+        { label: "Dashboard", path: "/dashboard", icon: "📊", permission: "dashboard" },
+        { label: "Profile", path: "/profile", icon: "👤", permission: "profile" },
+        { label: "User Management", path: "/user-management", icon: "👥", permission: "userManagement" },
+        { label: "System Management", path: "/system-management", icon: "⚙️", permission: "systemManagement" }
+      ];
+      
+      // Add role-specific menu items
+      if (role === "admin" || role === "superAdmin") {
+        // Items common to both admin and superAdmin
+        allNavItems.push(
+          { label: "Page Management", path: "/page-management", icon: "📄", permission: "pageManagement" },
+          { label: "Settings", path: "/settings", icon: "⚙️", permission: "settings" }
+        );
+      } else {
+        // Add Settings for other roles
+        allNavItems.push(
+          { label: "Settings", path: "/settings", icon: "⚙️", permission: "settings" }
+        );
+      }
+      
+      // Items specific to admin role only
+      if (role === "admin") {
+        // Insert ID Management after User Management
+        allNavItems.splice(3, 0, 
+          { label: "ID Management", path: "/id-management", icon: "🪪", permission: "idManagement" }
+        );
+      }
+      
+      // Items specific to employee role only
+      if (role === "employee") {
+        // Insert employee-specific items before Settings
+        allNavItems.splice(-1, 0,
+          { label: "ID Management", path: "/id-management", icon: "🪪", permission: "idManagement" },
+          { label: "Services", path: "/services", icon: "💬", permission: "services" }
+        );
+      }
+      
       return allNavItems.filter(item => rolePermissions[item.permission]);
     }
 
     // Otherwise, use the default navigation items for the role
-    return defaultNavItems[role] || [];
+    return defaultNavItems[role.toLowerCase()] || [];
   };
 
   const handleLogout = () => {
     // Here you would typically clear authentication tokens/state
     navigate('/');
   };
-
   return (
     <div style={{
       height: '100vh',
