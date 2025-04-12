@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import RoleLayout from '../common/RoleLayout';
 import { Chart } from 'react-chartjs-2';
-import { 
-  Chart as ChartJS, 
-  CategoryScale, 
-  LinearScale, 
-  PointElement, 
-  LineElement, 
-  BarElement, 
-  Title, 
-  Tooltip, 
-  Legend, 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
   ArcElement,
   DoughnutController
 } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
+import { useUpdates } from '../../contexts/UpdatesContext';
 
 // Register ChartJS components
 ChartJS.register(
@@ -30,7 +31,10 @@ ChartJS.register(
   DoughnutController
 );
 
-const SuperAdminDashboard = ({ role }) => {
+const Dashboard = ({ role }) => {
+  // Use the updates context
+  const { companyUpdates } = useUpdates();
+
   const [notifications, setNotifications] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activityLogs, setActivityLogs] = useState([
@@ -75,14 +79,11 @@ const SuperAdminDashboard = ({ role }) => {
       details: 'New employee account created'
     }
   ]);
-  
+
   const [systemStats, setSystemStats] = useState({
-    cpuUsage: 45,
-    memoryUsage: 60,
-    diskSpace: 75,
     uptime: '15 days, 7 hours',
-    activeUsers: 12,
-    lastBackup: 'April 10, 2024, 2:30 AM'
+    lastBackup: 'April 10, 2024, 2:30 AM',
+    status: 'Online'
   });
 
   const [userStats, setUserStats] = useState({
@@ -93,35 +94,16 @@ const SuperAdminDashboard = ({ role }) => {
     inactiveUsers: 16
   });
 
-  const [companyUpdates, setCompanyUpdates] = useState([
-    {
-      id: 1,
-      title: 'System Upgrade Scheduled',
-      date: 'April 15, 2024',
-      content: 'A system upgrade is scheduled for April 15th at 2:00 AM. The system will be unavailable for approximately 30 minutes.',
-      important: true
-    },
-    {
-      id: 2,
-      title: 'New ID Template Released',
-      date: 'April 8, 2024',
-      content: 'A new ID template for government employees has been released. Please review and approve.',
-      important: false
-    },
-    {
-      id: 3,
-      title: 'Employee Training Session',
-      date: 'April 20, 2024',
-      content: 'A training session for new ID processing procedures will be held on April 20th at 10:00 AM.',
-      important: true
-    }
-  ]);
+  // No longer needed - using context instead
+  // const [companyUpdates, setCompanyUpdates] = useState([...]);
 
   const [adminStats, setAdminStats] = useState({
     pendingApplications: 18,
     processedToday: 24,
+    activeAdmins: 5,
     activeEmployees: 42,
-    templatesPendingReview: 3
+    pendingRenewals: 7,
+    pendingMessages: 12
   });
 
   const navigate = useNavigate();
@@ -131,25 +113,127 @@ const SuperAdminDashboard = ({ role }) => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
-    
+
     return () => clearInterval(timer);
   }, []);
+  // Function to generate random number within range
+  const getRandomNumber = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
 
-  // Function to handle button clicks and show notification
+  // Function to get current formatted date
+  const getCurrentFormattedDate = () => {
+    return new Date().toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    });
+  };
+
+  // Function to refresh system stats
+  const refreshSystemStats = () => {
+    setSystemStats({
+      uptime: `${getRandomNumber(10, 20)} days, ${getRandomNumber(1, 23)} hours`,
+      lastBackup: getCurrentFormattedDate(),
+      status: 'Online',
+      cpuUsage: `${getRandomNumber(30, 70)}%`,
+      memoryUsage: `${getRandomNumber(40, 80)}%`,
+      diskSpace: `${getRandomNumber(50, 90)}%`,
+      systemUptime: `${getRandomNumber(10, 20)} days, ${getRandomNumber(1, 23)} hours`,
+      activeUsers: getRandomNumber(8, 15),
+      lastBackup: getCurrentFormattedDate()
+    });
+  };
+
+  // Function to refresh user stats
+  const refreshUserStats = () => {
+    const totalAdmins = getRandomNumber(3, 8);
+    const totalEmployees = getRandomNumber(40, 60);
+    const activeAdmins = getRandomNumber(2, totalAdmins);
+    const activeEmployees = getRandomNumber(30, totalEmployees);
+
+    setUserStats({
+      totalUsers: totalAdmins + totalEmployees,
+      totalAdmins: totalAdmins,
+      totalEmployees: totalEmployees,
+      activeUsers: activeAdmins + activeEmployees,
+      inactiveUsers: (totalAdmins + totalEmployees) - (activeAdmins + activeEmployees)
+    });
+
+    // Update admin stats as well
+    setAdminStats(prev => ({
+      ...prev,
+      activeAdmins: activeAdmins,
+      activeEmployees: activeEmployees,
+      pendingApplications: getRandomNumber(10, 25),
+      processedToday: getRandomNumber(15, 35),
+      pendingRenewals: getRandomNumber(5, 15),
+      pendingMessages: getRandomNumber(5, 20)
+    }));
+  };
+
+  // Function to refresh activity logs
+  const refreshActivityLogs = () => {
+    const actions = ['ID Approved', 'Template Updated', 'ID Rejected', 'Page Updated', 'Employee Added'];
+    const users = ['Admin 1', 'Admin 2', 'System', 'Employee 1', 'Employee 2'];
+    const components = ['ID Management', 'Template', 'System', 'Page Management', 'User Management'];
+
+    const newSystemLogs = Array(10).fill(null).map((_, index) => ({
+      id: Date.now() + index,
+      type: Math.random() > 0.7 ? 'system' : 'user',
+      action: actions[Math.floor(Math.random() * actions.length)],
+      user: users[Math.floor(Math.random() * users.length)],
+      timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString().replace('T', ' ').substring(0, 19),
+      component: components[Math.floor(Math.random() * components.length)],
+      message: `Action completed successfully`
+    }));
+
+    const newUserLogs = Array(10).fill(null).map((_, index) => ({
+      id: Date.now() + index,
+      user: users[Math.floor(Math.random() * users.length)],
+      action: actions[Math.floor(Math.random() * actions.length)],
+      details: 'Action completed successfully',
+      timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString().replace('T', ' ').substring(0, 19),
+      ipAddress: `192.168.1.${getRandomNumber(100, 200)}`
+    }));
+
+    setSystemLogs && setSystemLogs(newSystemLogs);
+    setActivityLogs(newUserLogs);
+  };
+  // Function to handle refresh button click
   const handleButtonClick = (action) => {
+    // Show refresh notification
     const newNotification = {
       id: Date.now(),
       message: `${action} operation initiated`,
       type: 'info'
     };
     setNotifications([newNotification, ...notifications]);
-    
-    // Auto remove notification after 3 seconds
+
+    // Refresh all dashboard data
+    refreshSystemStats();
+    refreshUserStats();
+    refreshActivityLogs();
+
+    // Show success notification after a brief delay
+    setTimeout(() => {
+      const successNotification = {
+        id: Date.now() + 1,
+        message: 'Dashboard refreshed successfully',
+        type: 'success'
+      };
+      setNotifications(notifications => [successNotification, ...notifications.filter(n => n.id !== newNotification.id)]);
+    }, 1000);
+
+    // Auto remove notifications after 3 seconds
     setTimeout(() => {
       setNotifications(current => current.filter(notif => notif.id !== newNotification.id));
     }, 3000);
   };
-  
+
   const addNotification = (message, type) => {
     const id = Date.now();
     setNotifications([...notifications, { id, message, type }]);
@@ -159,7 +243,7 @@ const SuperAdminDashboard = ({ role }) => {
   };
 
   const downloadLogs = () => {
-    const logsText = activityLogs.map(log => 
+    const logsText = activityLogs.map(log =>
       `[${log.timestamp}] ${log.type.toUpperCase()} - ${log.action}\nUser: ${log.user}\nDetails: ${log.details}\n\n`
     ).join('');
 
@@ -172,61 +256,8 @@ const SuperAdminDashboard = ({ role }) => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     addNotification('Activity logs downloaded successfully', 'success');
-  };
-
-  // Chart data for user distribution
-  const userDistributionData = {
-    labels: ['Admins', 'Employees'],
-    datasets: [
-      {
-        data: [userStats.totalAdmins, userStats.totalEmployees],
-        backgroundColor: ['#4e73df', '#1cc88a'],
-        hoverBackgroundColor: ['#2e59d9', '#17a673'],
-        hoverBorderColor: "rgba(234, 236, 244, 1)",
-      }
-    ]
-  };
-
-  // Chart data for system usage
-  const systemUsageData = {
-    labels: ['CPU', 'Memory', 'Disk'],
-    datasets: [
-      {
-        label: 'Usage (%)',
-        data: [systemStats.cpuUsage, systemStats.memoryUsage, systemStats.diskSpace],
-        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc'],
-        borderColor: ['#4e73df', '#1cc88a', '#36b9cc'],
-        borderWidth: 1
-      }
-    ]
-  };
-
-  // Chart options
-  const doughnutOptions = {
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom'
-      }
-    },
-    cutout: '70%'
-  };
-
-  const barOptions = {
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100
-      }
-    }
   };
 
   // Format current date and time
@@ -236,50 +267,272 @@ const SuperAdminDashboard = ({ role }) => {
     month: 'long',
     day: 'numeric'
   });
-  
+
   const formattedTime = currentTime.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit'
   });
 
+  // -------------------- EMPLOYEE DASHBOARD --------------------
+  if (role === 'employee') {
+    return (
+      <RoleLayout role={role}>
+        <div className="employee-dashboard">
+          {/* Row 1: Dashboard Header */}
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="d-sm-flex align-items-center justify-content-between">
+                <h1 className="h3 mb-0 text-gray-800">Employee Dashboard</h1>
+                <div className="d-none d-sm-inline-block ml-auto mr-3">
+                  <div className="text-right">
+                    <div className="text-primary">{formattedDate}</div>
+                    <div className="h4">{formattedTime}</div>
+                  </div>
+                </div>
+                <div className="d-none d-sm-inline-block">
+                  <button
+                    className="btn btn-primary shadow-sm"
+                    onClick={() => handleButtonClick('Refresh dashboard')}
+                  >
+                    <i className="fas fa-sync-alt fa-sm mr-2"></i>Refresh
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Notification Area */}
+          <div className="row mb-4">
+            <div className="col-12">
+              {notifications.length > 0 && (
+                <div>
+                  {notifications.map(notification => (
+                    <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
+                      {notification.message}
+                      <button type="button" className="btn-close" onClick={() => setNotifications(current =>
+                        current.filter(notif => notif.id !== notification.id)
+                      )}></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Row 3: Task Stats Cards */}
+          <div className="row mb-4">
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-primary shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        Pending Applications
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.pendingApplications}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-success shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                        Pending Renewals
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.pendingRenewals}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-redo-alt fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-info shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                        Pending Messages
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.pendingMessages}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-envelope fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-warning shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                        Active Employees
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.activeEmployees}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 4: News & Updates and Activity Logs */}
+          <div className="row">
+            {/* Activity Logs Section */}
+            <div className="col-lg-6">
+              <div className="card shadow h-100 mb-4">
+                <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                  <h6 className="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                  <button className="btn btn-sm btn-primary" onClick={downloadLogs}>
+                    <i className="fas fa-download fa-sm"></i> Download Logs
+                  </button>
+                </div>
+                <div className="card-body">
+                  <div className="activity-timeline">
+                    {activityLogs.slice(0, 5).map((log) => (
+                      <div key={log.id} className="timeline-item">
+                        <div className="timeline-item-marker">
+                          <div className={`timeline-item-marker-indicator bg-${log.type === 'user' ? 'primary' : 'warning'}`}></div>
+                        </div>
+                        <div className="timeline-item-content pt-0">
+                          <div className="timeline-item-content-header d-flex">
+                            <div className="mr-auto">
+                              <span className="font-weight-bold">{log.action}</span>
+                              <span className="text-muted ml-2">by {log.user}</span>
+                            </div>
+                            <div className="text-xs text-muted">{log.timestamp}</div>
+                          </div>
+                          <div className="timeline-item-content-details small text-muted">
+                            {log.details}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* News & Updates Section */}
+            <div className="col-lg-6">
+              <div className="card shadow h-100 mb-4">
+                <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                  <h6 className="m-0 font-weight-bold text-primary">News & Updates</h6>
+                  {companyUpdates.length > 0 && (
+                    <span className="badge bg-primary rounded-pill">{companyUpdates.length}</span>
+                  )}
+                </div>
+                <div className="card-body">
+                  <div className="company-updates">
+                    {companyUpdates.length === 0 ? (
+                      <div className="text-center py-4">
+                        <p className="text-muted">No updates available</p>
+                      </div>
+                    ) : (
+                      companyUpdates.map(update => (
+                        <div key={update.id} className={`card mb-3 ${update.important ? 'border-left-warning' : 'border-left-primary'}`}>
+                          <div className="card-body py-2">
+                            <div className="row no-gutters align-items-center">
+                              <div className="col mr-2">
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    {update.date}
+                                  </div>
+                                  {update.important && (
+                                    <div className="badge bg-warning text-dark">Important</div>
+                                  )}
+                                </div>
+                                <div className="h5 mb-0 font-weight-bold text-gray-800">{update.title}</div>
+                                <div className="mt-2 text-gray-600">
+                                  {update.content}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </RoleLayout>
+    );
+  }
+
+  // -------------------- ADMIN DASHBOARD --------------------
   if (role === 'admin') {
     return (
       <RoleLayout role={role}>
         <div className="admin-dashboard">
-          <div className="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 className="h3 mb-0 text-gray-800">Admin Dashboard</h1>
-            <div className="d-none d-sm-inline-block ml-auto mr-3">
-              <div className="text-right">
-                <div className="text-primary">{formattedDate}</div>
-                <div className="h4">{formattedTime}</div>
+          {/* First Row - Admin Dashboard Header */}
+          <div className="row">
+            <div className="col-12">
+              <div className="d-sm-flex align-items-center justify-content-between mb-4">
+                <h1 className="h3 mb-0 text-gray-800">Admin Dashboard</h1>
+                <div className="d-none d-sm-inline-block ml-auto mr-3">
+                  <div className="text-right">
+                    <div className="text-primary">{formattedDate}</div>
+                    <div className="h4">{formattedTime}</div>
+                  </div>
+                </div>
+                <div className="d-none d-sm-inline-block">
+                  <button
+                    className="btn btn-primary shadow-sm"
+                    onClick={() => handleButtonClick('Refresh dashboard')}
+                  >
+                    <i className="fas fa-sync-alt fa-sm mr-2"></i>Refresh
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="d-none d-sm-inline-block">
-              <button 
-                className="btn btn-primary shadow-sm"
-                onClick={() => handleButtonClick('Refresh dashboard')}
-              >
-                <i className="fas fa-sync-alt fa-sm mr-2"></i>Refresh
-              </button>
+          </div>
+
+          {/* Second Row - Notification Area */}
+          <div className="row">
+            <div className="col-12">
+              {notifications.length > 0 && (
+                <div className="mb-4">
+                  {notifications.map(notification => (
+                    <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
+                      {notification.message}
+                      <button type="button" className="btn-close" onClick={() => setNotifications(current =>
+                        current.filter(notif => notif.id !== notification.id)
+                      )}></button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-          
-          {/* Notification area */}
-          {notifications.length > 0 && (
-            <div className="mb-4">
-              {notifications.map(notification => (
-                <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
-                  {notification.message}
-                  <button type="button" className="btn-close" onClick={() => setNotifications(current => 
-                    current.filter(notif => notif.id !== notification.id)
-                  )}></button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Admin Stats Cards */}
-          <div className="row">
+          {/* Third Row - Admin Stats Cards */}
+          <div className="row mb-4">
             <div className="col-xl-3 col-md-6 mb-4">
               <div className="card border-left-primary shadow h-100 py-2">
                 <div className="card-body">
@@ -326,6 +579,26 @@ const SuperAdminDashboard = ({ role }) => {
                   <div className="row no-gutters align-items-center">
                     <div className="col mr-2">
                       <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                        Active Admins
+                      </div>
+                      <div className="h5 mb-0 font-weight-bold text-gray-800">
+                        {adminStats.activeAdmins}
+                      </div>
+                    </div>
+                    <div className="col-auto">
+                      <i className="fas fa-user-shield fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-xl-3 col-md-6 mb-4">
+              <div className="card border-left-warning shadow h-100 py-2">
+                <div className="card-body">
+                  <div className="row no-gutters align-items-center">
+                    <div className="col mr-2">
+                      <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
                         Active Employees
                       </div>
                       <div className="h5 mb-0 font-weight-bold text-gray-800">
@@ -339,32 +612,13 @@ const SuperAdminDashboard = ({ role }) => {
                 </div>
               </div>
             </div>
-
-            <div className="col-xl-3 col-md-6 mb-4">
-              <div className="card border-left-warning shadow h-100 py-2">
-                <div className="card-body">
-                  <div className="row no-gutters align-items-center">
-                    <div className="col mr-2">
-                      <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                        Templates Pending Review
-                      </div>
-                      <div className="h5 mb-0 font-weight-bold text-gray-800">
-                        {adminStats.templatesPendingReview}
-                      </div>
-                    </div>
-                    <div className="col-auto">
-                      <i className="fas fa-file-alt fa-2x text-gray-300"></i>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Activity Logs Section */}
+          {/* Fourth Row - Recent Activity & Company Updates (swapped) */}
           <div className="row">
+            {/* Activity Logs Section (now first) */}
             <div className="col-lg-6">
-              <div className="card mb-4">
+              <div className="card shadow h-100 mb-4">
                 <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                   <h6 className="m-0 font-weight-bold text-primary">Recent Activity</h6>
                   <button className="btn btn-sm btn-primary" onClick={downloadLogs}>
@@ -373,7 +627,7 @@ const SuperAdminDashboard = ({ role }) => {
                 </div>
                 <div className="card-body">
                   <div className="activity-timeline">
-                    {activityLogs.map((log, index) => (
+                    {activityLogs.map((log) => (
                       <div key={log.id} className="timeline-item">
                         <div className="timeline-item-marker">
                           <div className={`timeline-item-marker-indicator bg-${log.type === 'user' ? 'primary' : 'warning'}`}></div>
@@ -396,59 +650,45 @@ const SuperAdminDashboard = ({ role }) => {
                 </div>
               </div>
             </div>
-
-            {/* Quick Actions Section */}
+            {/* News & Updates Section (now second) */}
             <div className="col-lg-6">
-              <div className="card mb-4">
-                <div className="card-header py-3">
-                  <h6 className="m-0 font-weight-bold text-primary">Quick Actions</h6>
+              <div className="card shadow h-100 mb-4">
+                <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                  <h6 className="m-0 font-weight-bold text-primary">News & Updates</h6>
+                  {companyUpdates.length > 0 && (
+                    <span className="badge bg-primary rounded-pill">{companyUpdates.length}</span>
+                  )}
                 </div>
                 <div className="card-body">
-                  <div className="row">
-                    <div className="col-md-6 mb-3">
-                      <div className="card border-left-primary h-100">
-                        <div className="card-body">
-                          <h5 className="card-title">ID Applications</h5>
-                          <p className="card-text">Review and process pending ID applications</p>
-                          <button className="btn btn-primary" onClick={() => navigate('/id-management')}>
-                            Process Applications
-                          </button>
-                        </div>
+                  <div className="company-updates">
+                    {companyUpdates.length === 0 ? (
+                      <div className="text-center py-4">
+                        <p className="text-muted">No updates available</p>
                       </div>
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <div className="card border-left-success h-100">
-                        <div className="card-body">
-                          <h5 className="card-title">Employee Management</h5>
-                          <p className="card-text">Manage employee accounts and permissions</p>
-                          <button className="btn btn-success" onClick={() => navigate('/user-management')}>
-                            Manage Employees
-                          </button>
+                    ) : (
+                      companyUpdates.map(update => (
+                        <div key={update.id} className={`card mb-3 ${update.important ? 'border-left-warning' : 'border-left-primary'}`}>
+                          <div className="card-body py-2">
+                            <div className="row no-gutters align-items-center">
+                              <div className="col mr-2">
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    {update.date}
+                                  </div>
+                                  {update.important && (
+                                    <div className="badge bg-warning text-dark">Important</div>
+                                  )}
+                                </div>
+                                <div className="h5 mb-0 font-weight-bold text-gray-800">{update.title}</div>
+                                <div className="mt-2 text-gray-600">
+                                  {update.content}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <div className="card border-left-info h-100">
-                        <div className="card-body">
-                          <h5 className="card-title">ID Templates</h5>
-                          <p className="card-text">View and manage ID templates</p>
-                          <button className="btn btn-info" onClick={() => navigate('/id-template')}>
-                            Manage Templates
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <div className="card border-left-warning h-100">
-                        <div className="card-body">
-                          <h5 className="card-title">Page Content</h5>
-                          <p className="card-text">Update website content and forms</p>
-                          <button className="btn btn-warning" onClick={() => navigate('/page-management')}>
-                            Manage Content
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -459,102 +699,112 @@ const SuperAdminDashboard = ({ role }) => {
     );
   }
 
+  // -------------------- SUPER ADMIN DASHBOARD --------------------
   return (
     <RoleLayout role={role}>
       <div className="super-admin-dashboard">
-        <div className="d-sm-flex align-items-center justify-content-between mb-4">
-          <h1 className="h3 mb-0 text-gray-800">Super Admin Dashboard</h1>
-          <div className="d-none d-sm-inline-block ml-auto mr-3">
-            <div className="text-right">
-              <div className="text-primary">{formattedDate}</div>
-              <div className="h4">{formattedTime}</div>
+        {/* First Row - Dashboard Header */}
+        <div className="row">
+          <div className="col-12">
+            <div className="d-sm-flex align-items-center justify-content-between mb-4">
+              <h1 className="h3 mb-0 text-gray-800">Super Admin Dashboard</h1>
+              <div className="d-none d-sm-inline-block ml-auto mr-3">
+                <div className="text-right">
+                  <div className="text-primary">{formattedDate}</div>
+                  <div className="h4">{formattedTime}</div>
+                </div>
+              </div>
+              <div className="d-none d-sm-inline-block">
+                <button
+                  className="btn btn-primary shadow-sm"
+                  onClick={() => handleButtonClick('Refresh dashboard')}
+                >
+                  <i className="fas fa-sync-alt fa-sm mr-2"></i>Refresh
+                </button>
+              </div>
             </div>
           </div>
-          <div className="d-none d-sm-inline-block">
-            <button 
-              className="btn btn-primary shadow-sm"
-              onClick={() => handleButtonClick('Refresh dashboard')}
-            >
-              <i className="fas fa-sync-alt fa-sm mr-2"></i>Refresh
-            </button>
+        </div>
+
+        {/* Second Row - Notification area */}
+        <div className="row">
+          <div className="col-12">
+            {notifications.length > 0 && (
+              <div className="mb-4">
+                {notifications.map(notification => (
+                  <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
+                    {notification.message}
+                    <button type="button" className="btn-close" onClick={() => setNotifications(current =>
+                      current.filter(notif => notif.id !== notification.id)
+                    )}></button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-        
-        {/* Notification area */}
-        {notifications.length > 0 && (
-          <div className="mb-4">
-            {notifications.map(notification => (
-              <div key={notification.id} className={`alert alert-${notification.type} alert-dismissible fade show`}>
-                {notification.message}
-                <button type="button" className="btn-close" onClick={() => setNotifications(current => 
-                  current.filter(notif => notif.id !== notification.id)
-                )}></button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* System Status Section */}
-        <div className="row">
-          <div className="col-lg-8">
-            <div className="card mb-4">
+        {/* Third Row - Combined Active Users and System Status */}
+        <div className="row mb-4">
+          {/* Active Users Card */}
+          <div className="col-xl-6 col-md-6 mb-4 mb-xl-0">
+            <div className="card shadow h-100">
               <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 className="m-0 font-weight-bold text-primary">System Status</h6>
+                <h6 className="m-0 font-weight-bold text-primary">Active Users</h6>
               </div>
               <div className="card-body">
                 <div className="row">
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <h4 className="small font-weight-bold">CPU Usage <span className="float-right">{systemStats.cpuUsage}%</span></h4>
-                      <div className="progress mb-4">
-                        <div className="progress-bar bg-primary" role="progressbar" style={{ width: `${systemStats.cpuUsage}%` }}></div>
-                      </div>
-                    </div>
-                    <div className="mb-3">
-                      <h4 className="small font-weight-bold">Memory Usage <span className="float-right">{systemStats.memoryUsage}%</span></h4>
-                      <div className="progress mb-4">
-                        <div className="progress-bar bg-success" role="progressbar" style={{ width: `${systemStats.memoryUsage}%` }}></div>
-                      </div>
-                    </div>
-                    <div className="mb-3">
-                      <h4 className="small font-weight-bold">Disk Space <span className="float-right">{systemStats.diskSpace}%</span></h4>
-                      <div className="progress mb-4">
-                        <div className="progress-bar bg-info" role="progressbar" style={{ width: `${systemStats.diskSpace}%` }}></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div style={{ height: '200px' }}>
-                      <Chart type="bar" data={systemUsageData} options={barOptions} />
-                    </div>
-                  </div>
-                </div>
-                <div className="row mt-3">
-                  <div className="col-md-6">
-                    <div className="card bg-light mb-0">
-                      <div className="card-body py-2">
+                  {/* Active Admins Card */}
+                  <div className="col-md-6 mb-4 mb-md-0">
+                    <div className="card h-100 border-left-primary shadow py-2">
+                      <div className="card-body">
                         <div className="row no-gutters align-items-center">
                           <div className="col mr-2">
-                            <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">System Uptime</div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">{systemStats.uptime}</div>
+                            <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                              Active Admins
+                            </div>
+                            <div className="h5 mb-0 font-weight-bold text-gray-800">12</div>
                           </div>
                           <div className="col-auto">
-                            <i className="fas fa-clock fa-2x text-gray-300"></i>
+                            <i className="fas fa-user-shield fa-2x text-gray-300"></i>
+                          </div>
+                        </div>
+                        <div className="mt-3 pt-3 border-top">
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <span className="small text-muted">Currently Online:</span>
+                            <span className="small font-weight-bold text-success">8</span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="small text-muted">Last Login:</span>
+                            <span className="small">3 minutes ago</span>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Active Employees Card */}
                   <div className="col-md-6">
-                    <div className="card bg-light mb-0">
-                      <div className="card-body py-2">
+                    <div className="card h-100 border-left-success shadow py-2">
+                      <div className="card-body">
                         <div className="row no-gutters align-items-center">
                           <div className="col mr-2">
-                            <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Last Backup</div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">{systemStats.lastBackup}</div>
+                            <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                              Active Employees
+                            </div>
+                            <div className="h5 mb-0 font-weight-bold text-gray-800">47</div>
                           </div>
                           <div className="col-auto">
-                            <i className="fas fa-database fa-2x text-gray-300"></i>
+                            <i className="fas fa-users fa-2x text-gray-300"></i>
+                          </div>
+                        </div>
+                        <div className="mt-3 pt-3 border-top">
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <span className="small text-muted">Currently Online:</span>
+                            <span className="small font-weight-bold text-success">8</span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="small text-muted">Last Login:</span>
+                            <span className="small">3 minutes ago</span>
                           </div>
                         </div>
                       </div>
@@ -565,90 +815,46 @@ const SuperAdminDashboard = ({ role }) => {
             </div>
           </div>
 
-          {/* Total Users Section */}
-          <div className="col-lg-4">
-            <div className="card mb-4">
+          {/* System Status Card */}
+          <div className="col-xl-6 col-md-6">
+            <div className="card shadow h-100">
               <div className="card-header py-3">
-                <h6 className="m-0 font-weight-bold text-primary">User Distribution</h6>
+                <h6 className="m-0 font-weight-bold text-primary">System Status</h6>
               </div>
               <div className="card-body">
-                <div style={{ height: '200px' }}>
-                  <Chart type="doughnut" data={userDistributionData} options={doughnutOptions} />
-                </div>
-                <div className="mt-4 text-center small">
-                  <span className="mr-2">
-                    <i className="fas fa-circle text-primary"></i> Admins: {userStats.totalAdmins}
-                  </span>
-                  <span className="ml-2">
-                    <i className="fas fa-circle text-success"></i> Employees: {userStats.totalEmployees}
-                  </span>
-                </div>
-                <div className="text-center mt-3">
-                  <div className="h4 mb-0 font-weight-bold text-gray-800">Total Users: {userStats.totalUsers}</div>
-                  <div className="small text-muted mt-1">
-                    Active: {userStats.activeUsers} | Inactive: {userStats.inactiveUsers}
+                <div className="row align-items-center h-100">
+                  <div className="col-xl-4 col-md-12 mb-4 mb-xl-0">
+                    <div className="text-center">
+                      <div className="mb-2 text-xs text-uppercase fw-bold text-primary">System Status</div>
+                      <div className="h1 text-success mb-0">Online</div>
+                    </div>
                   </div>
-                </div>
-                <div className="text-center mt-3">
-                  <button 
-                    className="btn btn-sm btn-primary"
-                    onClick={() => handleButtonClick('View detailed user statistics')}
-                  >
-                    View Details
-                  </button>
+                  <div className="col-xl-8 col-md-12">
+                    <ul className="list-group list-group-flush">
+                      <li className="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>System Uptime:</span>
+                        <span className="text-primary">{systemStats.uptime}</span>
+                      </li>
+                      <li className="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Last Backup:</span>
+                        <span className="text-primary">{systemStats.lastBackup}</span>
+                      </li>
+                      <li className="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Server Status:</span>
+                        <span className="badge bg-success rounded-pill">{systemStats.status}</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Company Updates Section */}
+        {/* Fourth Row - Combined News & Updates and Recent Activity */}
         <div className="row">
-          <div className="col-lg-6">
-            <div className="card mb-4">
-              <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 className="m-0 font-weight-bold text-primary">Company Updates</h6>
-                <div className="dropdown no-arrow">
-                  <button 
-                    className="btn btn-sm btn-primary"
-                    onClick={() => handleButtonClick('Add new company update')}
-                  >
-                    <i className="fas fa-plus fa-sm"></i> New Update
-                  </button>
-                </div>
-              </div>
-              <div className="card-body">
-                <div className="company-updates">
-                  {companyUpdates.map(update => (
-                    <div key={update.id} className={`card mb-3 ${update.important ? 'border-left-warning' : 'border-left-primary'}`}>
-                      <div className="card-body py-2">
-                        <div className="row no-gutters align-items-center">
-                          <div className="col mr-2">
-                            <div className="d-flex justify-content-between align-items-center">
-                              <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                {update.date}
-                              </div>
-                              {update.important && (
-                                <div className="badge bg-warning text-white">Important</div>
-                              )}
-                            </div>
-                            <div className="h5 mb-0 font-weight-bold text-gray-800">{update.title}</div>
-                            <div className="mt-2 text-gray-600">
-                              {update.content}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Activity Logs Section */}
-          <div className="col-lg-6">
-            <div className="card mb-4">
+          {/* Recent Activity Card */}
+          <div className="col-xl-6 col-md-6 mb-4 mb-xl-0">
+            <div className="card shadow h-100">
               <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                 <h6 className="m-0 font-weight-bold text-primary">Recent Activity</h6>
                 <button className="btn btn-sm btn-primary" onClick={downloadLogs}>
@@ -657,7 +863,7 @@ const SuperAdminDashboard = ({ role }) => {
               </div>
               <div className="card-body">
                 <div className="activity-timeline">
-                  {activityLogs.slice(0, 5).map((log, index) => (
+                  {activityLogs.map((log) => (
                     <div key={log.id} className="timeline-item">
                       <div className="timeline-item-marker">
                         <div className={`timeline-item-marker-indicator bg-${log.type === 'user' ? 'primary' : 'warning'}`}></div>
@@ -677,88 +883,54 @@ const SuperAdminDashboard = ({ role }) => {
                     </div>
                   ))}
                 </div>
-                <div className="text-center mt-3">
-                  <button 
-                    className="btn btn-sm btn-primary"
-                    onClick={() => handleButtonClick('View all activity logs')}
-                  >
-                    View All Activity
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Info Cards Section */}
-        <div className="row">
-          <div className="col-lg-3 col-md-6 mb-4">
-            <div className="card border-left-primary shadow h-100 py-2">
-              <div className="card-body">
-                <div className="row no-gutters align-items-center">
-                  <div className="col mr-2">
-                    <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                      Pending Applications
-                    </div>
-                    <div className="h5 mb-0 font-weight-bold text-gray-800">18</div>
-                  </div>
-                  <div className="col-auto">
-                    <i className="fas fa-calendar fa-2x text-gray-300"></i>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
 
-          <div className="col-lg-3 col-md-6 mb-4">
-            <div className="card border-left-success shadow h-100 py-2">
-              <div className="card-body">
-                <div className="row no-gutters align-items-center">
-                  <div className="col mr-2">
-                    <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                      Processed Today
-                    </div>
-                    <div className="h5 mb-0 font-weight-bold text-gray-800">24</div>
-                  </div>
-                  <div className="col-auto">
-                    <i className="fas fa-clipboard-check fa-2x text-gray-300"></i>
-                  </div>
+          {/* News & Updates Card */}
+          <div className="col-xl-6 col-md-6">
+            <div className="card shadow h-100">
+              <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 className="m-0 font-weight-bold text-primary">News & Updates</h6>
+                <div className="d-flex align-items-center">
+                  {companyUpdates.length > 0 && (
+                    <span className="badge bg-primary rounded-pill me-2">{companyUpdates.length}</span>
+                  )}
+                  <a href="/system-management" className="btn btn-sm btn-outline-primary">
+                    <i className="fas fa-plus fa-sm"></i> Manage Updates
+                  </a>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className="col-lg-3 col-md-6 mb-4">
-            <div className="card border-left-info shadow h-100 py-2">
               <div className="card-body">
-                <div className="row no-gutters align-items-center">
-                  <div className="col mr-2">
-                    <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
-                      Active Admins
+                <div className="company-updates">
+                  {companyUpdates.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-muted">No updates available</p>
                     </div>
-                    <div className="h5 mb-0 font-weight-bold text-gray-800">4</div>
-                  </div>
-                  <div className="col-auto">
-                    <i className="fas fa-user-shield fa-2x text-gray-300"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-3 col-md-6 mb-4">
-            <div className="card border-left-warning shadow h-100 py-2">
-              <div className="card-body">
-                <div className="row no-gutters align-items-center">
-                  <div className="col mr-2">
-                    <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                      System Alerts
-                    </div>
-                    <div className="h5 mb-0 font-weight-bold text-gray-800">2</div>
-                  </div>
-                  <div className="col-auto">
-                    <i className="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
-                  </div>
+                  ) : (
+                    companyUpdates.map(update => (
+                      <div key={update.id} className={`card mb-3 ${update.important ? 'border-left-warning' : 'border-left-primary'}`}>
+                        <div className="card-body py-2">
+                          <div className="row no-gutters align-items-center">
+                            <div className="col mr-2">
+                              <div className="d-flex justify-content-between align-items-center">
+                                <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                  {update.date}
+                                </div>
+                                {update.important && (
+                                  <div className="badge bg-warning text-dark">Important</div>
+                                )}
+                              </div>
+                              <div className="h5 mb-0 font-weight-bold text-gray-800">{update.title}</div>
+                              <div className="mt-2 text-gray-600">
+                                {update.content}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -769,4 +941,4 @@ const SuperAdminDashboard = ({ role }) => {
   );
 };
 
-export default SuperAdminDashboard;
+export default Dashboard;
