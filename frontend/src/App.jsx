@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { UpdatesProvider } from "./contexts/UpdatesContext";
 import LandingPage from "./pages/LandingPage";
 import ApplicationForm from "./pages/ApplicationForm";
 import PublicNavBar from "./components/common/PublicNavBar";
@@ -13,7 +14,7 @@ import Settings from "./components/specific/Settings";
 import PageManagement from "./components/specific/PageManagement";
 import SystemManagement from "./components/specific/SystemManagement";
 import UserManagement from "./components/specific/UserManagement";
-import IDTemplateManagement from "./components/specific/IDTemplateManagement";
+import Services from "./components/specific/Services";
 
 // Create a wrapper component to use React Router hooks
 function AppContent() {
@@ -24,8 +25,7 @@ function AppContent() {
   
   // Function to determine if page is public
   const isPublicPage = (pathname) => {
-    return pathname === "/" || pathname === "/apply" || 
-           pathname === "/services" || pathname === "/about" || 
+    return pathname === "/" || pathname === "/apply" || pathname === "/about" || 
            pathname === "/contact" || pathname === "/support";
   };
 
@@ -33,45 +33,9 @@ function AppContent() {
   const isRoleSpecificPage = (pathname) => {
     return pathname === "/super-admin" || pathname === "/admin" || pathname === "/employee" ||
            pathname.startsWith("/dashboard") || pathname.startsWith("/profile") ||
-           pathname.startsWith("/id-management") ||
+           pathname.startsWith("/id-management") || pathname.startsWith("/services") ||
            pathname.startsWith("/settings") || pathname.startsWith("/system-management") ||
-           pathname.startsWith("/user-management") || pathname.startsWith("/id-template") ||
-           pathname.startsWith("/page-management");
-  };
-
-  // Function to determine available navigation items based on role
-  const getNavItems = (role) => {
-    switch (role) {
-      case "superAdmin":
-        return [
-          { path: "/dashboard", label: "Dashboard" },
-          { path: "/profile", label: "Profile" },
-          { path: "/user-management", label: "User Management" },
-          { path: "/id-template", label: "ID Template" },
-          { path: "/system-management", label: "System Management" },
-          { path: "/settings", label: "Settings" }
-        ];
-      case "admin":
-        return [
-          { path: "/dashboard", label: "Dashboard" },
-          { path: "/profile", label: "Profile" },
-          { path: "/user-management", label: "Employee Management" },
-          { path: "/id-template", label: "ID Template" },
-          { path: "/id-management", label: "ID Management" },
-          { path: "/page-management", label: "Page Management" },
-          { path: "/settings", label: "Settings" }
-        ];
-      case "employee":
-        return [
-          { path: "/dashboard", label: "Dashboard" },
-          { path: "/profile", label: "Profile" },
-          { path: "/id-processing", label: "ID Processing" },
-          { path: "/customer-service", label: "Customer Service" },
-          { path: "/settings", label: "Settings" }
-        ];
-      default:
-        return [];
-    }
+           pathname.startsWith("/user-management") || pathname.startsWith("/page-management");
   };
 
   // Handle role change from the role switcher
@@ -109,10 +73,7 @@ function AppContent() {
       
       {/* Show PrivateNavBar on private/authenticated pages */}
       {isRoleSpecificPage(location.pathname) && (
-        <PrivateNavBar 
-          role={userRole} 
-          navItems={getNavItems(userRole)}
-        />
+        <PrivateNavBar role={userRole} />
       )}
 
       {/* Main Content */}
@@ -120,7 +81,6 @@ function AppContent() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/services" element={<h2>Our Services</h2>} />
           <Route path="/about" element={<h2>About Us</h2>} />
           <Route path="/contact" element={<h2>Contact Us</h2>} />
           <Route path="/support" element={<h2>Support</h2>} />
@@ -134,12 +94,7 @@ function AppContent() {
           <Route path="/page-management" element={<PageManagement role={userRole} />} />
           <Route path="/system-management" element={<SystemManagement role={userRole} />} />
           <Route path="/user-management" element={<UserManagement role={userRole} />} />
-          <Route path="/id-template" element={<IDTemplateManagement role={userRole} />} />
-          
-          {/* Redirects for removed components */}
-          <Route path="/admin-management" element={<UserManagement role={userRole} />} />
-          <Route path="/employee-management" element={<UserManagement role={userRole} />} />
-          <Route path="/role-management" element={<UserManagement role={userRole} />} />
+          <Route path="/services" element={<Services role={userRole} />} />
           
           {/* Role-specific pages */}
           <Route path="/admin" element={
@@ -194,18 +149,18 @@ function AppContent() {
                 <div className="col-md-4 mb-3">
                   <div className="card">
                     <div className="card-body">
-                      <h5 className="card-title">My Calendar</h5>
-                      <p className="card-text">Schedule and view appointments</p>
-                      <button className="btn btn-primary" onClick={() => navigate('/profile')}>Open Calendar</button>
+                      <h5 className="card-title">Messages</h5>
+                      <p className="card-text">Manage communications with applicants</p>
+                      <button className="btn btn-primary" onClick={() => navigate('/services')}>View Messages</button>
                     </div>
                   </div>
                 </div>
                 <div className="col-md-4 mb-3">
                   <div className="card">
                     <div className="card-body">
-                      <h5 className="card-title">Documents</h5>
-                      <p className="card-text">Access and manage your documents</p>
-                      <button className="btn btn-primary" onClick={() => navigate('/profile')}>View Documents</button>
+                      <h5 className="card-title">ID Management</h5>
+                      <p className="card-text">Process ID applications and print IDs</p>
+                      <button className="btn btn-primary" onClick={() => navigate('/id-management')}>Open ID Management</button>
                     </div>
                   </div>
                 </div>
@@ -244,15 +199,6 @@ function AppContent() {
                     </div>
                   </div>
                 </div>
-                <div className="col-md-4 mb-3">
-                  <div className="card">
-                    <div className="card-body">
-                      <h5 className="card-title">Security Settings</h5>
-                      <p className="card-text">Manage system security and access controls</p>
-                      <button className="btn btn-primary" onClick={() => navigate('/system-management')}>Security Panel</button>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           } />
@@ -272,7 +218,9 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <UpdatesProvider>
+        <AppContent />
+      </UpdatesProvider>
     </Router>
   );
 }
