@@ -1,0 +1,521 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VeriSior - Senior Citizen ID Verification System{% endblock %}</title>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/global.js' %}"></script>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    
+</head>
+<body>
+    <!-- Enhanced Navigation Bar - Verification Portal Style -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top" id="mainNavbar">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt"></i> VeriSior
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="#features" onclick="return handleNavigation(event, '#features')">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="#about-us" onclick="return handleNavigation(event, '#about-us')">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="#faqs" onclick="return handleNavigation(event, '#faqs')">FAQs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-semibold" href="#contact" onclick="return handleNavigation(event, '#contact')">Contact</a>
+                    </li>
+                    <!-- Separator -->
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <div class="navbar-separator" style="width: 2px; height: 24px; background-color: rgba(0, 0, 0, 1); margin: 0 1rem;"></div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link government-login-btn fw-semibold" href="#" onclick="openGovernmentLogin()">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer Separator Section -->
+    <section class="footer-separator" style="
+        background: rgba(0, 0, 0, 1);
+        padding: 0.5rem 0;
+    ">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <div class="separator-content">
+                        <div class="separator-line" style="
+                            width: 100px;
+                            height: 2px;
+                            background: linear-gradient(90deg, #004e8a, #4485bb);
+                            margin: 0 auto 1rem;
+                            border-radius: 1px;
+                        "></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5>VeriSior</h5>
+                    <p style="color: var(--black);">A secure system for Senior Citizen ID verification and discount tracking</p>
+                    <small style="color: var(--black);">Government Compliance Certified</small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0" style="color: var(--black);">&copy; 2025 VeriSior. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal (for Government Portal) -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" id="loginForm" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <div id="loginErrors"></div>
+                        
+                        <div class="mb-4">
+                            <label for="username" class="form-label fw-semibold" style="color: var(--dark-blue);">Username:</label>
+                            <input type="text" name="username" class="form-control" id="username" placeholder="Enter your username" required>
+                        </div>
+                        
+                        <div class="mb-4" style="margin-bottom: 2rem !important;">
+                            <label for="password" class="form-label fw-semibold" style="color: var(--dark-blue);">Password:</label>
+                            <input type="password" 
+                                name="password" 
+                                class="form-control" 
+                                id="password" 
+                                placeholder="Enter your password" 
+                                required
+                                data-ms-editor="false" 
+                                data-ms-reveal="false"
+                                autocomplete="current-password"
+                                style="-webkit-appearance: none; -moz-appearance: none; appearance: none;">
+                        </div>
+                        
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-modal" style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%); color: white;">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <a href="#" id="forgotPasswordLink" class="text-decoration-none" style="color: var(--royal-blue);">Forgot Password?</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MFA Verification Modal -->
+    <div class="modal fade" id="mfaVerifyModal" tabindex="-1" aria-labelledby="mfaVerifyModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--dark-blue) 0%, var(--primary-blue) 100%);">
+                    <h5 class="modal-title fw-bold" id="mfaVerifyModalLabel" style="color: #000000 !important;">
+                        <i class="fas fa-shield-alt me-2" style="color: #000000 !important;"></i>Two-Factor Authentication
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="confirmCloseLogin()" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="feature-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h6 style="color: #000000;">Welcome back, <span id="mfaUsernameValue" class="fw-bold">User</span>!</h6>
+                        <p style="color: #000000;">Please enter the 6-digit code from your authenticator app to complete login.</p>
+                    </div>
+
+                    <form id="mfaVerifyForm" action="/mfa-verify/" method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="">
+                        <div class="mb-3 text-center">
+                            <label for="mfa_verification_code" class="form-label fw-semibold text-center d-block mb-2" style="color: #000000;">Verification Code</label>
+                            <input type="text" name="verification_code" class="form-control text-center" 
+                                id="mfa_verification_code" placeholder="000000" maxlength="6" 
+                                inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" 
+                                style="font-size: 1.5rem; letter-spacing: 0.5em;" required>
+                            <small class="d-block text-center mt-2" style="color: #000000;">Enter the 6-digit code from Google Authenticator</small>
+                        </div>
+                        
+                        <div id="mfaVerifyErrors"></div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-modal" style="background: linear-gradient(135deg, var(--light-blue) 0%, var(--royal-blue) 100%); color: #000000;">
+                                <i class="fas fa-check me-2"></i>Verify & Continue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MFA Setup Modal -->
+    <div class="modal fade" id="mfaSetupModal" tabindex="-1" aria-labelledby="mfaSetupModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--light-blue) 0%, var(--royal-blue) 100%);">
+                    <h5 class="modal-title fw-bold" id="mfaSetupModalLabel">
+                        <i class="fas fa-shield-check me-2"></i>Setup Two-Factor Authentication
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert" style="background: linear-gradient(135deg, var(--azure) 0%, var(--powder-blue) 100%); border: 1px solid var(--sky-blue); color: var(--dark-blue);">
+                        <i class="fas fa-lock me-2"></i>
+                        <strong>Security Enhancement Required:</strong> To protect your account, you must set up two-factor authentication using Google Authenticator.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3" style="color: var(--dark-blue);">Step 1: Scan QR Code</h6>
+                            <div class="text-center p-3" style="background: var(--ice-blue); border-radius: 16px; border: 2px dashed var(--sky-blue);">
+                                <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                                <p class="small mt-2" style="color: var(--slate-blue);">Scan this code with Google Authenticator</p>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <label class="form-label fw-semibold" style="color: var(--dark-blue);">Or enter this secret key manually:</label>
+                                <div class="input-group">
+                                    <input type="text" id="secretKey" class="form-control" readonly style="font-family: monospace; font-size: 0.9rem;">
+                                    <button class="btn" type="button" onclick="copyToClipboard('secretKey')" style="background: var(--light-blue); color: white; border-color: var(--light-blue);">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3" style="color: var(--dark-blue);">Step 2: Enter Verification Code</h6>
+                            <p style="color: var(--slate-blue);">After scanning the QR code, enter the 6-digit code from your app:</p>
+                            
+                            <form id="mfaSetupForm" action="{% url 'mfa_setup' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" id="totp_secret" name="totp_secret" value="">
+                                
+                                <div class="mb-3">
+                                    <label for="mfa_setup_code" class="form-label fw-semibold" style="color: var(--dark-blue);">Verification Code</label>
+                                    <input type="text" name="verification_code" class="form-control text-center" 
+                                           id="mfa_setup_code" placeholder="000000" maxlength="6" 
+                                           inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" 
+                                           style="font-size: 1.5rem; letter-spacing: 0.5em;" required>
+                                </div>
+                                
+                                <div id="mfaSetupErrors"></div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-modal" style="background: linear-gradient(135deg, var(--light-blue) 0%, var(--royal-blue) 100%); color: white;">
+                                        <i class="fas fa-check-double me-2"></i>Complete Setup
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--steel-blue) 0%, var(--slate-blue) 100%);">
+                    <h5 class="modal-title fw-bold" id="changePasswordModalLabel">
+                        <i class="fas fa-key me-2"></i>Password Change Required
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Security Notice:</strong> You must change your password before continuing.
+                    </div>
+                    
+                    <form id="changePasswordForm" action="{% url 'change_password' %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="current_password_change" class="form-label fw-semibold" style="color: var(--dark-blue);">Current Password</label>
+                            <input type="password" name="current_password" class="form-control" 
+                                id="current_password_change" placeholder="Enter current password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_password_change" class="form-label fw-semibold" style="color: var(--dark-blue);">New Password</label>
+                            <input type="password" name="new_password" class="form-control" 
+                                id="new_password_change" placeholder="Enter new password" required>
+                            <small class="form-text text-muted">
+                                Password must be at least 8 characters with mixed case, numbers, and symbols
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm_password_change" class="form-label fw-semibold" style="color: var(--dark-blue);">Confirm New Password</label>
+                            <input type="password" name="confirm_password" class="form-control" 
+                                id="confirm_password_change" placeholder="Confirm new password" required>
+                        </div>
+                        
+                        <div id="passwordFormErrors"></div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-modal" style="background: linear-gradient(135deg, var(--steel-blue) 0%, var(--slate-blue) 100%); color: white;">
+                                <i class="fas fa-save me-2"></i>Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--slate-blue) 0%, var(--steel-blue) 100%);">
+                    <h5 class="modal-title fw-bold" id="forgotPasswordModalLabel">
+                        <i class="fas fa-question-circle me-2"></i>Reset Password
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>How Password Reset Works:</strong>
+                        <ol class="mb-0 mt-2 small">
+                            <li>Submit your email address below</li>
+                            <li>An administrator will review your request</li>
+                            <li>If approved, you'll receive a temporary password via email</li>
+                            <li>Use the temporary password to log in and set up a new password</li>
+                        </ol>
+                    </div>
+
+                    <form id="forgotPasswordForm" action="{% url 'request_password_reset' %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="reset_username_or_email" class="form-label fw-semibold" style="color: var(--dark-blue);">Username or Email Address</label>
+                            <input type="text" name="username_or_email" class="form-control"
+                                   id="reset_username_or_email" placeholder="Enter your username or email address" required>
+                        </div>
+
+                        <div id="forgotPasswordErrors"></div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-modal" style="background: linear-gradient(135deg, var(--slate-blue) 0%, var(--steel-blue) 100%); color: white;">
+                                <i class="fas fa-paper-plane me-2"></i>Request Password Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--dark-blue) 0%, var(--primary-blue) 100%);">
+                    <h5 class="modal-title fw-bold text-white" id="privacyModalLabel">
+                        <i class="fas fa-shield-alt me-2"></i>{{ privacy_policy.title|default:"Privacy Policy" }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" id="privacyModalBody" style="background: rgba(255, 255, 255, 0.98); max-height: 70vh; overflow-y: auto;">
+                    {% if privacy_policy %}
+                    <!-- Dynamic Privacy Policy Content -->
+                    <div class="privacy-content">
+                        <div class="mb-4">
+                            <div class="alert d-flex align-items-center" style="background: linear-gradient(135deg, var(--azure) 0%, var(--powder-blue) 100%); border: 1px solid var(--sky-blue); color: var(--dark-blue);">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <div>
+                                    <strong>Version:</strong> {{ privacy_policy.version }} |
+                                    <strong>Effective Date:</strong> {{ privacy_policy.effective_date|date:"F d, Y" }} |
+                                    <strong>Last Updated:</strong> {{ privacy_policy.last_updated|date:"F d, Y" }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <section class="mb-4">
+                                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--dark-blue);">
+                                        <i class="fas fa-file-contract me-2"></i>Introduction
+                                    </h6>
+                                    <p style="color: var(--slate-blue); line-height: 1.6; margin-bottom: 1rem;">
+                                        {{ privacy_policy.introduction }}
+                                    </p>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--dark-blue);">
+                                        <i class="fas fa-database me-2"></i>Information We Collect
+                                    </h6>
+                                    <p style="color: var(--slate-blue); line-height: 1.6; margin-bottom: 1rem;">
+                                        {{ privacy_policy.information_collected }}
+                                    </p>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--dark-blue);">
+                                        <i class="fas fa-cogs me-2"></i>How We Use Your Information
+                                    </h6>
+                                    <p style="color: var(--slate-blue); line-height: 1.6; margin-bottom: 1rem;">
+                                        {{ privacy_policy.information_usage }}
+                                    </p>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--dark-blue);">
+                                        <i class="fas fa-lock me-2"></i>How We Protect Your Information
+                                    </h6>
+                                    <p style="color: var(--slate-blue); line-height: 1.6; margin-bottom: 1rem;">
+                                        {{ privacy_policy.information_protection }}
+                                    </p>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--dark-blue);">
+                                        <i class="fas fa-archive me-2"></i>Data Retention
+                                    </h6>
+                                    <p style="color: var(--slate-blue); line-height: 1.6; margin-bottom: 1rem;">
+                                        {{ privacy_policy.data_retention }}
+                                    </p>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--dark-blue);">
+                                        <i class="fas fa-user-shield me-2"></i>Your Rights and Choices
+                                    </h6>
+                                    <p style="color: var(--slate-blue); line-height: 1.6; margin-bottom: 1rem;">
+                                        {{ privacy_policy.user_rights }}
+                                    </p>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h6 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--dark-blue);">
+                                        <i class="fas fa-envelope me-2"></i>Contact Information
+                                    </h6>
+                                    <p style="color: var(--slate-blue); line-height: 1.6; margin-bottom: 1rem;">
+                                        {{ privacy_policy.contact_information }}
+                                    </p>
+                                </section>
+
+                                <!-- Scroll Detection Marker -->
+                                <div id="privacyScrollEnd" class="mb-4">
+                                    <div class="alert d-flex align-items-center" style="background: linear-gradient(135deg, var(--ice-blue) 0%, var(--powder-blue) 100%); border: 1px solid var(--light-blue); color: var(--dark-blue);">
+                                        <i class="fas fa-shield-alt me-2"></i>
+                                        <div>
+                                            <strong>Privacy Protection:</strong> Your privacy is protected by the Philippine Data Privacy Act of 2012. By continuing to use our services, you acknowledge that you have read and understood this Privacy Policy.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Fallback Privacy Policy Content when no policy exists in database -->
+                    <div class="privacy-content">
+                        <div class="mb-4">
+                            <div class="alert alert-warning d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <div>
+                                    <strong>Notice:</strong> Privacy policy content is being updated. Please contact the system administrator.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center py-5">
+                            <i class="fas fa-shield-alt mb-3" style="font-size: 3rem; color: var(--slate-blue); opacity: 0.5;"></i>
+                            <h6 style="color: var(--dark-blue);">Privacy Policy Content Not Available</h6>
+                            <p style="color: var(--slate-blue);">The privacy policy content is currently being configured. Please check back later or contact our support team.</p>
+                        </div>
+
+                        <!-- Default scroll marker for fallback -->
+                        <div id="privacyScrollEnd" class="mb-4">
+                            <div class="alert d-flex align-items-center" style="background: linear-gradient(135deg, var(--ice-blue) 0%, var(--powder-blue) 100%); border: 1px solid var(--light-blue); color: var(--dark-blue);">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                <div>
+                                    <strong>Privacy Protection:</strong> Your privacy is protected by the Philippine Data Privacy Act of 2012.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer" style="background: rgba(66, 165, 245, 0.1); border-top: 1px solid rgba(66, 165, 245, 0.3);">
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <small style="color: var(--slate-blue);">
+                            <i class="fas fa-info-circle me-1"></i>Please scroll to the bottom to continue
+                        </small>
+                        <button type="button"
+                                class="btn btn-modal"
+                                id="acceptPrivacyBtn"
+                                disabled
+                                style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%); color: white; opacity: 0.5;">
+                            <i class="fas fa-check me-2"></i>I Accept
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page-specific JavaScript -->
+    <script>
+        // Smooth navigation handler for hash links
+        window.handleNavigation = function(event, target) {
+            event.preventDefault();
+            const element = document.querySelector(target);
+            if (element) {
+                const offsetTop = element.offsetTop - 80; // Account for fixed navbar
+                window.scrollTo({
+                    top: offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+            return false;
+        };
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
