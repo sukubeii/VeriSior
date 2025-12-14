@@ -1,0 +1,284 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Senior Citizens - VeriSior{% endblock %}
+{% block page_title %}Senior Citizen Records{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <!-- Search and Filter Form -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="q" value="{{ query }}" 
+                               placeholder="Search by ID, name...">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-control">
+                            <option value="APPROVED" {% if status == 'APPROVED' %}selected{% endif %}>Approved</option>
+                            <option value="PENDING" {% if status == 'PENDING' %}selected{% endif %}>Pending</option>
+                            <option value="REJECTED" {% if status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                            <option value="ALL" {% if status == 'ALL' %}selected{% endif %}>All Status</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'senior_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-refresh me-1"></i>Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 h-100 align-items-center">
+            {% if user.can_create_active_records %}
+            <a href="{% url 'senior_create' %}" class="btn btn-primary flex-fill">
+                <i class="fas fa-plus me-1"></i>Create
+            </a>
+            {% endif %}
+            {% if user.can_export_active_records %}
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'export_csv' %}?status={{ status }}&q={{ query }}">
+                        <i class="fas fa-file-csv me-2"></i>CSV Format
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'export_pdf' %}?status={{ status }}&q={{ query }}">
+                        <i class="fas fa-file-pdf me-2"></i>PDF Format
+                    </a></li>
+                </ul>
+            </div>
+            {% endif %}
+            <!-- Link to Archived Records -->
+            {% if user.can_access_archived_records %}
+            <a href="{% url 'archived_seniors_list' %}" class="btn btn-outline-warning">
+                <i class="fas fa-archive me-1"></i>Archived
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="fas fa-users me-2"></i>
+            {% if query %}
+                Search Results for "{{ query }}"
+            {% else %}
+                {{ status|title }} Senior Citizens
+            {% endif %}
+            <span class="badge bg-secondary ms-2">{{ seniors.paginator.count }} total</span>
+        </span>
+    </div>
+    <div class="card-body p-0">
+        {% if seniors %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID Number</th>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Barangay</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for senior in seniors %}
+                        <tr>
+                            <td><code class="text-primary">{{ senior.id_number }}</code></td>
+                            <td>
+                                <div class="fw-semibold">{{ senior.last_name }}, {{ senior.first_name }}</div>
+                                {% if senior.middle_name %}
+                                <small class="text-muted">{{ senior.middle_name }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ senior.get_age|default:'N/A' }}</td>
+                            <td>{{ senior.get_barangay_name }}</td>
+                            <td>
+                                {% if senior.mobile_number %}
+                                    <small>{{ senior.mobile_number }}</small>
+                                {% elif senior.telephone_number %}
+                                    <small>{{ senior.telephone_number }}</small>
+                                {% else %}
+                                    <small class="text-muted">No contact</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if senior.status == 'APPROVED' %}
+                                    <span class="badge badge-success">Approved</span>
+                                {% elif senior.status == 'PENDING' %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% elif senior.status == 'REJECTED' %}
+                                    <span class="badge badge-danger">Rejected</span>
+                                {% elif senior.status == 'ARCHIVED' %}
+                                    <span class="badge badge-secondary">Archived</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ senior.created_at|date:"M d, Y" }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'senior_detail' senior.pk %}" class="btn btn-outline-primary"
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if user.can_edit_active_records %}
+                                    <a href="{% url 'senior_update' senior.pk %}" class="btn btn-outline-warning"
+                                       title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if user.can_delete_active_records and senior.status != 'ARCHIVED' %}
+                                    <a href="{% url 'senior_archive' senior.pk %}" class="btn btn-outline-secondary"
+                                       title="Archive Record">
+                                        <i class="fas fa-archive"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if seniors.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Senior citizens pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if seniors.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ seniors.previous_page_number }}&status={{ status }}&q={{ query }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in seniors.paginator.page_range %}
+                            {% if seniors.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > seniors.number|add:'-3' and num < seniors.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&status={{ status }}&q={{ query }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if seniors.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ seniors.next_page_number }}&status={{ status }}&q={{ query }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Senior Citizens Found</h5>
+                {% if query %}
+                    <p class="text-muted">Try adjusting your search criteria</p>
+                    <a href="{% url 'senior_list' %}" class="btn btn-outline-primary">Clear Search</a>
+                {% else %}
+                    <p class="text-muted">Get started by adding your first senior citizen</p>
+                    <a href="{% url 'senior_create' %}" class="btn btn-primary">Add Senior Citizen</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Archive Information Alert -->
+{% if status == 'ALL' or status == 'APPROVED' %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Note:</strong> This list shows active records only. 
+            <a href="{% url 'archived_seniors_list' %}" class="alert-link">View archived records</a> 
+            to see records that have been archived.
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.table td {
+    vertical-align: middle;
+}
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+code {
+    font-size: 0.9rem;
+}
+.badge {
+    font-size: 0.75rem;
+}
+.alert-info {
+    background-color: #e3f2fd;
+    border-color: #bbdefb;
+    color: #1565c0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirm archive action
+    document.querySelectorAll('a[href*="archive"]').forEach(function(link) {
+        if (link.getAttribute('title') === 'Archive Record') {
+            link.addEventListener('click', function(e) {
+                const seniorName = this.closest('tr').querySelector('.fw-semibold').textContent.trim();
+                if (!confirm(`Are you sure you want to archive the record for ${seniorName}? This will move the record to the archived section where it can be restored later if needed.`)) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+
+    // Auto-refresh search suggestions (optional enhancement)
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.closest('form').submit();
+            }
+        });
+    }
+
+    // Highlight current status in filter
+    const statusSelect = document.querySelector('select[name="status"]');
+    if (statusSelect) {
+        const currentStatus = statusSelect.value;
+        statusSelect.style.fontWeight = currentStatus !== 'APPROVED' ? 'bold' : 'normal';
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1084 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}{{ senior.first_name }} {{ senior.last_name }} - VeriSior{% endblock %}
+{% block page_title %}Record Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Profile Information -->
+    <div class="col-lg-8">
+        <!-- Header with Actions -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-1">{{ senior.last_name }}, {{ senior.first_name }}
+                            {% if senior.middle_name %}{{ senior.middle_name }}{% endif %}
+                        </h3>
+                        <p class="text-muted mb-2">ID: <code class="text-primary">{{ senior.id_number }}</code></p>
+                        <div>
+                            {% if senior.status == 'APPROVED' %}
+                                <span class="badge badge-success fs-6">{{ senior.get_status_display }}</span>
+                            {% elif senior.status == 'PENDING' %}
+                                <span class="badge badge-warning fs-6">{{ senior.get_status_display }}</span>
+                            {% elif senior.status == 'REJECTED' %}
+                                <span class="badge badge-danger fs-6">{{ senior.get_status_display }}</span>
+                            {% elif senior.status == 'ARCHIVED' %}
+                                <span class="badge badge-secondary fs-6">{{ senior.get_status_display }}</span>
+                                <i class="fas fa-info-circle text-warning ms-2" title="This record is archived"></i>
+                            {% endif %}
+                        </div>
+                        {% if senior.status == 'ARCHIVED' %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-archive me-1"></i>
+                                Archived {{ senior.archived_at|date:"M d, Y" }} by {{ senior.archived_by.username|default:"Unknown" }}
+                                {% if senior.archive_reason %}
+                                    ({{ senior.get_archive_reason_display }})
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="d-flex flex-wrap justify-content-end gap-2" role="group">
+                            {% if senior.status == 'ARCHIVED' %}
+                                <!-- Archived Record Actions -->
+                                {% if user.can_restore_archived_records %}
+                                    <a href="{% url 'restore_senior' senior.pk %}" class="btn btn-success" onclick="return confirm('Are you sure you want to restore this archived record?')">
+                                        <i class="fas fa-undo me-1"></i>Restore
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'archived_seniors_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Back to Archived
+                                </a>
+                            {% else %}
+                                <!-- Active Record Actions -->
+                                {% if user.can_edit_active_records %}
+                                    <a href="{% url 'senior_update' senior.pk %}" class="btn btn-warning">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </a>
+                                {% endif %}
+                                {% if senior.status == 'APPROVED' and senior.qr_code %}
+                                    <a href="{% url 'download_qr_code' senior.pk %}" class="btn btn-success">
+                                        <i class="fas fa-qrcode me-1"></i>QR Code
+                                    </a>
+                                {% endif %}
+                                {% if senior.status == 'APPROVED' %}
+                                    <a href="{% url 'print_senior_id' senior.pk %}" class="btn btn-primary" target="_blank">
+                                        <i class="fas fa-print me-1"></i>Print ID
+                                    </a>
+                                {% endif %}
+                                {% if user.can_delete_active_records %}
+                                    <a href="{% url 'senior_archive' senior.pk %}" class="btn btn-outline-warning">
+                                        <i class="fas fa-archive me-1"></i>Archive
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Archive Information Banner (if archived) -->
+        {% if senior.status == 'ARCHIVED' %}
+        <div class="alert alert-warning mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h6 class="alert-heading mb-1">
+                        <i class="fas fa-archive me-2"></i>Archived Record
+                    </h6>
+                    <p class="mb-0">
+                        This record was archived on {{ senior.archived_at|date:"F d, Y g:i A" }} 
+                        {% if senior.archived_by %}by {{ senior.archived_by.username }}{% endif %}.
+                    </p>
+                    {% if senior.archive_reason %}
+                    <small class="text-muted">
+                        <strong>Reason:</strong> {{ senior.get_archive_reason_display }}
+                        {% if senior.archive_notes %}
+                            <br><strong>Notes:</strong> {{ senior.archive_notes }}
+                        {% endif %}
+                    </small>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if user.can_restore_archived_records %}
+                    <form method="post" action="{% url 'restore_senior' senior.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="restore">
+                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Restore this record to active status?')">
+                            <i class="fas fa-undo me-1"></i>Restore Record
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Personal Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-user me-2"></i>Personal Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Full Name</label>
+                        <p class="fw-semibold">{{ senior.first_name }} 
+                           {% if senior.middle_name %}{{ senior.middle_name }} {% endif %}
+                           {{ senior.last_name }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Birth Date</label>
+                        <p class="fw-semibold">{{ senior.birth_date|date:"F d, Y"|default:"Not specified" }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Age</label>
+                        <p class="fw-semibold">{{ senior.get_age|default:"N/A" }} years old</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Gender</label>
+                        <p class="fw-semibold">{{ senior.get_gender_display|default:"Not specified" }}</p>
+                    </div>
+                    <div class="col-md-9 mb-3">
+                        <label class="form-label text-muted">Address</label>
+                        <p class="fw-semibold">{{ senior.address|default:"Not specified" }}</p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label text-muted">Barangay</label>
+                        <p class="fw-semibold">{{ senior.get_barangay_name }} ({{ senior.barangay_code }})</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-phone me-2"></i>Contact Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Mobile Number</label>
+                        <p class="fw-semibold">
+                            {% if senior.mobile_number %}
+                                <a href="tel:{{ senior.mobile_number }}" class="text-decoration-none">
+                                    {{ senior.mobile_number }}
+                                </a>
+                                <i class="fas fa-phone text-success ms-2" title="Click to call"></i>
+                            {% else %}
+                                <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Telephone Number</label>
+                        <p class="fw-semibold">
+                            {% if senior.telephone_number %}
+                                <a href="tel:{{ senior.telephone_number }}" class="text-decoration-none">
+                                    {{ senior.telephone_number }}
+                                </a>
+                                <i class="fas fa-phone text-success ms-2" title="Click to call"></i>
+                            {% else %}
+                                <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% if not senior.mobile_number and not senior.telephone_number %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No contact information available for this senior citizen.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Health Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-heart me-2"></i>Health Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Vaccination Status</label>
+                        <p class="fw-semibold">
+                            {% if senior.vaccination_status == 'FULL' %}
+                                <span class="badge bg-success">{{ senior.get_vaccination_status_display }}</span>
+                                <i class="fas fa-shield-alt text-success ms-2"></i>
+                            {% elif senior.vaccination_status == 'PARTIAL' %}
+                                <span class="badge bg-warning">{{ senior.get_vaccination_status_display }}</span>
+                                <i class="fas fa-shield-alt text-warning ms-2"></i>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ senior.get_vaccination_status_display }}</span>
+                                <i class="fas fa-shield-alt text-secondary ms-2"></i>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label text-muted">Height</label>
+                        <p class="fw-semibold">{{ senior.height|default:"N/A" }}{% if senior.height %} cm{% endif %}</p>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label text-muted">Weight</label>
+                        <p class="fw-semibold">{{ senior.weight|default:"N/A" }}{% if senior.weight %} kg{% endif %}</p>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label text-muted">Eye Color</label>
+                        <p class="fw-semibold">{{ senior.get_eye_color_display|default:"N/A" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-exclamation-triangle me-2"></i>Emergency Contact
+            </div>
+            <div class="card-body">
+                {% if senior.emergency_contact_name or senior.emergency_contact_number or senior.emergency_contact_address %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Contact Name</label>
+                        <p class="fw-semibold">{{ senior.emergency_contact_name|default:"Not provided" }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Relation</label>
+                        <p class="fw-semibold">{{ senior.get_emergency_contact_relation_display|default:"Not specified" }}</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-muted">Contact Number</label>
+                        <p class="fw-semibold">
+                            {% if senior.emergency_contact_number %}
+                                <a href="tel:{{ senior.emergency_contact_number }}" class="text-decoration-none">
+                                    {{ senior.emergency_contact_number }}
+                                </a>
+                                <i class="fas fa-phone text-success ms-2" title="Click to call"></i>
+                            {% else %}
+                                <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label text-muted">Contact Address</label>
+                        <p class="fw-semibold">{{ senior.emergency_contact_address|default:"Not provided" }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-3 text-muted">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p class="mb-0">No emergency contact information provided</p>
+                    <small>Consider adding emergency contact details for safety purposes.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Required Documents for Review -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-file-alt me-2"></i>Required Documents
+                {% if senior.status == 'PENDING' %}
+                <span class="badge bg-warning text-dark ms-2">Review Required</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Birth Certificate -->
+                    <div class="col-md-4 mb-3">
+                        <div class="document-card {% if senior.birth_certificate %}has-document{% else %}missing-document{% endif %}"
+                             {% if senior.birth_certificate %}onclick="openDocumentModal('{{ senior.birth_certificate.url }}', 'Birth Certificate')"{% endif %}
+                             style="cursor: {% if senior.birth_certificate %}pointer{% else %}default{% endif %};">
+                            <div class="document-icon text-center mb-2">
+                                {% if senior.birth_certificate %}
+                                    <i class="fas fa-file-pdf fa-3x text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-file-pdf fa-3x text-muted"></i>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-center mb-2">Birth Certificate</h6>
+                            <div class="text-center">
+                                {% if senior.birth_certificate %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Uploaded
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>Missing
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% if senior.birth_certificate %}
+                            <div class="text-center mt-2">
+                                <small class="text-muted">Click to view</small>
+                            </div>
+                            {% endif %}
+                            {% if senior.status != 'ARCHIVED' %}
+                                {% if user.role != 'EM' or senior.created_by == user %}
+                                <div class="text-center mt-2" onclick="event.stopPropagation();">
+                                    {% if senior.birth_certificate %}
+                                    <!-- Replace and Delete buttons -->
+                                    <form method="post" action="{% url 'upload_birth_certificate' senior.pk %}" enctype="multipart/form-data" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="file" name="birth_certificate" id="birthCertUpload_{{ senior.pk }}" accept=".pdf,.jpg,.jpeg" style="display: none;" onchange="this.form.submit()">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('birthCertUpload_{{ senior.pk }}').click()">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'delete_birth_certificate' senior.pk %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete the birth certificate?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <!-- Upload button only -->
+                                    <form method="post" action="{% url 'upload_birth_certificate' senior.pk %}" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <input type="file" name="birth_certificate" id="birthCertUploadNew_{{ senior.pk }}" accept=".pdf,.jpg,.jpeg" style="display: none;" onchange="this.form.submit()">
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('birthCertUploadNew_{{ senior.pk }}').click()">
+                                            <i class="fas fa-upload me-1"></i>Upload
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Certificate of Indigency -->
+                    <div class="col-md-4 mb-3">
+                        <div class="document-card {% if senior.certificate_of_indigency %}has-document{% else %}missing-document{% endif %}"
+                             {% if senior.certificate_of_indigency %}onclick="openDocumentModal('{{ senior.certificate_of_indigency.url }}', 'Certificate of Indigency')"{% endif %}
+                             style="cursor: {% if senior.certificate_of_indigency %}pointer{% else %}default{% endif %};">
+                            <div class="document-icon text-center mb-2">
+                                {% if senior.certificate_of_indigency %}
+                                    <i class="fas fa-file-pdf fa-3x text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-file-pdf fa-3x text-muted"></i>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-center mb-2">Certificate of Indigency</h6>
+                            <div class="text-center">
+                                {% if senior.certificate_of_indigency %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Uploaded
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>Missing
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% if senior.certificate_of_indigency %}
+                            <div class="text-center mt-2">
+                                <small class="text-muted">Click to view</small>
+                            </div>
+                            {% endif %}
+                            {% if senior.status != 'ARCHIVED' %}
+                                {% if user.role != 'EM' or senior.created_by == user %}
+                                <div class="text-center mt-2" onclick="event.stopPropagation();">
+                                    {% if senior.certificate_of_indigency %}
+                                    <!-- Replace and Delete buttons -->
+                                    <form method="post" action="{% url 'upload_certificate_of_indigency' senior.pk %}" enctype="multipart/form-data" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="file" name="certificate_of_indigency" id="certIndigencyUpload_{{ senior.pk }}" accept=".pdf,.jpg,.jpeg" style="display: none;" onchange="this.form.submit()">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('certIndigencyUpload_{{ senior.pk }}').click()">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'delete_certificate_of_indigency' senior.pk %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete the certificate of indigency?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <!-- Upload button only -->
+                                    <form method="post" action="{% url 'upload_certificate_of_indigency' senior.pk %}" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <input type="file" name="certificate_of_indigency" id="certIndigencyUploadNew_{{ senior.pk }}" accept=".pdf,.jpg,.jpeg" style="display: none;" onchange="this.form.submit()">
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('certIndigencyUploadNew_{{ senior.pk }}').click()">
+                                            <i class="fas fa-upload me-1"></i>Upload
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Marriage Certificate -->
+                    <div class="col-md-4 mb-3">
+                        <div class="document-card {% if senior.marriage_certificate %}has-document{% else %}optional-document{% endif %}"
+                             {% if senior.marriage_certificate %}onclick="openDocumentModal('{{ senior.marriage_certificate.url }}', 'Marriage Certificate')"{% endif %}
+                             style="cursor: {% if senior.marriage_certificate %}pointer{% else %}default{% endif %};">
+                            <div class="document-icon text-center mb-2">
+                                {% if senior.marriage_certificate %}
+                                    <i class="fas fa-file-pdf fa-3x text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-file-pdf fa-3x text-muted"></i>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-center mb-2">Marriage Certificate</h6>
+                            <div class="text-center">
+                                {% if senior.marriage_certificate %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Uploaded
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-info-circle me-1"></i>Optional
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% if senior.marriage_certificate %}
+                            <div class="text-center mt-2">
+                                <small class="text-muted">Click to view</small>
+                            </div>
+                            {% endif %}
+                            {% if senior.status != 'ARCHIVED' %}
+                                {% if user.role != 'EM' or senior.created_by == user %}
+                                <div class="text-center mt-2" onclick="event.stopPropagation();">
+                                    {% if senior.marriage_certificate %}
+                                    <!-- Replace and Delete buttons -->
+                                    <form method="post" action="{% url 'upload_marriage_certificate' senior.pk %}" enctype="multipart/form-data" style="display: inline;">
+                                        {% csrf_token %}
+                                        <input type="file" name="marriage_certificate" id="marriageCertUpload_{{ senior.pk }}" accept=".pdf,.jpg,.jpeg" style="display: none;" onchange="this.form.submit()">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('marriageCertUpload_{{ senior.pk }}').click()">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'delete_marriage_certificate' senior.pk %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete the marriage certificate?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <!-- Upload button only -->
+                                    <form method="post" action="{% url 'upload_marriage_certificate' senior.pk %}" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <input type="file" name="marriage_certificate" id="marriageCertUploadNew_{{ senior.pk }}" accept=".pdf,.jpg,.jpeg" style="display: none;" onchange="this.form.submit()">
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('marriageCertUploadNew_{{ senior.pk }}').click()">
+                                            <i class="fas fa-upload me-1"></i>Upload
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if senior.status == 'PENDING' %}
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Review Instructions:</strong> Click on each uploaded document to verify the contents before approving this senior citizen record.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Discount Transaction History -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-receipt me-2"></i>Discount Transaction History</span>
+                {% if transactions %}
+                <span class="badge bg-info">{{ transactions|length }} recent</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Transaction #</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Discount Type</th>
+                                    <th>Amount</th>
+                                    <th>Establishment</th>
+                                    <th>Address</th>
+                                    <th>Contact</th>
+                                    <th>IP Address</th>
+                                    <th>GPS Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td>
+                                        <small class="text-primary font-monospace">
+                                            {% if transaction.transaction_number %}
+                                                {{ transaction.transaction_number }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div>{{ transaction.created_at|date:"M d, Y" }}</div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ transaction.created_at|time:"g:i A" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if transaction.category == 'MEDICINE' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-pills me-1"></i>Pharmacy
+                                            </span>
+                                        {% elif transaction.category == 'GROCERY' %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-shopping-cart me-1"></i>Grocery
+                                            </span>
+                                        {% elif transaction.category == 'RESTAURANT' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-utensils me-1"></i>Restaurant
+                                            </span>
+                                        {% elif transaction.category == 'TRANSPORT' %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-bus me-1"></i>Transport
+                                            </span>
+                                        {% elif transaction.category == 'UTILITY' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-bolt me-1"></i>Utility
+                                            </span>
+                                        {% elif transaction.category == 'OTHER' %}
+                                            <span class="badge bg-dark">
+                                                <i class="fas fa-tag me-1"></i>Other
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ transaction.get_category_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.discount_amount %}
+                                            <span class="badge bg-success">PHP {{ transaction.discount_amount|floatformat:2 }}</span>
+                                        {% else %}
+                                            <small class="text-muted">N/A</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.establishment_name %}
+                                            <small>{{ transaction.establishment_name }}</small>
+                                        {% else %}
+                                            <small class="text-muted">N/A</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.establishment_address %}
+                                            <small class="text-muted">{{ transaction.establishment_address }}</small>
+                                        {% else %}
+                                            <small class="text-muted">N/A</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.establishment_contact %}
+                                            <small class="text-muted font-monospace">{{ transaction.establishment_contact }}</small>
+                                        {% else %}
+                                            <small class="text-muted">N/A</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.ip_address %}
+                                            <small class="text-muted font-monospace">{{ transaction.ip_address }}</small>
+                                        {% else %}
+                                            <small class="text-muted">N/A</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.latitude and transaction.longitude %}
+                                            <small class="text-muted">
+                                                <a href="https://www.google.com/maps?q={{ transaction.latitude }},{{ transaction.longitude }}"
+                                                target="_blank"
+                                                class="text-decoration-none"
+                                                title="View on Google Maps">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                                    {{ transaction.latitude|floatformat:4 }}, {{ transaction.longitude|floatformat:4 }}
+                                                </a>
+                                                {% if transaction.location_accuracy %}
+                                                    <br><span class="text-muted" style="font-size: 0.75rem;">±{{ transaction.location_accuracy|floatformat:0 }}m</span>
+                                                {% endif %}
+                                            </small>
+                                        {% else %}
+                                            <small class="text-muted">Not captured</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if transactions|length == 10 %}
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Showing latest 10 transactions</small>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-receipt fa-2x mb-2"></i>
+                        <p class="mb-0">No discount transactions found</p>
+                        <small>This senior citizen hasn't used any discounts yet.</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Information -->
+    <div class="col-lg-4">
+        <!-- Photo and QR Code -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-camera me-2"></i>Photo & QR Code
+            </div>
+            <div class="card-body text-center">
+                {% if senior.photo %}
+                    <img src="{{ senior.photo.url }}" alt="Senior Photo" class="img-fluid rounded mb-3" style="max-height: 200px;">
+                    {% if senior.status != 'ARCHIVED' %}
+                        {% if user.role != 'EM' or senior.created_by == user %}
+                        <div class="mt-2">
+                            <form method="post" action="{% url 'upload_senior_photo' senior.pk %}" enctype="multipart/form-data" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="file" name="photo" id="photoUpload_{{ senior.pk }}" accept=".jpg,.jpeg,.png,.gif" style="display: none;" onchange="this.form.submit()">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('photoUpload_{{ senior.pk }}').click()">
+                                    <i class="fas fa-upload me-1"></i>Replace
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'delete_senior_photo' senior.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this photo?')">
+                                    <i class="fas fa-trash me-1"></i>Delete
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 200px;">
+                        <i class="fas fa-user fa-3x text-muted"></i>
+                    </div>
+                    {% if senior.status != 'ARCHIVED' %}
+                        {% if user.role != 'EM' or senior.created_by == user %}
+                        <div class="mt-2">
+                            <form method="post" action="{% url 'upload_senior_photo' senior.pk %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="file" name="photo" id="photoUploadNew_{{ senior.pk }}" accept=".jpg,.jpeg,.png,.gif" style="display: none;" onchange="this.form.submit()">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('photoUploadNew_{{ senior.pk }}').click()">
+                                    <i class="fas fa-upload me-1"></i>Upload Photo
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                
+                {% if senior.status == 'APPROVED' and senior.qr_code %}
+                    <div class="mt-3">
+                        <img src="{{ senior.qr_code.url }}" alt="QR Code" class="img-fluid" style="max-width: 150px;">
+                        <div class="mt-2">
+                            <a href="{% url 'download_qr_code' senior.pk %}" class="btn btn-sm btn-success">
+                                <i class="fas fa-download me-1"></i>Download QR Code
+                            </a>
+                        </div>
+                    </div>
+                {% elif senior.status == 'PENDING' %}
+                    <div class="alert alert-warning mt-3">
+                        <small><i class="fas fa-info-circle me-1"></i>QR code will be generated upon approval</small>
+                    </div>
+                {% elif senior.status == 'ARCHIVED' %}
+                    {% if senior.qr_code %}
+                    <div class="mt-3">
+                        <img src="{{ senior.qr_code.url }}" alt="QR Code" class="img-fluid opacity-50" style="max-width: 150px;">
+                        <div class="mt-2">
+                            <small class="text-muted">QR code disabled (archived)</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Record Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Record Information
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted">Created By</label>
+                    <p class="fw-semibold">{{ senior.created_by.username|default:"Unknown" }}</p>
+                    <small class="text-muted">{{ senior.created_by.get_role_display|default:"" }}</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Created Date</label>
+                    <p class="fw-semibold">{{ senior.created_at|date:"M d, Y g:i A" }}</p>
+                </div>
+                {% if senior.updated_by and senior.updated_at != senior.created_at %}
+                <div class="mb-3">
+                    <label class="form-label text-muted">Last Updated By</label>
+                    <p class="fw-semibold">{{ senior.updated_by.username }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Last Updated</label>
+                    <p class="fw-semibold">{{ senior.updated_at|date:"M d, Y g:i A" }}</p>
+                </div>
+                {% endif %}
+                
+                {% if senior.status == 'ARCHIVED' %}
+                <hr>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Archive Information</label>
+                    <p class="fw-semibold text-warning">
+                        <i class="fas fa-archive me-1"></i>
+                        Archived {{ senior.archived_at|date:"M d, Y" }}
+                    </p>
+                    {% if senior.archived_by %}
+                    <small class="text-muted">by {{ senior.archived_by.username }}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bolt me-2"></i>Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if senior.status == 'ARCHIVED' %}
+                        <a href="{% url 'archived_seniors_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Archived List
+                        </a>
+                        {% if user.role in 'RA,SA,AD' %}
+                        <form method="post" action="{% url 'restore_senior' senior.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="restore">
+                            <button type="submit" class="btn btn-success w-100" onclick="return confirm('Restore this record to active status?')">
+                                <i class="fas fa-undo me-1"></i>Restore Record
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'senior_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to List
+                        </a>
+                        {% if senior.status == 'PENDING' and user.role != 'EM' %}
+                        <a href="{% url 'approve_senior' senior.pk %}" class="btn btn-warning">
+                            <i class="fas fa-gavel me-1"></i>Review & Approve
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                    <a href="{% url 'senior_create' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Add New Senior
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Viewer Modal -->
+<div class="modal fade" id="documentViewerModal" tabindex="-1" aria-labelledby="documentViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentViewerModalLabel">
+                    <i class="fas fa-file-alt me-2"></i>
+                    <span id="documentTitle">Document Viewer</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="min-height: 500px; max-height: 80vh; overflow: auto;">
+                <div id="documentLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading document...</p>
+                </div>
+                <div id="documentContainer" style="display: none;">
+                    <!-- Image Viewer -->
+                    <div id="imageViewer" style="display: none; text-align: center; padding: 20px; background: #f5f5f5;">
+                        <img id="imageViewerImg" style="max-width: 100%; height: auto; max-height: 70vh; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                    </div>
+
+                    <!-- PDF Message -->
+                    <div id="pdfMessage" style="display: none; text-align: center; padding: 40px;">
+                        <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
+                        <h5>PDF Document Ready</h5>
+                        <p class="text-muted">This document will open in a new tab for better viewing.</p>
+                        <p class="small text-muted">Click the "Open in New Tab" button below to view the document.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="openInNewTabBtn" href="#" target="_blank" class="btn btn-success me-auto" style="display: none;">
+                    <i class="fas fa-external-link-alt me-1"></i>Open in New Tab
+                </a>
+                <a id="downloadDocumentBtn" href="#" download class="btn btn-primary">
+                    <i class="fas fa-download me-1"></i>Download
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.badge.fs-6 {
+    font-size: 0.9rem !important;
+}
+.img-fluid {
+    border: 2px solid var(--gray-200);
+}
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+.list-group-item:first-child {
+    border-top: none;
+}
+.list-group-item:last-child {
+    border-bottom: none;
+}
+.opacity-50 {
+    opacity: 0.5 !important;
+}
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+.text-primary {
+    color: #0d6efd !important;
+}
+.badge-secondary {
+    background-color: #6c757d !important;
+}
+
+/* Document Card Styles */
+.document-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    height: 100%;
+}
+
+.document-card.has-document {
+    border-color: #28a745;
+    background: #f8fff9;
+}
+
+.document-card.has-document:hover {
+    border-color: #218838;
+    background: #e8f5e9;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.document-card.missing-document {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.document-card.optional-document {
+    border-color: #6c757d;
+    background: #f8f9fa;
+}
+
+.document-icon {
+    transition: transform 0.3s ease;
+}
+
+.document-card.has-document:hover .document-icon {
+    transform: scale(1.1);
+}
+
+/* Modal Styles */
+.modal-xl {
+    max-width: 95%;
+}
+
+#documentContainer {
+    background: #f5f5f5;
+}
+
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    .document-card {
+        margin-bottom: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global function to open document modal
+function openDocumentModal(documentUrl, documentTitle) {
+    const modal = new bootstrap.Modal(document.getElementById('documentViewerModal'));
+    const modalTitleElement = document.getElementById('documentTitle');
+    const documentLoading = document.getElementById('documentLoading');
+    const documentContainer = document.getElementById('documentContainer');
+    const imageViewer = document.getElementById('imageViewer');
+    const imageViewerImg = document.getElementById('imageViewerImg');
+    const pdfMessage = document.getElementById('pdfMessage');
+    const downloadBtn = document.getElementById('downloadDocumentBtn');
+    const openInNewTabBtn = document.getElementById('openInNewTabBtn');
+
+    // Set title
+    modalTitleElement.textContent = documentTitle;
+
+    // Set download and open links
+    downloadBtn.href = documentUrl;
+    openInNewTabBtn.href = documentUrl;
+
+    // Show loading
+    documentLoading.style.display = 'block';
+    documentContainer.style.display = 'none';
+    imageViewer.style.display = 'none';
+    if (pdfMessage) pdfMessage.style.display = 'none';
+    openInNewTabBtn.style.display = 'none';
+
+    // Determine file type
+    const fileExtension = documentUrl.split('.').pop().toLowerCase().split('?')[0];
+    const isPDF = fileExtension === 'pdf';
+    const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension);
+
+    console.log('Opening document:', documentUrl, 'Type:', fileExtension, 'isPDF:', isPDF, 'isImage:', isImage);
+
+    // Open modal
+    modal.show();
+
+    // Load document after a short delay
+    setTimeout(() => {
+        documentLoading.style.display = 'none';
+        documentContainer.style.display = 'block';
+
+        if (isImage) {
+            // Display Image directly (no iframe needed)
+            imageViewerImg.src = documentUrl;
+            imageViewerImg.alt = documentTitle;
+            imageViewer.style.display = 'block';
+            if (pdfMessage) pdfMessage.style.display = 'none';
+            openInNewTabBtn.style.display = 'none';
+
+            // Handle image load errors
+            imageViewerImg.onerror = function() {
+                imageViewer.innerHTML = `
+                    <div class="alert alert-danger m-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Error loading image.</strong><br>
+                        The image file may be corrupted or the path is incorrect.<br>
+                        <small class="text-muted">URL: ${documentUrl}</small>
+                    </div>
+                `;
+            };
+
+            imageViewerImg.onload = function() {
+                console.log('Image loaded successfully');
+            };
+        } else if (isPDF) {
+            // For PDFs, show message and button to open in new tab
+            // This avoids X-Frame-Options issues
+            imageViewer.style.display = 'none';
+            if (pdfMessage) {
+                pdfMessage.style.display = 'block';
+            }
+            openInNewTabBtn.style.display = 'inline-block';
+
+            // Auto-open PDF in new tab
+            window.open(documentUrl, '_blank');
+        } else {
+            // Unknown file type: open in new tab
+            window.open(documentUrl, '_blank');
+            modal.hide();
+        }
+    }, 300);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Confirm archive action
+    const archiveBtn = document.querySelector('a[href*="archive"]');
+    if (archiveBtn) {
+        archiveBtn.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to archive this record? It will be moved to the archived section but can be restored later.')) {
+                e.preventDefault();
+            }
+        });
+    }
+
+    // Copy ID number to clipboard
+    const idCode = document.querySelector('code.text-primary');
+    if (idCode) {
+        idCode.style.cursor = 'pointer';
+        idCode.title = 'Click to copy ID number';
+        idCode.addEventListener('click', function() {
+            navigator.clipboard.writeText(this.textContent).then(() => {
+                // Show temporary success message
+                const originalText = this.textContent;
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 1000);
+            });
+        });
+    }
+
+    // Clean up modal on close
+    const documentModal = document.getElementById('documentViewerModal');
+    if (documentModal) {
+        documentModal.addEventListener('hidden.bs.modal', function () {
+            const imageViewerImg = document.getElementById('imageViewerImg');
+            const imageViewer = document.getElementById('imageViewer');
+
+            // Clear sources to stop loading
+            if (imageViewerImg) {
+                imageViewerImg.src = '';
+                imageViewerImg.onerror = null;
+                imageViewerImg.onload = null;
+            }
+
+            // Reset image viewer
+            if (imageViewer) {
+                imageViewer.style.display = 'none';
+            }
+        });
+    }
+
+    // Auto-refresh transaction history every 30 seconds (if active record)
+    {% if senior.status != 'ARCHIVED' %}
+    setTimeout(function() {
+        // You can implement AJAX refresh here if needed
+    }, 30000);
+    {% endif %}
+});
+</script>
+{% endblock %}

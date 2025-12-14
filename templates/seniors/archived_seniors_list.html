@@ -1,0 +1,506 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Archived Senior Citizens - VeriSior{% endblock %}
+{% block page_title %}Archived Records{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <!-- Search and Filter Form -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="q" value="{{ query }}" 
+                               placeholder="Search by ID, name...">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="archive_reason" class="form-control">
+                            <option value="">All Archive Reasons</option>
+                            <option value="DECEASED" {% if archive_reason == 'DECEASED' %}selected{% endif %}>Deceased</option>
+                            <option value="MOVED" {% if archive_reason == 'MOVED' %}selected{% endif %}>Moved</option>
+                            <option value="DUPLICATE" {% if archive_reason == 'DUPLICATE' %}selected{% endif %}>Duplicate</option>
+                            <option value="ERROR" {% if archive_reason == 'ERROR' %}selected{% endif %}>Error</option>
+                            <option value="REQUEST" {% if archive_reason == 'REQUEST' %}selected{% endif %}>Requested</option>
+                            <option value="OTHER" {% if archive_reason == 'OTHER' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'archived_seniors_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-refresh me-1"></i>Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 h-100 align-items-center flex-column">
+            <div class="d-flex gap-2 w-100">
+                <a href="{% url 'senior_list' %}" class="btn btn-outline-primary flex-fill">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </a>
+                <div class="badge bg-secondary fs-6 d-flex align-items-center">
+                    {{ seniors.paginator.count }} archived
+                </div>
+            </div>
+            {% if user.role == 'RA' or user.role == 'SA' or user.role == 'AD' %}
+            <a href="{% url 'deleted_seniors_list' %}" class="btn btn-danger w-100">
+                <i class="fas fa-trash me-1"></i>View Deleted Records
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Restore Actions -->
+{% if seniors.paginator.count > 0 %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="post" id="bulkRestoreForm" action="{% url 'bulk_restore_seniors' %}">
+            {% csrf_token %}
+            <div class="d-flex gap-2 align-items-center">
+                <button type="submit" class="btn btn-success" id="bulkRestoreBtn" disabled>
+                    <i class="fas fa-undo me-1"></i>Restore Selected
+                </button>
+                <span class="text-muted" id="selectedCount">0 selected</span>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- Results -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="fas fa-archive me-2"></i>
+            Archived
+            {% if query %}
+                - Search Results for "{{ query }}"
+            {% endif %}
+            <span class="badge bg-secondary ms-2">{{ seniors.paginator.count }} total</span>
+        </span>
+    </div>
+    <div class="card-body p-0">
+        {% if seniors %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="50">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th>ID Number</th>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Archive Reason</th>
+                            <th>Archived Date</th>
+                            <th>Archived By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for senior in seniors %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selected_seniors" value="{{ senior.pk }}" 
+                                       class="form-check-input senior-checkbox" form="bulkRestoreForm">
+                            </td>
+                            <td><code class="text-secondary">{{ senior.id_number }}</code></td>
+                            <td>
+                                <div class="fw-semibold text-muted">{{ senior.last_name }}, {{ senior.first_name }}</div>
+                                {% if senior.middle_name %}
+                                <small class="text-muted">{{ senior.middle_name }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ senior.get_age|default:'N/A' }}</td>
+                            <td>
+                                {% if senior.archive_reason %}
+                                    <span class="badge bg-warning text-dark">{{ senior.get_archive_reason_display }}</span>
+                                    {% if senior.archive_notes %}
+                                        <i class="fas fa-info-circle text-info ms-1" 
+                                           title="{{ senior.archive_notes }}" data-bs-toggle="tooltip"></i>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if senior.archived_at %}
+                                    <small class="text-muted">{{ senior.archived_at|date:"M d, Y" }}</small>
+                                {% else %}
+                                    <small class="text-muted">Unknown</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if senior.archived_by %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <div class="avatar-initial bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 11px;">
+                                                {{ senior.archived_by.first_name.0|default:senior.archived_by.username.0|upper }}{{ senior.archived_by.last_name.0|default:'' }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold small">{{ senior.archived_by.first_name }} {{ senior.archived_by.last_name }}</div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'archived_senior_detail' senior.pk %}" class="btn btn-outline-info" 
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn btn-success restore-single"
+                                            data-senior-id="{{ senior.pk }}"
+                                            data-senior-name="{{ senior.first_name }} {{ senior.last_name }}"
+                                            data-senior-number="{{ senior.id_number }}"
+                                            title="Restore Record">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    {% if user.role == 'RA' or user.role == 'SA' or user.role == 'AD' %}
+                                    <button class="btn btn-danger delete-archived"
+                                            data-senior-id="{{ senior.pk }}"
+                                            data-senior-name="{{ senior.first_name }} {{ senior.last_name }}"
+                                            data-senior-number="{{ senior.id_number }}"
+                                            title="Delete (Move to Deleted List)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if seniors.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Archived seniors pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if seniors.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ seniors.previous_page_number }}&q={{ query }}&archive_reason={{ archive_reason }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in seniors.paginator.page_range %}
+                            {% if seniors.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > seniors.number|add:'-3' and num < seniors.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&q={{ query }}&archive_reason={{ archive_reason }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if seniors.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ seniors.next_page_number }}&q={{ query }}&archive_reason={{ archive_reason }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-archive fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Archived Records Found</h5>
+                {% if query or archive_reason %}
+                    <p class="text-muted">Try adjusting your search criteria</p>
+                    <a href="{% url 'archived_seniors_list' %}" class="btn btn-outline-primary">Clear Filters</a>
+                {% else %}
+                    <p class="text-muted">No senior citizen records have been archived yet.</p>
+                    <a href="{% url 'senior_list' %}" class="btn btn-primary">View Active Records</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Restore Confirmation Modal -->
+<div class="modal fade" id="restoreModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Restore Senior Citizen Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success">
+                    <i class="fas fa-undo me-2"></i>
+                    <strong>Restore Record?</strong><br>
+                    This will make the record active again and restore all functionality.
+                </div>
+                <div class="senior-info">
+                    <!-- Senior info will be populated by JavaScript -->
+                </div>
+                <form id="restoreForm" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="senior_id" id="modal_senior_id">
+                    <input type="hidden" name="action" value="restore">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmRestoreBtn">
+                    <i class="fas fa-undo me-1"></i>Restore Record
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Permanent Delete Confirmation Modal -->
+<div class="modal fade" id="permanentDeleteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Permanent Delete Warning</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>DANGER:</strong> This action cannot be undone!
+                </div>
+                
+                <div class="bg-light p-3 rounded mb-3">
+                    <h6 class="text-danger mb-2">Permanent deletion will:</h6>
+                    <ul class="text-danger mb-0">
+                        <li>Permanently remove the senior citizen record</li>
+                        <li>Delete all associated documents and files</li>
+                        <li>Remove QR codes and transaction history</li>
+                        <li>Cannot be recovered or restored</li>
+                    </ul>
+                </div>
+                
+                <div class="senior-info-delete mb-3">
+                    <!-- Senior info will be populated by JavaScript -->
+                </div>
+                
+                <div class="mb-3">
+                    <label for="deletion_reason" class="form-label">Reason for Permanent Deletion <span class="text-danger">*</span></label>
+                    <select name="deletion_reason" id="deletion_reason" class="form-control" required>
+                        <option value="">Select a reason...</option>
+                        <option value="GDPR_REQUEST">GDPR/Data Protection Request</option>
+                        <option value="LEGAL_ORDER">Legal Order/Court Decision</option>
+                        <option value="DATA_ERROR">Irreparable Data Corruption</option>
+                        <option value="ADMIN_DECISION">Administrative Decision</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="deletion_notes" class="form-label">Additional Notes</label>
+                    <textarea name="deletion_notes" id="deletion_notes" class="form-control" rows="3" 
+                              placeholder="Please provide details about why this record is being permanently deleted..."></textarea>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmUnderstand" required>
+                    <label class="form-check-label text-danger" for="confirmUnderstand">
+                        <strong>I understand that this action is permanent and cannot be undone</strong>
+                    </label>
+                </div>
+                
+                <form id="permanentDeleteForm" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="senior_id" id="modal_delete_senior_id">
+                    <input type="hidden" name="action" value="permanent_delete">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmPermanentDeleteBtn" disabled>
+                    <i class="fas fa-trash me-1"></i>Permanently Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.table td {
+    vertical-align: middle;
+}
+.form-check-input {
+    margin-top: 0;
+}
+.avatar-initial {
+    font-weight: 600;
+    font-size: 11px;
+}
+#bulkRestoreBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.text-muted {
+    opacity: 0.7;
+}
+.badge.bg-warning {
+    color: #000 !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const seniorCheckboxes = document.querySelectorAll('.senior-checkbox');
+    const bulkRestoreBtn = document.getElementById('bulkRestoreBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    const restoreModal = new bootstrap.Modal(document.getElementById('restoreModal'));
+    const permanentDeleteModal = new bootstrap.Modal(document.getElementById('permanentDeleteModal'));
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Handle select all functionality
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            seniorCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkRestoreButton();
+        });
+    }
+
+    // Handle individual checkbox changes
+    seniorCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllState();
+            updateBulkRestoreButton();
+        });
+    });
+
+    function updateSelectAllState() {
+        const checkedBoxes = document.querySelectorAll('.senior-checkbox:checked');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = checkedBoxes.length === seniorCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < seniorCheckboxes.length;
+        }
+    }
+
+    function updateBulkRestoreButton() {
+        const checkedBoxes = document.querySelectorAll('.senior-checkbox:checked');
+        const count = checkedBoxes.length;
+        
+        if (bulkRestoreBtn) {
+            bulkRestoreBtn.disabled = count === 0;
+        }
+        if (selectedCount) {
+            selectedCount.textContent = `${count} selected`;
+        }
+    }
+
+    // Handle bulk restore form submission
+    const bulkRestoreForm = document.getElementById('bulkRestoreForm');
+    if (bulkRestoreForm) {
+        bulkRestoreForm.addEventListener('submit', function(e) {
+            const checkedBoxes = document.querySelectorAll('.senior-checkbox:checked');
+            
+            if (checkedBoxes.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one record to restore.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to restore ${checkedBoxes.length} senior citizen record(s)?`)) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            bulkRestoreBtn.disabled = true;
+            bulkRestoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Restoring...';
+        });
+    }
+
+    // Handle single restore buttons
+    document.querySelectorAll('.restore-single').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const seniorId = this.dataset.seniorId;
+            const seniorName = this.dataset.seniorName;
+            const seniorNumber = this.dataset.seniorNumber;
+            
+            document.getElementById('modal_senior_id').value = seniorId;
+            document.querySelector('.senior-info').innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Senior Citizen:</strong> ${seniorName}<br>
+                    <strong>ID Number:</strong> ${seniorNumber}
+                </div>
+            `;
+            
+            restoreModal.show();
+        });
+    });
+
+    // Handle restore confirmation
+    document.getElementById('confirmRestoreBtn').addEventListener('click', function() {
+        const seniorId = document.getElementById('modal_senior_id').value;
+        const restoreForm = document.getElementById('restoreForm');
+        
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Restoring...';
+        
+        // Set form action and submit
+        restoreForm.action = `/government/seniors/${seniorId}/restore/`;
+        restoreForm.submit();
+    });
+
+    // Handle delete archived buttons (soft delete - move to DELETED status)
+    document.querySelectorAll('.delete-archived').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const seniorId = this.dataset.seniorId;
+            const seniorName = this.dataset.seniorName;
+            const seniorNumber = this.dataset.seniorNumber;
+
+            if (confirm(`Delete archived record for ${seniorName} (${seniorNumber})?\n\nThis will move the record to the Deleted list.`)) {
+                // Create form and submit
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/government/seniors/${seniorId}/delete-archived/`;
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

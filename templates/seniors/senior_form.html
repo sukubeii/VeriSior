@@ -1,0 +1,1257 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}{{ action }} Senior Citizen - VeriSior{% endblock %}
+{% block page_title %}{{ action }} Record{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post" enctype="multipart/form-data" id="seniorForm">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user me-2"></i>Basic Information
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                First Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                Last Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.middle_name.id_for_label }}" class="form-label">
+                                Middle Name
+                            </label>
+                            {{ form.middle_name }}
+                            {% if form.middle_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.middle_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.birth_date_text.id_for_label }}" class="form-label">
+                                Birth Date <span class="text-danger">*</span>
+                            </label>
+                            {{ form.birth_date_text }}
+                            {% if form.birth_date_text.errors %}
+                                <div class="text-danger small mt-1">{{ form.birth_date_text.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gender <span class="text-danger">*</span></label>
+                            <div class="mt-2">
+                                {% for choice in form.gender %}
+                                    <div class="form-check form-check-inline">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.gender.errors %}
+                                <div class="text-danger small mt-1">{{ form.gender.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.barangay.id_for_label }}" class="form-label">
+                                Barangay <span class="text-danger">*</span>
+                            </label>
+                            {{ form.barangay }}
+                            {% if form.barangay.errors %}
+                                <div class="text-danger small mt-1">{{ form.barangay.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.application_date_text.id_for_label }}" class="form-label">
+                                Application Date
+                            </label>
+                            {{ form.application_date_text }}
+                            {% if form.application_date_text.errors %}
+                                <div class="text-danger small mt-1">{{ form.application_date_text.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Leave blank to use today's date</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-map-marker-alt me-2"></i>Address Information
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="house_number" class="form-label">
+                                House #/Unit # <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="house_number" name="house_number" 
+                                   placeholder="e.g. 123, Unit 4B, Blk 5 Lot 12" 
+                                   value="{{ form.house_number.value|default:'' }}" required>
+                            {% if form.house_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.house_number.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">House number, unit number, block and lot, etc.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="street" class="form-label">
+                                Street <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="street" name="street" 
+                                   placeholder="e.g. Rizal Street, Main Avenue" 
+                                   value="{{ form.street.value|default:'' }}" required>
+                            {% if form.street.errors %}
+                                <div class="text-danger small mt-1">{{ form.street.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Street name or road name</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="subdivision" class="form-label">
+                                Subdivision/Village
+                            </label>
+                            <input type="text" class="form-control" id="subdivision" name="subdivision" 
+                                   placeholder="e.g. Greenfield Village, Palm Heights Subdivision" 
+                                   value="{{ form.subdivision.value|default:'' }}">
+                            {% if form.subdivision.errors %}
+                                <div class="text-danger small mt-1">{{ form.subdivision.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">Subdivision, village, or community name (if applicable)</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">
+                                City <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="city" name="city" 
+                                   value="Quezon City" readonly>
+                            <div class="form-text">Fixed to Quezon City for this system</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Address Preview -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading mb-2">
+                            <i class="fas fa-eye me-2"></i>Address Preview
+                        </h6>
+                        <div id="addressPreview" class="fw-semibold">
+                            Complete the fields above to see the full address
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-phone me-2"></i>Contact Information
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.mobile_number.id_for_label }}" class="form-label">
+                                Mobile Number
+                            </label>
+                            {{ form.mobile_number }}
+                            {% if form.mobile_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.mobile_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.telephone_number.id_for_label }}" class="form-label">
+                                Telephone Number
+                            </label>
+                            {{ form.telephone_number }}
+                            {% if form.telephone_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.telephone_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        At least one contact method (mobile or telephone) is required.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-heart me-2"></i>Health Information
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Vaccination Status <span class="text-danger">*</span></label>
+                            <div class="mt-2">
+                                {% for choice in form.vaccination_status %}
+                                    <div class="form-check">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.vaccination_status.errors %}
+                                <div class="text-danger small mt-1">{{ form.vaccination_status.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.height.id_for_label }}" class="form-label">
+                                Height (cm)
+                            </label>
+                            {{ form.height }}
+                            {% if form.height.errors %}
+                                <div class="text-danger small mt-1">{{ form.height.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.weight.id_for_label }}" class="form-label">
+                                Weight (kg)
+                            </label>
+                            {{ form.weight }}
+                            {% if form.weight.errors %}
+                                <div class="text-danger small mt-1">{{ form.weight.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.eye_color.id_for_label }}" class="form-label">
+                                Eye Color
+                            </label>
+                            {{ form.eye_color }}
+                            {% if form.eye_color.errors %}
+                                <div class="text-danger small mt-1">{{ form.eye_color.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Emergency Contact
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label">
+                                Contact Name
+                            </label>
+                            {{ form.emergency_contact_name }}
+                            {% if form.emergency_contact_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.emergency_contact_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label">
+                                Relation
+                            </label>
+                            {{ form.emergency_contact_relation }}
+                            {% if form.emergency_contact_relation.errors %}
+                                <div class="text-danger small mt-1">{{ form.emergency_contact_relation.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.emergency_contact_number.id_for_label }}" class="form-label">
+                                Contact Number
+                            </label>
+                            {{ form.emergency_contact_number }}
+                            {% if form.emergency_contact_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.emergency_contact_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.emergency_contact_address.id_for_label }}" class="form-label">
+                                Contact Address
+                            </label>
+                            {{ form.emergency_contact_address }}
+                            {% if form.emergency_contact_address.errors %}
+                                <div class="text-danger small mt-1">{{ form.emergency_contact_address.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo Upload -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-camera me-2"></i>Photo
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="{{ form.photo.id_for_label }}" class="form-label">
+                                Upload Photo
+                            </label>
+                            {{ form.photo }}
+                            {% if form.photo.errors %}
+                                <div class="text-danger small mt-1">{{ form.photo.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Maximum file size: 5MB. Formats: JPG, PNG, GIF
+                            </div>
+                        </div>
+                        {% if senior and senior.photo %}
+                        <div class="col-md-6">
+                            <label class="form-label">Current Photo</label>
+                            <div>
+                                <img src="{{ senior.photo.url }}" alt="Current photo" class="img-thumbnail" style="max-width: 150px;">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Required Documents -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-2"></i>Required Documents
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.birth_certificate.id_for_label }}" class="form-label">
+                                Birth Certificate <span class="text-danger">*</span>
+                            </label>
+                            {{ form.birth_certificate }}
+                            {% if form.birth_certificate.errors %}
+                                <div class="text-danger small mt-1">{{ form.birth_certificate.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Upload birth certificate (PDF or JPEG, max 10MB)
+                            </div>
+                            {% if senior and senior.birth_certificate %}
+                            <div class="mt-2">
+                                <small class="text-success">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Current file: <a href="{{ senior.birth_certificate.url }}" target="_blank">View Document</a>
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.certificate_of_indigency.id_for_label }}" class="form-label">
+                                Certificate of Indigency <span class="text-danger">*</span>
+                            </label>
+                            {{ form.certificate_of_indigency }}
+                            {% if form.certificate_of_indigency.errors %}
+                                <div class="text-danger small mt-1">{{ form.certificate_of_indigency.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Upload certificate of indigency (PDF or JPEG, max 10MB)
+                            </div>
+                            {% if senior and senior.certificate_of_indigency %}
+                            <div class="mt-2">
+                                <small class="text-success">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Current file: <a href="{{ senior.certificate_of_indigency.url }}" target="_blank">View Document</a>
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.marriage_certificate.id_for_label }}" class="form-label">
+                                Marriage Certificate <span class="text-muted">(Optional)</span>
+                            </label>
+                            {{ form.marriage_certificate }}
+                            {% if form.marriage_certificate.errors %}
+                                <div class="text-danger small mt-1">{{ form.marriage_certificate.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                Upload marriage certificate (PDF or JPEG, max 10MB) - Optional
+                            </div>
+                            {% if senior and senior.marriage_certificate %}
+                            <div class="mt-2">
+                                <small class="text-success">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Current file: <a href="{{ senior.marriage_certificate.url }}" target="_blank">View Document</a>
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-2">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Birth certificate and certificate of indigency are required for new registrations. Marriage certificate is optional.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'senior_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>{{ action }} Senior Citizen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Side Information -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-question-circle me-2"></i>Help & Guidelines
+            </div>
+            <div class="card-body">
+                <h6>Required Fields:</h6>
+                <ul class="small mb-3">
+                    <li>First Name & Last Name</li>
+                    <li>Birth Date (60+ years old)</li>
+                    <li>Gender (Male or Female)</li>
+                    <li>House #/Unit # & Street</li>
+                    <li>Barangay</li>
+                    <li>At least one contact method</li>
+                    <li>Vaccination Status</li>
+                    <li>Birth Certificate (PDF/JPEG)</li>
+                    <li>Certificate of Indigency (PDF/JPEG)</li>
+                </ul>
+
+                <h6>Optional Fields:</h6>
+                <ul class="small mb-3">
+                    <li>Marriage Certificate (PDF/JPEG)</li>
+                </ul>
+                
+                <h6>Address Guidelines:</h6>
+                <ul class="small mb-3">
+                    <li><strong>House #/Unit #:</strong> Building number, unit, block & lot</li>
+                    <li><strong>Street:</strong> Street name, avenue, or road</li>
+                    <li><strong>Subdivision:</strong> Village or community name (optional)</li>
+                    <li><strong>City:</strong> Fixed to Quezon City</li>
+                </ul>
+                
+                <div class="alert alert-success small">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Fill in address fields to see a live preview of the complete address.
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Examples -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-map me-2"></i>Address Examples
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    <h6>Example 1: House</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>House #:</strong> 123</li>
+                        <li><strong>Street:</strong> Rizal Street</li>
+                        <li><strong>Subdivision:</strong> Palm Heights</li>
+                    </ul>
+                    
+                    <h6>Example 2: Condominium</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>House #:</strong> Unit 4B, Tower 2</li>
+                        <li><strong>Street:</strong> EDSA</li>
+                        <li><strong>Subdivision:</strong> Greenfield Village</li>
+                    </ul>
+                    
+                    <h6>Example 3: Townhouse</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>House #:</strong> Blk 5 Lot 12</li>
+                        <li><strong>Street:</strong> Main Avenue</li>
+                        <li><strong>Subdivision:</strong> Vista Verde</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gender Information -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Gender Information
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    <p><strong>Available Options:</strong></p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-male text-primary me-2"></i>Male</li>
+                        <li><i class="fas fa-female text-danger me-2"></i>Female</li>
+                    </ul>
+                    <p class="text-muted mb-0">
+                        Gender selection is required for all senior citizen records.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.alert-info {
+    background-color: #e3f2fd;
+    border-color: #bbdefb;
+    color: #1565c0;
+}
+.alert-success {
+    background-color: #e8f5e8;
+    border-color: #c3e6c3;
+    color: #155724;
+}
+.img-thumbnail {
+    max-height: 150px;
+    object-fit: cover;
+}
+.address-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+#addressPreview {
+    min-height: 40px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    border: 1px dashed #007bff;
+}
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+.fa-male {
+    color: #007bff !important;
+}
+.fa-female {
+    color: #dc3545 !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Address fields
+    const houseNumberField = document.getElementById('house_number');
+    const streetField = document.getElementById('street');
+    const subdivisionField = document.getElementById('subdivision');
+    const cityField = document.getElementById('city');
+    const addressPreview = document.getElementById('addressPreview');
+    
+    // Update address preview in real-time
+    function updateAddressPreview() {
+        const houseNumber = houseNumberField.value.trim();
+        const street = streetField.value.trim();
+        const subdivision = subdivisionField.value.trim();
+        const city = cityField.value.trim();
+        
+        let addressParts = [];
+        
+        if (houseNumber) {
+            addressParts.push(houseNumber);
+        }
+        
+        if (street) {
+            addressParts.push(street);
+        }
+        
+        if (subdivision) {
+            addressParts.push(subdivision);
+        }
+        
+        if (city) {
+            addressParts.push(city);
+        }
+        
+        let fullAddress = addressParts.join(', ');
+        
+        if (fullAddress) {
+            addressPreview.innerHTML = `<i class="fas fa-map-marker-alt me-2 text-primary"></i>${fullAddress}`;
+            addressPreview.classList.remove('text-muted');
+        } else {
+            addressPreview.innerHTML = `<i class="fas fa-info-circle me-2 text-muted"></i>Complete the fields above to see the full address`;
+            addressPreview.classList.add('text-muted');
+        }
+    }
+    
+    // Attach event listeners to address fields
+    [houseNumberField, streetField, subdivisionField].forEach(field => {
+        if (field) {
+            field.addEventListener('input', updateAddressPreview);
+            field.addEventListener('blur', updateAddressPreview);
+        }
+    });
+    
+    // Initial address preview update
+    updateAddressPreview();
+    
+    // Enhanced input restriction functions with validation
+    function allowOnlyAlphabetical(input, minLength = 0, maxLength = 50) {
+        input.addEventListener('input', function(e) {
+            // Remove any non-alphabetical characters (keep spaces, hyphens, apostrophes for names)
+            this.value = this.value.replace(/[^a-zA-Z\s\-'\.]/g, '');
+            
+            // Enforce maximum length
+            if (this.value.length > maxLength) {
+                this.value = this.value.substring(0, maxLength);
+            }
+        });
+        
+        input.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[a-zA-Z\s\-'\.]/.test(char)) {
+                e.preventDefault();
+            }
+        });
+        
+        // Validate length on blur
+        input.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value.length < minLength && value.length > 0) {
+                this.setCustomValidity(`Minimum ${minLength} characters required`);
+                this.classList.add('is-invalid');
+            } else if (value.length > maxLength) {
+                this.setCustomValidity(`Maximum ${maxLength} characters allowed`);
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+                if (value.length > 0) {
+                    this.classList.add('is-valid');
+                }
+            }
+        });
+    }
+    
+    function allowAlphanumeric(input, minLength = 0, maxLength = 50) {
+        input.addEventListener('input', function(e) {
+            // Allow letters, numbers, spaces, hyphens, and basic punctuation
+            this.value = this.value.replace(/[^a-zA-Z0-9\s\-'\.#,]/g, '');
+            
+            // Enforce maximum length
+            if (this.value.length > maxLength) {
+                this.value = this.value.substring(0, maxLength);
+            }
+        });
+        
+        input.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[a-zA-Z0-9\s\-'\.#,]/.test(char)) {
+                e.preventDefault();
+            }
+        });
+        
+        // Validate length on blur
+        input.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value.length < minLength && value.length > 0) {
+                this.setCustomValidity(`Minimum ${minLength} characters required`);
+                this.classList.add('is-invalid');
+            } else if (value.length > maxLength) {
+                this.setCustomValidity(`Maximum ${maxLength} characters allowed`);
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+                if (value.length > 0) {
+                    this.classList.add('is-valid');
+                }
+            }
+        });
+    }
+    
+    function allowOnlyNumbers(input, minLength = 0, maxLength = 15, isMobile = false) {
+        input.addEventListener('input', function(e) {
+            // Remove any non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Enforce maximum length
+            if (this.value.length > maxLength) {
+                this.value = this.value.substring(0, maxLength);
+            }
+        });
+        
+        input.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[0-9]/.test(char) && e.which !== 8) { // Allow backspace
+                e.preventDefault();
+            }
+        });
+        
+        // Validate mobile number format on blur
+        input.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value.length > 0) {
+                if (isMobile) {
+                    // Philippine mobile number validation (11 digits starting with 09)
+                    if (value.length === 11 && value.startsWith('09')) {
+                        this.setCustomValidity('');
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        this.setCustomValidity('Please enter a valid 11-digit mobile number starting with 09');
+                        this.classList.add('is-invalid');
+                    }
+                } else {
+                    // Telephone number validation (7-11 digits)
+                    if (value.length >= 7 && value.length <= 11) {
+                        this.setCustomValidity('');
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        this.setCustomValidity('Please enter a valid telephone number (7-11 digits)');
+                        this.classList.add('is-invalid');
+                    }
+                }
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid', 'is-valid');
+            }
+        });
+    }
+    
+    function allowDateFormat(input) {
+        input.addEventListener('input', function(e) {
+            // Remove any characters that aren't numbers or forward slashes
+            let value = this.value.replace(/[^0-9\/]/g, '');
+            
+            // Auto-format MM/DD/YYYY
+            if (value.length >= 2 && value.charAt(2) !== '/') {
+                value = value.substring(0, 2) + '/' + value.substring(2);
+            }
+            if (value.length >= 5 && value.charAt(5) !== '/') {
+                value = value.substring(0, 5) + '/' + value.substring(5);
+            }
+            
+            // Limit to MM/DD/YYYY format (10 characters)
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+            
+            this.value = value;
+        });
+        
+        input.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[0-9\/]/.test(char) && e.which !== 8) { // Allow numbers, forward slash, and backspace
+                e.preventDefault();
+            }
+        });
+    }
+    
+    function validateBirthDate(input) {
+        allowDateFormat(input);
+        
+        input.addEventListener('blur', function() {
+            const value = this.value;
+            const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+            const match = value.match(dateRegex);
+            
+            if (match) {
+                const month = parseInt(match[1]);
+                const day = parseInt(match[2]);
+                const year = parseInt(match[3]);
+                
+                // Basic date validation
+                if (month < 1 || month > 12 || day < 1 || day > 31) {
+                    this.setCustomValidity('Invalid date format');
+                    this.classList.add('is-invalid');
+                    return;
+                }
+                
+                // Check if it's a valid date
+                const enteredDate = new Date(year, month - 1, day);
+                if (enteredDate.getMonth() !== month - 1 || enteredDate.getDate() !== day || enteredDate.getFullYear() !== year) {
+                    this.setCustomValidity('Invalid date');
+                    this.classList.add('is-invalid');
+                    return;
+                }
+                
+                // Age validation - must be 60 or older
+                const today = new Date();
+                let age = today.getFullYear() - enteredDate.getFullYear();
+                const monthDiff = today.getMonth() - enteredDate.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < enteredDate.getDate())) {
+                    age--;
+                }
+                
+                if (age < 60) {
+                    this.setCustomValidity('Person must be at least 60 years old to qualify as a senior citizen');
+                    this.classList.add('is-invalid');
+                } else if (enteredDate > today) {
+                    this.setCustomValidity('Birth date cannot be in the future');
+                    this.classList.add('is-invalid');
+                } else {
+                    this.setCustomValidity('');
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            } else if (value && this.required) {
+                this.setCustomValidity('Please use MM/DD/YYYY format');
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid', 'is-valid');
+            }
+        });
+    }
+    
+    function validateApplicationDate(input) {
+        allowDateFormat(input);
+        
+        input.addEventListener('blur', function() {
+            const value = this.value;
+            const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+            const match = value.match(dateRegex);
+            
+            if (match) {
+                const month = parseInt(match[1]);
+                const day = parseInt(match[2]);
+                const year = parseInt(match[3]);
+                
+                // Basic date validation
+                if (month < 1 || month > 12 || day < 1 || day > 31) {
+                    this.setCustomValidity('Invalid date format');
+                    this.classList.add('is-invalid');
+                    return;
+                }
+                
+                // Check if it's a valid date
+                const enteredDate = new Date(year, month - 1, day);
+                if (enteredDate.getMonth() !== month - 1 || enteredDate.getDate() !== day || enteredDate.getFullYear() !== year) {
+                    this.setCustomValidity('Invalid date');
+                    this.classList.add('is-invalid');
+                    return;
+                }
+                
+                // Application date validation
+                const today = new Date();
+                if (enteredDate > today) {
+                    this.setCustomValidity('Application date cannot be in the future');
+                    this.classList.add('is-invalid');
+                } else {
+                    this.setCustomValidity('');
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            } else if (value) {
+                this.setCustomValidity('Please use MM/DD/YYYY format');
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid', 'is-valid');
+            }
+        });
+    }
+    
+    // Apply restrictions to name fields (alphabetical only)
+    const firstNameInput = document.querySelector('input[name="first_name"]');
+    const middleNameInput = document.querySelector('input[name="middle_name"]');
+    const lastNameInput = document.querySelector('input[name="last_name"]');
+    const emergencyNameInput = document.querySelector('input[name="emergency_contact_name"]');
+    
+    if (firstNameInput) {
+        allowOnlyAlphabetical(firstNameInput, 3, 15);
+        firstNameInput.setAttribute('required', 'required');
+    }
+    
+    if (middleNameInput) {
+        allowOnlyAlphabetical(middleNameInput, 2, 15);
+    }
+    
+    if (lastNameInput) {
+        allowOnlyAlphabetical(lastNameInput, 2, 15);
+        lastNameInput.setAttribute('required', 'required');
+    }
+    
+    if (emergencyNameInput) {
+        allowOnlyAlphabetical(emergencyNameInput, 10, 30);
+    }
+    
+    // Apply restrictions to phone number fields (numbers only)
+    const mobileNumberInput = document.querySelector('input[name="mobile_number"]');
+    const telephoneNumberInput = document.querySelector('input[name="telephone_number"]');
+    const emergencyNumberInput = document.querySelector('input[name="emergency_contact_number"]');
+    
+    if (mobileNumberInput) {
+        allowOnlyNumbers(mobileNumberInput, 11, 11, true);
+    }
+    
+    if (telephoneNumberInput) {
+        allowOnlyNumbers(telephoneNumberInput, 7, 11, false);
+    }
+    
+    if (emergencyNumberInput) {
+        allowOnlyNumbers(emergencyNumberInput, 11, 11, true);
+    }
+    
+    // Apply restrictions to address fields (alphanumeric)
+    if (houseNumberField) {
+        allowAlphanumeric(houseNumberField, 1, 15);
+        houseNumberField.setAttribute('required', 'required');
+    }
+    
+    if (streetField) {
+        allowAlphanumeric(streetField, 1, 15);
+        streetField.setAttribute('required', 'required');
+    }
+    
+    if (subdivisionField) {
+        allowAlphanumeric(subdivisionField, 0, 15);
+    }
+    
+    // Emergency contact address
+    const emergencyAddressInput = document.querySelector('textarea[name="emergency_contact_address"], input[name="emergency_contact_address"]');
+    if (emergencyAddressInput) {
+        allowAlphanumeric(emergencyAddressInput, 10, 50);
+    }
+    
+    // Apply date format restriction to date fields
+    const birthDateInput = document.querySelector('input[name="birth_date_text"]');
+    const applicationDateInput = document.querySelector('input[name="application_date_text"]');
+
+    if (birthDateInput) {
+        // Birth date is now a date picker - no custom validation needed
+        birthDateInput.setAttribute('required', 'required');
+    }
+
+    if (applicationDateInput) {
+        validateApplicationDate(applicationDateInput);
+    }
+    
+    // Auto-capitalize names
+    function autoCapitalizeName(input) {
+        input.addEventListener('input', function() {
+            const words = this.value.split(' ');
+            const capitalizedWords = words.map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            );
+            this.value = capitalizedWords.join(' ');
+        });
+    }
+    
+    // Apply auto-capitalization to name fields
+    [firstNameInput, middleNameInput, lastNameInput, emergencyNameInput].forEach(input => {
+        if (input) {
+            autoCapitalizeName(input);
+        }
+    });
+    
+    // Auto-capitalize first letter of address fields
+    function capitalizeFirstLetter(input) {
+        input.addEventListener('input', function() {
+            const value = this.value;
+            if (value.length > 0) {
+                this.value = value.charAt(0).toUpperCase() + value.slice(1);
+            }
+        });
+    }
+    
+    // Apply auto-capitalization to address fields
+    [houseNumberField, streetField, subdivisionField].forEach(field => {
+        if (field) {
+            capitalizeFirstLetter(field);
+        }
+    });
+    
+    // Form submission with loading state and enhanced validation
+    const form = document.getElementById('seniorForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            const errors = [];
+            
+            // Validate name fields
+            if (firstNameInput && firstNameInput.value.trim().length < 3) {
+                firstNameInput.classList.add('is-invalid');
+                errors.push('First name must be at least 3 characters');
+                isValid = false;
+            }
+            
+            if (lastNameInput && lastNameInput.value.trim().length < 2) {
+                lastNameInput.classList.add('is-invalid');
+                errors.push('Last name must be at least 2 characters');
+                isValid = false;
+            }
+            
+            if (middleNameInput && middleNameInput.value.trim().length > 0 && middleNameInput.value.trim().length < 2) {
+                middleNameInput.classList.add('is-invalid');
+                errors.push('Middle name must be at least 2 characters if provided');
+                isValid = false;
+            }
+            
+            // Validate birth date (age 60+)
+            if (birthDateInput) {
+                const dateValue = birthDateInput.value;
+
+                if (!dateValue) {
+                    birthDateInput.classList.add('is-invalid');
+                    errors.push('Birth date is required');
+                    isValid = false;
+                } else {
+                    // Date picker handles format validation
+                    const enteredDate = new Date(dateValue);
+                    const today = new Date();
+
+                    let age = today.getFullYear() - enteredDate.getFullYear();
+                    const monthDiff = today.getMonth() - enteredDate.getMonth();
+
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < enteredDate.getDate())) {
+                        age--;
+                    }
+
+                    if (age < 60) {
+                        birthDateInput.classList.add('is-invalid');
+                        errors.push('Person must be at least 60 years old');
+                        isValid = false;
+                    }
+                }
+            }
+            
+            // Validate address fields
+            if (houseNumberField && !houseNumberField.value.trim()) {
+                houseNumberField.classList.add('is-invalid');
+                errors.push('House/Unit number is required');
+                isValid = false;
+            }
+            
+            if (streetField && !streetField.value.trim()) {
+                streetField.classList.add('is-invalid');
+                errors.push('Street is required');
+                isValid = false;
+            }
+            
+            // Validate required fields
+            const genderSelected = document.querySelector('input[name="gender"]:checked');
+            if (!genderSelected) {
+                const genderInputs = document.querySelectorAll('input[name="gender"]');
+                genderInputs.forEach(input => input.classList.add('is-invalid'));
+                errors.push('Gender selection is required');
+                isValid = false;
+            }
+            
+            const barangayInput = document.querySelector('select[name="barangay"]');
+            if (barangayInput && !barangayInput.value) {
+                barangayInput.classList.add('is-invalid');
+                errors.push('Barangay selection is required');
+                isValid = false;
+            }
+            
+            const vaccinationSelected = document.querySelector('input[name="vaccination_status"]:checked');
+            if (!vaccinationSelected) {
+                const vaccinationInputs = document.querySelectorAll('input[name="vaccination_status"]');
+                vaccinationInputs.forEach(input => input.classList.add('is-invalid'));
+                errors.push('Vaccination status is required');
+                isValid = false;
+            }
+            
+            // Validate emergency contact if any field is filled
+            const emergencyFieldsFilled = [emergencyNameInput, emergencyAddressInput, emergencyNumberInput]
+                .some(input => input && input.value.trim());
+            
+            if (emergencyFieldsFilled) {
+                if (emergencyNameInput && emergencyNameInput.value.trim().length < 10) {
+                    emergencyNameInput.classList.add('is-invalid');
+                    errors.push('Emergency contact name must be at least 10 characters');
+                    isValid = false;
+                }
+                
+                if (emergencyAddressInput && emergencyAddressInput.value.trim().length < 10) {
+                    emergencyAddressInput.classList.add('is-invalid');
+                    errors.push('Emergency contact address must be at least 10 characters');
+                    isValid = false;
+                }
+                
+                if (emergencyNumberInput && emergencyNumberInput.value.trim().length !== 11) {
+                    emergencyNumberInput.classList.add('is-invalid');
+                    errors.push('Emergency contact number must be 11 digits');
+                    isValid = false;
+                }
+            }
+            
+            // Check that at least one contact method is provided
+            const mobileValue = mobileNumberInput ? mobileNumberInput.value.trim() : '';
+            const telephoneValue = telephoneNumberInput ? telephoneNumberInput.value.trim() : '';
+            
+            if (!mobileValue && !telephoneValue) {
+                if (mobileNumberInput) mobileNumberInput.classList.add('is-invalid');
+                if (telephoneNumberInput) telephoneNumberInput.classList.add('is-invalid');
+                errors.push('At least one contact method (mobile or telephone) is required');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>{{ action }} Senior Citizen';
+                
+                // Show error messages
+                if (errors.length > 0) {
+                    alert('Please fix the following errors:\n\n' + errors.join('\n'));
+                }
+                
+                // Scroll to first invalid field
+                const firstInvalid = document.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }
+                return;
+            }
+            
+            // Combine address fields into the address field before submission
+            const addressParts = [];
+            
+            if (houseNumberField.value.trim()) {
+                addressParts.push(houseNumberField.value.trim());
+            }
+            
+            if (streetField.value.trim()) {
+                addressParts.push(streetField.value.trim());
+            }
+            
+            if (subdivisionField.value.trim()) {
+                addressParts.push(subdivisionField.value.trim());
+            }
+            
+            if (cityField.value.trim()) {
+                addressParts.push(cityField.value.trim());
+            }
+            
+            const combinedAddress = addressParts.join(', ');
+            
+            // Create hidden input for the combined address
+            const hiddenAddressInput = document.createElement('input');
+            hiddenAddressInput.type = 'hidden';
+            hiddenAddressInput.name = 'address';
+            hiddenAddressInput.value = combinedAddress;
+            form.appendChild(hiddenAddressInput);
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+        });
+    }
+    
+    // Visual feedback for invalid inputs
+    function addInvalidFeedback() {
+        const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('invalid', function() {
+                this.classList.add('is-invalid');
+            });
+            
+            input.addEventListener('input', function() {
+                if (this.validity.valid) {
+                    this.classList.remove('is-invalid');
+                    if (this.value.trim()) {
+                        this.classList.add('is-valid');
+                    }
+                } else {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                }
+            });
+        });
+    }
+    
+    addInvalidFeedback();
+    
+    // Populate address fields if editing existing senior
+    {% if senior and senior.address %}
+    // Try to parse existing address into components
+    const existingAddress = "{{ senior.address|escapejs }}";
+    
+    // Simple parsing logic
+    if (existingAddress && !houseNumberField.value && !streetField.value) {
+        // Basic parsing attempt
+        const addressParts = existingAddress.split(',').map(part => part.trim());
+        if (addressParts.length >= 2) {
+            houseNumberField.value = addressParts[0] || '';
+            streetField.value = addressParts[1] || '';
+            if (addressParts.length >= 3 && !addressParts[2].toLowerCase().includes('quezon city')) {
+                subdivisionField.value = addressParts[2] || '';
+            }
+        }
+        updateAddressPreview();
+    }
+    {% endif %}
+    
+    // Gender and vaccination status validation
+    const genderInputs = document.querySelectorAll('input[name="gender"]');
+    genderInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            genderInputs.forEach(gi => {
+                gi.classList.remove('is-invalid');
+            });
+        });
+    });
+    
+    const vaccinationInputs = document.querySelectorAll('input[name="vaccination_status"]');
+    vaccinationInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            vaccinationInputs.forEach(vi => {
+                vi.classList.remove('is-invalid');
+            });
+        });
+    });
+    
+    // Real-time validation for required fields
+    const allInputs = document.querySelectorAll('input, select, textarea');
+    allInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.hasAttribute('required') && !this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else if (this.value.trim()) {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+    
+    // Focus enhancement
+    const firstInput = document.querySelector('input[name="first_name"]');
+    if (firstInput) {
+        firstInput.focus();
+    }
+    
+    // Prevent form submission with Enter key in text inputs (except textarea)
+    document.querySelectorAll('input[type="text"]').forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // Move to next input
+                const inputs = Array.from(document.querySelectorAll('input, select, textarea'));
+                const currentIndex = inputs.indexOf(this);
+                if (currentIndex < inputs.length - 1) {
+                    inputs[currentIndex + 1].focus();
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

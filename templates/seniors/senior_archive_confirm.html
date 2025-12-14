@@ -1,0 +1,209 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Archive Record - VeriSior{% endblock %}
+{% block page_title %}Archive Senior Citizen Record{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-archive me-2"></i>Archive Confirmation
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> You are about to archive this senior citizen record. The record will be moved to the archive and can be restored later if needed.
+                </div>
+
+                <!-- Senior Citizen Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {% if senior.photo %}
+                            <img src="{{ senior.photo.url }}" alt="Senior Photo" class="img-fluid rounded mb-3" style="max-height: 200px;">
+                        {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 200px;">
+                                <i class="fas fa-user fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h4 class="text-primary">{{ senior.last_name }}, {{ senior.first_name }}
+                            {% if senior.middle_name %}{{ senior.middle_name }}{% endif %}
+                        </h4>
+                        <p class="mb-2"><strong>ID Number:</strong> <code>{{ senior.id_number }}</code></p>
+                        <p class="mb-2"><strong>Birth Date:</strong> {{ senior.birth_date|date:"F d, Y"|default:"Not specified" }}</p>
+                        <p class="mb-2"><strong>Age:</strong> {{ senior.get_age|default:"N/A" }} years old</p>
+                        <p class="mb-2"><strong>Gender:</strong> {{ senior.get_gender_display|default:"Not specified" }}</p>
+                        <p class="mb-2"><strong>Status:</strong> 
+                            {% if senior.status == 'APPROVED' %}
+                                <span class="badge badge-success">{{ senior.get_status_display }}</span>
+                            {% elif senior.status == 'PENDING' %}
+                                <span class="badge badge-warning">{{ senior.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge badge-danger">{{ senior.get_status_display }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Archive Details -->
+                <div class="bg-light p-3 rounded mb-4">
+                    <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>What happens when you archive this record?</h6>
+                    <ul class="mb-0">
+                        <li>The record will be moved to the <strong>Archived Records</strong> section</li>
+                        <li>The senior citizen will no longer appear in active searches</li>
+                        <li>Public verification for this ID will be disabled</li>
+                        <li>QR code will remain but will show "Archived" status</li>
+                        <li>All documents and transaction history will be preserved</li>
+                        <li>The record can be <strong>restored</strong> from the archive at any time</li>
+                    </ul>
+                </div>
+
+                <!-- Archive Reason -->
+                <form method="post" id="archiveForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="archive_reason" class="form-label">Reason for Archiving <span class="text-danger">*</span></label>
+                        <select name="archive_reason" id="archive_reason" class="form-control" required>
+                            <option value="">Select a reason...</option>
+                            <option value="DECEASED">Senior citizen is deceased</option>
+                            <option value="MOVED">Moved to different municipality</option>
+                            <option value="DUPLICATE">Duplicate record</option>
+                            <option value="ERROR">Record created in error</option>
+                            <option value="REQUEST">Archive requested by senior citizen</option>
+                            <option value="OTHER">Other reason</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4" id="otherReasonDiv" style="display: none;">
+                        <label for="archive_notes" class="form-label">Please specify the reason</label>
+                        <textarea name="archive_notes" id="archive_notes" class="form-control" rows="3" 
+                                  placeholder="Please provide details about why this record is being archived..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'senior_detail' senior.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <div>
+                            <a href="{% url 'senior_list' %}" class="btn btn-secondary me-2">
+                                <i class="fas fa-list me-1"></i>Back to List
+                            </a>
+                            <button type="submit" class="btn btn-warning" id="archiveBtn">
+                                <i class="fas fa-archive me-1"></i>Archive Record
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock me-2"></i>Record Information
+            </div>
+            <div class="card-body">
+                <p><strong>Created By:</strong> {{ senior.created_by.username|default:"Unknown" }}</p>
+                <p><strong>Created Date:</strong> {{ senior.created_at|date:"M d, Y g:i A" }}</p>
+                {% if senior.updated_by and senior.updated_at != senior.created_at %}
+                <p><strong>Last Updated By:</strong> {{ senior.updated_by.username }}</p>
+                <p><strong>Last Updated:</strong> {{ senior.updated_at|date:"M d, Y g:i A" }}</p>
+                {% endif %}
+                <p><strong>Total Documents:</strong> {{ senior.documents.count }}</p>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-undo me-2"></i>Need to Restore Later?
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">If you need to restore this record in the future:</p>
+                <ol class="small text-muted">
+                    <li>Go to <strong>Senior Citizens</strong> → <strong>Archived Records</strong></li>
+                    <li>Find the archived record</li>
+                    <li>Click <strong>Restore</strong> to make it active again</li>
+                </ol>
+                <div class="alert alert-info mt-3">
+                    <small><i class="fas fa-info-circle me-1"></i>Archived records are never permanently deleted.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmArchiveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Archive</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Are you sure you want to archive this senior citizen record?
+                </div>
+                <p><strong>Senior Citizen:</strong> {{ senior.first_name }} {{ senior.last_name }}</p>
+                <p><strong>ID Number:</strong> {{ senior.id_number }}</p>
+                <p><strong>Reason:</strong> <span id="confirmReason"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmArchiveBtn">
+                    <i class="fas fa-archive me-1"></i>Archive Record
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const archiveForm = document.getElementById('archiveForm');
+    const archiveReasonSelect = document.getElementById('archive_reason');
+    const otherReasonDiv = document.getElementById('otherReasonDiv');
+    const archiveNotesTextarea = document.getElementById('archive_notes');
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmArchiveModal'));
+    const confirmArchiveBtn = document.getElementById('confirmArchiveBtn');
+
+    // Show/hide other reason text area
+    archiveReasonSelect.addEventListener('change', function() {
+        if (this.value === 'OTHER') {
+            otherReasonDiv.style.display = 'block';
+            archiveNotesTextarea.required = true;
+        } else {
+            otherReasonDiv.style.display = 'none';
+            archiveNotesTextarea.required = false;
+            archiveNotesTextarea.value = '';
+        }
+    });
+
+    // Handle form submission with confirmation
+    archiveForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const reason = archiveReasonSelect.options[archiveReasonSelect.selectedIndex].text;
+        document.getElementById('confirmReason').textContent = reason;
+        
+        confirmModal.show();
+    });
+
+    // Handle final confirmation
+    confirmArchiveBtn.addEventListener('click', function() {
+        const archiveBtn = document.getElementById('archiveBtn');
+        archiveBtn.disabled = true;
+        archiveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Archiving...';
+        
+        archiveForm.submit();
+    });
+});
+</script>
+{% endblock %}

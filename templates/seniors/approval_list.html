@@ -1,0 +1,265 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Pending Approvals - VeriSior{% endblock %}
+{% block page_title %}Pending Approvals{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-card-icon me-3">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ pending_seniors.paginator.count }}</h3>
+                        <p class="text-muted mb-0">Records Awaiting Approval</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="d-flex gap-2 h-100 align-items-center">
+            <a href="{% url 'senior_list' %}?status=APPROVED" class="btn btn-outline-success flex-fill">
+                <i class="fas fa-check me-1"></i>View Approved
+            </a>
+            <a href="{% url 'senior_list' %}?status=REJECTED" class="btn btn-outline-danger flex-fill">
+                <i class="fas fa-times me-1"></i>View Rejected
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="fas fa-clipboard-list me-2"></i>Pending Senior Citizen Applications
+        </span>
+        {% if pending_seniors.paginator.count > 0 %}
+        <span class="badge bg-warning">{{ pending_seniors.paginator.count }} pending</span>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if pending_seniors %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID Number</th>
+                            <th>Applicant Name</th>
+                            <th>Age</th>
+                            <th>Barangay</th>
+                            <th>Contact</th>
+                            <th>Created By</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for senior in pending_seniors %}
+                        <tr>
+                            <td><code class="text-primary">{{ senior.id_number }}</code></td>
+                            <td>
+                                <div class="fw-semibold">{{ senior.last_name }}, {{ senior.first_name }}</div>
+                                {% if senior.middle_name %}
+                                <small class="text-muted">{{ senior.middle_name }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ senior.get_age|default:'N/A' }}</td>
+                            <td>{{ senior.get_barangay_name }}</td>
+                            <td>
+                                {% if senior.mobile_number %}
+                                    <small>{{ senior.mobile_number }}</small>
+                                {% elif senior.telephone_number %}
+                                    <small>{{ senior.telephone_number }}</small>
+                                {% else %}
+                                    <small class="text-muted">No contact</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-2">
+                                        <div class="avatar-initial bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 12px;">
+                                            {{ senior.created_by.first_name.0|default:senior.created_by.username.0|upper }}{{ senior.created_by.last_name.0|default:'' }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">{{ senior.created_by.first_name }} {{ senior.created_by.last_name }}</div>
+                                        <small class="text-muted">{{ senior.created_by.get_role_display }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ senior.created_at|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ senior.created_at|timesince }} ago</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'senior_detail' senior.pk %}" class="btn btn-outline-primary" 
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'approve_senior' senior.pk %}" class="btn btn-success" 
+                                       title="Review & Approve">
+                                        <i class="fas fa-gavel"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if pending_seniors.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Pending approvals pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if pending_seniors.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ pending_seniors.previous_page_number }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in pending_seniors.paginator.page_range %}
+                            {% if pending_seniors.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > pending_seniors.number|add:'-3' and num < pending_seniors.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if pending_seniors.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ pending_seniors.next_page_number }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                <h4 class="text-muted">No Pending Approvals</h4>
+                <p class="text-muted">All senior citizen applications have been processed.</p>
+                <div class="mt-4">
+                    <a href="{% url 'senior_list' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-users me-1"></i>View All Records
+                    </a>
+                    <a href="{% url 'senior_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>Add New Record
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Action Modal -->
+<div class="modal fade" id="quickApprovalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Approval</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="senior-info mb-3">
+                    <!-- Senior info will be populated by JavaScript -->
+                </div>
+                <form id="quickApprovalForm" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="senior_id" id="modal_senior_id">
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="action" value="approve" class="btn btn-success">
+                            <i class="fas fa-check me-1"></i>Approve Application
+                        </button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger">
+                            <i class="fas fa-times me-1"></i>Reject Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-initial {
+    font-weight: 600;
+    font-size: 11px;
+}
+.table td {
+    vertical-align: middle;
+}
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+.stat-card-icon {
+    min-width: 60px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick approval functionality (if needed in the future)
+    const quickApprovalModal = new bootstrap.Modal(document.getElementById('quickApprovalModal'));
+    
+    // Add click handlers for quick approval buttons
+    document.querySelectorAll('.quick-approve').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const seniorId = this.dataset.seniorId;
+            const seniorName = this.dataset.seniorName;
+            
+            document.getElementById('modal_senior_id').value = seniorId;
+            document.querySelector('.senior-info').innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Senior Citizen:</strong> ${seniorName}<br>
+                    <strong>ID:</strong> ${this.dataset.seniorNumber}
+                </div>
+            `;
+            
+            quickApprovalModal.show();
+        });
+    });
+
+    // Handle quick approval form submission
+    document.getElementById('quickApprovalForm').addEventListener('submit', function(e) {
+        const action = e.submitter.value;
+        const seniorId = document.getElementById('modal_senior_id').value;
+        
+        if (action === 'reject') {
+            if (!confirm('Are you sure you want to reject this application?')) {
+                e.preventDefault();
+                return;
+            }
+        }
+        
+        // Form will submit normally to the approve_senior view
+        this.action = `/government/approvals/${seniorId}/`;
+    });
+
+    // Auto-refresh every 30 seconds to check for new pending approvals
+    setTimeout(function() {
+        window.location.reload();
+    }, 30000);
+});
+</script>
+{% endblock %}

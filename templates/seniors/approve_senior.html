@@ -1,0 +1,805 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Review Application - VeriSior{% endblock %}
+{% block page_title %}Review Senior Citizen Application{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Application Review Form -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-gavel me-2"></i>Application Review
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Review Required:</strong> Please carefully review all information before making a decision.
+                </div>
+
+                <form method="post" id="approvalForm">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="text-primary">{{ senior.last_name }}, {{ senior.first_name }}
+                                {% if senior.middle_name %}{{ senior.middle_name }}{% endif %}
+                            </h5>
+                            <p class="text-muted mb-1">ID: <code>{{ senior.id_number }}</code></p>
+                            <p class="text-muted">Applied: {{ senior.created_at|date:"F d, Y g:i A" }}</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="badge badge-warning fs-6">{{ senior.get_status_display }}</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" name="action" value="approve" class="btn btn-success btn-lg me-md-2">
+                            <i class="fas fa-check me-2"></i>Approve Application
+                        </button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger btn-lg">
+                            <i class="fas fa-times me-2"></i>Reject Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Application Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-user me-2"></i>Personal Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Full Name</label>
+                        <p class="fw-semibold">{{ senior.first_name }} 
+                           {% if senior.middle_name %}{{ senior.middle_name }} {% endif %}
+                           {{ senior.last_name }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Birth Date</label>
+                        <p class="fw-semibold">{{ senior.birth_date|date:"F d, Y"|default:"Not specified" }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Age</label>
+                        <p class="fw-semibold">{{ senior.get_age|default:"N/A" }} years old</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label text-muted">Gender</label>
+                        <p class="fw-semibold">{{ senior.get_gender_display|default:"Not specified" }}</p>
+                    </div>
+                    <div class="col-md-9 mb-3">
+                        <label class="form-label text-muted">Address</label>
+                        <p class="fw-semibold">{{ senior.address|default:"Not specified" }}</p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label text-muted">Barangay</label>
+                        <p class="fw-semibold">{{ senior.get_barangay_name }} ({{ senior.barangay_code }})</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-phone me-2"></i>Contact Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Mobile Number</label>
+                        <p class="fw-semibold">
+                            {% if senior.mobile_number %}
+                                {{ senior.mobile_number }}
+                                <i class="fas fa-check-circle text-success ms-1" title="Valid contact method"></i>
+                            {% else %}
+                                <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Telephone Number</label>
+                        <p class="fw-semibold">
+                            {% if senior.telephone_number %}
+                                {{ senior.telephone_number }}
+                                <i class="fas fa-check-circle text-success ms-1" title="Valid contact method"></i>
+                            {% else %}
+                                <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if not senior.mobile_number and not senior.telephone_number %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> No contact information provided. Consider requesting update before approval.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Health Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-heart me-2"></i>Health Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Vaccination Status</label>
+                        <p class="fw-semibold">
+                            {% if senior.vaccination_status == 'FULL' %}
+                                <span class="badge bg-success">{{ senior.get_vaccination_status_display }}</span>
+                            {% elif senior.vaccination_status == 'PARTIAL' %}
+                                <span class="badge bg-warning">{{ senior.get_vaccination_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ senior.get_vaccination_status_display }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label text-muted">Height</label>
+                        <p class="fw-semibold">{{ senior.height|default:"N/A" }}{% if senior.height %} cm{% endif %}</p>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label text-muted">Weight</label>
+                        <p class="fw-semibold">{{ senior.weight|default:"N/A" }}{% if senior.weight %} kg{% endif %}</p>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label text-muted">Eye Color</label>
+                        <p class="fw-semibold">{{ senior.get_eye_color_display|default:"N/A" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-exclamation-triangle me-2"></i>Emergency Contact
+            </div>
+            <div class="card-body">
+                {% if senior.emergency_contact_name or senior.emergency_contact_number or senior.emergency_contact_address %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Contact Name</label>
+                        <p class="fw-semibold">{{ senior.emergency_contact_name|default:"Not provided" }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Contact Number</label>
+                        <p class="fw-semibold">{{ senior.emergency_contact_number|default:"Not provided" }}</p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label text-muted">Contact Address</label>
+                        <p class="fw-semibold">{{ senior.emergency_contact_address|default:"Not provided" }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No emergency contact information provided. This is optional but recommended.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Required Documents for Review -->
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <i class="fas fa-file-alt me-2"></i>Required Documents - Review Required
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Please verify all uploaded documents before approving this application. Click on each document to view and confirm authenticity.
+                </div>
+
+                <div class="row">
+                    <!-- Birth Certificate -->
+                    <div class="col-md-4 mb-3">
+                        <div class="document-card {% if senior.birth_certificate %}has-document{% else %}missing-document{% endif %}"
+                             {% if senior.birth_certificate %}onclick="openDocumentModal('{{ senior.birth_certificate.url }}', 'Birth Certificate')"{% endif %}
+                             style="cursor: {% if senior.birth_certificate %}pointer{% else %}default{% endif %};">
+                            <div class="document-icon text-center mb-2">
+                                {% if senior.birth_certificate %}
+                                    <i class="fas fa-file-pdf fa-3x text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-center mb-2">Birth Certificate</h6>
+                            <div class="text-center">
+                                {% if senior.birth_certificate %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Uploaded
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>Missing
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% if senior.birth_certificate %}
+                            <div class="text-center mt-2">
+                                <small class="text-primary fw-semibold">Click to verify</small>
+                            </div>
+                            {% else %}
+                            <div class="text-center mt-2">
+                                <small class="text-danger">Required</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Certificate of Indigency -->
+                    <div class="col-md-4 mb-3">
+                        <div class="document-card {% if senior.certificate_of_indigency %}has-document{% else %}missing-document{% endif %}"
+                             {% if senior.certificate_of_indigency %}onclick="openDocumentModal('{{ senior.certificate_of_indigency.url }}', 'Certificate of Indigency')"{% endif %}
+                             style="cursor: {% if senior.certificate_of_indigency %}pointer{% else %}default{% endif %};">
+                            <div class="document-icon text-center mb-2">
+                                {% if senior.certificate_of_indigency %}
+                                    <i class="fas fa-file-pdf fa-3x text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-center mb-2">Certificate of Indigency</h6>
+                            <div class="text-center">
+                                {% if senior.certificate_of_indigency %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Uploaded
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>Missing
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% if senior.certificate_of_indigency %}
+                            <div class="text-center mt-2">
+                                <small class="text-primary fw-semibold">Click to verify</small>
+                            </div>
+                            {% else %}
+                            <div class="text-center mt-2">
+                                <small class="text-danger">Required</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Marriage Certificate -->
+                    <div class="col-md-4 mb-3">
+                        <div class="document-card {% if senior.marriage_certificate %}has-document{% else %}optional-document{% endif %}"
+                             {% if senior.marriage_certificate %}onclick="openDocumentModal('{{ senior.marriage_certificate.url }}', 'Marriage Certificate')"{% endif %}
+                             style="cursor: {% if senior.marriage_certificate %}pointer{% else %}default{% endif %};">
+                            <div class="document-icon text-center mb-2">
+                                {% if senior.marriage_certificate %}
+                                    <i class="fas fa-file-pdf fa-3x text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-file-pdf fa-3x text-muted"></i>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-center mb-2">Marriage Certificate</h6>
+                            <div class="text-center">
+                                {% if senior.marriage_certificate %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Uploaded
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-info-circle me-1"></i>Optional
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% if senior.marriage_certificate %}
+                            <div class="text-center mt-2">
+                                <small class="text-primary fw-semibold">Click to verify</small>
+                            </div>
+                            {% else %}
+                            <div class="text-center mt-2">
+                                <small class="text-muted">Not required</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Application Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-clipboard-check me-2"></i>Application Summary
+            </div>
+            <div class="card-body">
+                {% if senior.photo %}
+                    <div class="text-center mb-3">
+                        <img src="{{ senior.photo.url }}" alt="Applicant Photo" class="img-fluid rounded" style="max-height: 150px;">
+                    </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Application ID</label>
+                    <p class="fw-semibold"><code>{{ senior.id_number }}</code></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Submitted By</label>
+                    <p class="fw-semibold">{{ senior.created_by.first_name }} {{ senior.created_by.last_name }}</p>
+                    <small class="text-muted">{{ senior.created_by.get_role_display }}</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Submitted Date</label>
+                    <p class="fw-semibold">{{ senior.created_at|date:"M d, Y g:i A" }}</p>
+                    <small class="text-muted">{{ senior.created_at|timesince }} ago</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Current Status</label>
+                    <p><span class="badge badge-warning">{{ senior.get_status_display }}</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation Checklist -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-tasks me-2"></i>Validation Checklist
+            </div>
+            <div class="card-body">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check_age" 
+                           {% if senior.get_age >= 60 %}checked{% endif %} disabled>
+                    <label class="form-check-label" for="check_age">
+                        Age 60 or above
+                        {% if senior.get_age >= 60 %}
+                            <i class="fas fa-check text-success ms-1"></i>
+                        {% else %}
+                            <i class="fas fa-times text-danger ms-1"></i>
+                        {% endif %}
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check_name" 
+                           {% if senior.first_name and senior.last_name %}checked{% endif %} disabled>
+                    <label class="form-check-label" for="check_name">
+                        Complete name provided
+                        {% if senior.first_name and senior.last_name %}
+                            <i class="fas fa-check text-success ms-1"></i>
+                        {% else %}
+                            <i class="fas fa-times text-danger ms-1"></i>
+                        {% endif %}
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check_address" 
+                           {% if senior.address %}checked{% endif %} disabled>
+                    <label class="form-check-label" for="check_address">
+                        Address provided
+                        {% if senior.address %}
+                            <i class="fas fa-check text-success ms-1"></i>
+                        {% else %}
+                            <i class="fas fa-times text-danger ms-1"></i>
+                        {% endif %}
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check_contact" 
+                           {% if senior.mobile_number or senior.telephone_number %}checked{% endif %} disabled>
+                    <label class="form-check-label" for="check_contact">
+                        Contact information
+                        {% if senior.mobile_number or senior.telephone_number %}
+                            <i class="fas fa-check text-success ms-1"></i>
+                        {% else %}
+                            <i class="fas fa-exclamation-triangle text-warning ms-1"></i>
+                        {% endif %}
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check_barangay"
+                           {% if senior.barangay_code %}checked{% endif %} disabled>
+                    <label class="form-check-label" for="check_barangay">
+                        Valid barangay
+                        {% if senior.barangay_code %}
+                            <i class="fas fa-check text-success ms-1"></i>
+                        {% else %}
+                            <i class="fas fa-times text-danger ms-1"></i>
+                        {% endif %}
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check_birth_cert"
+                           {% if senior.birth_certificate %}checked{% endif %} disabled>
+                    <label class="form-check-label" for="check_birth_cert">
+                        Birth Certificate
+                        {% if senior.birth_certificate %}
+                            <i class="fas fa-check text-success ms-1"></i>
+                        {% else %}
+                            <i class="fas fa-times text-danger ms-1"></i>
+                        {% endif %}
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check_indigency_cert"
+                           {% if senior.certificate_of_indigency %}checked{% endif %} disabled>
+                    <label class="form-check-label" for="check_indigency_cert">
+                        Certificate of Indigency
+                        {% if senior.certificate_of_indigency %}
+                            <i class="fas fa-check text-success ms-1"></i>
+                        {% else %}
+                            <i class="fas fa-times text-danger ms-1"></i>
+                        {% endif %}
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Guidelines -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Review Guidelines
+            </div>
+            <div class="card-body">
+                <h6>Before Approving:</h6>
+                <ul class="small mb-3">
+                    <li>Verify age is 60 years or above</li>
+                    <li>Ensure all required fields are complete</li>
+                    <li>Check address is within supported barangays</li>
+                    <li>Validate contact information if provided</li>
+                    <li><strong>Review all uploaded documents</strong></li>
+                    <li>Verify authenticity of certificates</li>
+                </ul>
+                
+                <h6>After Approval:</h6>
+                <ul class="small">
+                    <li>QR code will be automatically generated</li>
+                    <li>Senior citizen can use ID for discounts</li>
+                    <li>Record becomes publicly verifiable</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bolt me-2"></i>Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'approval_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Approvals
+                    </a>
+                    <a href="{% url 'senior_detail' senior.pk %}" class="btn btn-outline-info">
+                        <i class="fas fa-eye me-1"></i>View Full Details
+                    </a>
+                    <a href="{% url 'senior_update' senior.pk %}" class="btn btn-outline-warning">
+                        <i class="fas fa-edit me-1"></i>Edit Application
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Viewer Modal -->
+<div class="modal fade" id="documentViewerModal" tabindex="-1" aria-labelledby="documentViewerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentViewerModalLabel">
+                    <i class="fas fa-file-alt me-2"></i>
+                    <span id="documentTitle">Document Viewer</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="min-height: 500px; max-height: 80vh; overflow: auto;">
+                <div id="documentLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading document...</p>
+                </div>
+                <div id="documentContainer" style="display: none;">
+                    <!-- Image Viewer -->
+                    <div id="imageViewer" style="display: none; text-align: center; padding: 20px; background: #f5f5f5;">
+                        <img id="imageViewerImg" style="max-width: 100%; height: auto; max-height: 70vh; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                    </div>
+
+                    <!-- PDF Message -->
+                    <div id="pdfMessage" style="display: none; text-align: center; padding: 40px;">
+                        <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
+                        <h5>PDF Document Ready</h5>
+                        <p class="text-muted">This document will open in a new tab for better viewing.</p>
+                        <p class="small text-muted">Click the "Open in New Tab" button below to view the document.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="openInNewTabBtn" href="#" target="_blank" class="btn btn-success me-auto" style="display: none;">
+                    <i class="fas fa-external-link-alt me-1"></i>Open in New Tab
+                </a>
+                <a id="downloadDocumentBtn" href="#" download class="btn btn-primary">
+                    <i class="fas fa-download me-1"></i>Download
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalMessage"></div>
+                <div class="mt-3">
+                    <strong>Senior Citizen:</strong> {{ senior.first_name }} {{ senior.last_name }}<br>
+                    <strong>ID Number:</strong> {{ senior.id_number }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="confirmButton">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.badge.fs-6 {
+    font-size: 0.9rem !important;
+}
+.form-check-input:disabled {
+    opacity: 0.7;
+}
+.form-check-label {
+    font-size: 0.9rem;
+}
+.img-fluid {
+    border: 2px solid var(--gray-200);
+}
+
+/* Document Card Styles */
+.document-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    height: 100%;
+}
+
+.document-card.has-document {
+    border-color: #28a745;
+    background: #f8fff9;
+}
+
+.document-card.has-document:hover {
+    border-color: #218838;
+    background: #e8f5e9;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+}
+
+.document-card.missing-document {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.document-card.optional-document {
+    border-color: #6c757d;
+    background: #f8f9fa;
+}
+
+.document-icon {
+    transition: transform 0.3s ease;
+}
+
+.document-card.has-document:hover .document-icon {
+    transform: scale(1.1);
+}
+
+/* Modal Styles */
+.modal-xl {
+    max-width: 95%;
+}
+
+#documentContainer {
+    background: #f5f5f5;
+}
+
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    .document-card {
+        margin-bottom: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global function to open document modal
+function openDocumentModal(documentUrl, documentTitle) {
+    const modal = new bootstrap.Modal(document.getElementById('documentViewerModal'));
+    const modalTitleElement = document.getElementById('documentTitle');
+    const documentLoading = document.getElementById('documentLoading');
+    const documentContainer = document.getElementById('documentContainer');
+    const imageViewer = document.getElementById('imageViewer');
+    const imageViewerImg = document.getElementById('imageViewerImg');
+    const pdfMessage = document.getElementById('pdfMessage');
+    const downloadBtn = document.getElementById('downloadDocumentBtn');
+    const openInNewTabBtn = document.getElementById('openInNewTabBtn');
+
+    // Set title
+    modalTitleElement.textContent = documentTitle;
+
+    // Set download and open links
+    downloadBtn.href = documentUrl;
+    openInNewTabBtn.href = documentUrl;
+
+    // Show loading
+    documentLoading.style.display = 'block';
+    documentContainer.style.display = 'none';
+    imageViewer.style.display = 'none';
+    if (pdfMessage) pdfMessage.style.display = 'none';
+    openInNewTabBtn.style.display = 'none';
+
+    // Determine file type
+    const fileExtension = documentUrl.split('.').pop().toLowerCase().split('?')[0];
+    const isPDF = fileExtension === 'pdf';
+    const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension);
+
+    console.log('Opening document:', documentUrl, 'Type:', fileExtension, 'isPDF:', isPDF, 'isImage:', isImage);
+
+    // Open modal
+    modal.show();
+
+    // Load document after a short delay
+    setTimeout(() => {
+        documentLoading.style.display = 'none';
+        documentContainer.style.display = 'block';
+
+        if (isImage) {
+            // Display Image directly (no iframe needed)
+            imageViewerImg.src = documentUrl;
+            imageViewerImg.alt = documentTitle;
+            imageViewer.style.display = 'block';
+            if (pdfMessage) pdfMessage.style.display = 'none';
+            openInNewTabBtn.style.display = 'none';
+
+            // Handle image load errors
+            imageViewerImg.onerror = function() {
+                imageViewer.innerHTML = `
+                    <div class="alert alert-danger m-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Error loading image.</strong><br>
+                        The image file may be corrupted or the path is incorrect.<br>
+                        <small class="text-muted">URL: ${documentUrl}</small>
+                    </div>
+                `;
+            };
+
+            imageViewerImg.onload = function() {
+                console.log('Image loaded successfully');
+            };
+        } else if (isPDF) {
+            // For PDFs, show message and button to open in new tab
+            // This avoids X-Frame-Options issues
+            imageViewer.style.display = 'none';
+            if (pdfMessage) {
+                pdfMessage.style.display = 'block';
+            }
+            openInNewTabBtn.style.display = 'inline-block';
+
+            // Auto-open PDF in new tab
+            window.open(documentUrl, '_blank');
+        } else {
+            // Unknown file type: open in new tab
+            window.open(documentUrl, '_blank');
+            modal.hide();
+        }
+    }, 300);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const approvalForm = document.getElementById('approvalForm');
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const confirmButton = document.getElementById('confirmButton');
+
+    let currentAction = '';
+
+    // Handle form submission with confirmation
+    approvalForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        currentAction = e.submitter.value;
+
+        if (currentAction === 'approve') {
+            modalTitle.textContent = 'Approve Application';
+            modalMessage.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Approve this application?</strong><br>
+                    This will generate a QR code and make the senior citizen ID active for public verification and discounts.
+                </div>
+            `;
+            confirmButton.className = 'btn btn-success';
+            confirmButton.innerHTML = '<i class="fas fa-check me-1"></i>Approve';
+        } else {
+            modalTitle.textContent = 'Reject Application';
+            modalMessage.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-times-circle me-2"></i>
+                    <strong>Reject this application?</strong><br>
+                    The application will be marked as rejected and the applicant will need to resubmit.
+                </div>
+            `;
+            confirmButton.className = 'btn btn-danger';
+            confirmButton.innerHTML = '<i class="fas fa-times me-1"></i>Reject';
+        }
+
+        confirmationModal.show();
+    });
+
+    // Handle confirmation
+    confirmButton.addEventListener('click', function() {
+        // Create a hidden input for the action
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = currentAction;
+
+        approvalForm.appendChild(actionInput);
+
+        // Submit the form
+        approvalForm.submit();
+    });
+
+    // Clean up document modal on close
+    const documentModal = document.getElementById('documentViewerModal');
+    if (documentModal) {
+        documentModal.addEventListener('hidden.bs.modal', function () {
+            const imageViewerImg = document.getElementById('imageViewerImg');
+            const imageViewer = document.getElementById('imageViewer');
+
+            // Clear sources to stop loading
+            if (imageViewerImg) {
+                imageViewerImg.src = '';
+                imageViewerImg.onerror = null;
+                imageViewerImg.onload = null;
+            }
+
+            // Reset image viewer
+            if (imageViewer) {
+                imageViewer.style.display = 'none';
+            }
+        });
+    }
+
+    // Auto-focus on the appropriate button based on validation
+    const allChecksValid = document.querySelectorAll('.form-check-input:checked').length === 7; // Updated count
+    if (allChecksValid) {
+        document.querySelector('button[value="approve"]').focus();
+    }
+});
+</script>
+{% endblock %}

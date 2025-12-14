@@ -1,0 +1,193 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Upload Document - VeriSior{% endblock %}
+{% block page_title %}Upload Document{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-upload me-2"></i>Upload Document for {{ senior.first_name }} {{ senior.last_name }}
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Senior Citizen:</strong> {{ senior.last_name }}, {{ senior.first_name }} ({{ senior.id_number }})
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="documentForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            Document Title <span class="text-danger">*</span>
+                        </label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Enter a descriptive title for this document</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.document.id_for_label }}" class="form-label">
+                            Document File <span class="text-danger">*</span>
+                        </label>
+                        {{ form.document }}
+                        {% if form.document.errors %}
+                            <div class="text-danger small mt-1">{{ form.document.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG, GIF. Maximum file size: 10MB
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'senior_detail' senior.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-1"></i>Upload Document
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Upload Guidelines
+            </div>
+            <div class="card-body">
+                <h6>Supported File Types:</h6>
+                <ul class="small mb-3">
+                    <li><strong>PDF:</strong> Preferred for official documents</li>
+                    <li><strong>Word:</strong> DOC, DOCX files</li>
+                    <li><strong>Images:</strong> JPG, JPEG, PNG, GIF</li>
+                </ul>
+
+                <h6>File Requirements:</h6>
+                <ul class="small mb-3">
+                    <li>Maximum file size: 10MB</li>
+                    <li>Clear, readable documents</li>
+                    <li>Proper orientation for images</li>
+                </ul>
+
+                <h6>Document Examples:</h6>
+                <ul class="small">
+                    <li>Birth Certificate</li>
+                    <li>Valid ID</li>
+                    <li>Medical Records</li>
+                    <li>Proof of Address</li>
+                    <li>Other supporting documents</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-user me-2"></i>Senior Information
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ senior.first_name }} {{ senior.last_name }}</p>
+                <p><strong>ID Number:</strong> <code>{{ senior.id_number }}</code></p>
+                <p><strong>Status:</strong> 
+                    {% if senior.status == 'APPROVED' %}
+                        <span class="badge badge-success">{{ senior.get_status_display }}</span>
+                    {% elif senior.status == 'PENDING' %}
+                        <span class="badge badge-warning">{{ senior.get_status_display }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ senior.get_status_display }}</span>
+                    {% endif %}
+                </p>
+                <p><strong>Age:</strong> {{ senior.get_age|default:"N/A" }} years old</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('documentForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const fileInput = document.getElementById('{{ form.document.id_for_label }}');
+    
+    // File validation
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const fileSize = file.size / 1024 / 1024; // Convert to MB
+            const fileName = file.name.toLowerCase();
+            
+            if (fileSize > 10) {
+                alert('File size must be less than 10MB');
+                this.value = '';
+                return;
+            }
+            
+            const allowedExtensions = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.gif'];
+            const fileExtension = '.' + fileName.split('.').pop();
+            
+            if (!allowedExtensions.includes(fileExtension)) {
+                alert('Please select a valid file type: PDF, DOC, DOCX, JPG, JPEG, PNG, or GIF');
+                this.value = '';
+                return;
+            }
+        }
+    });
+
+    // Form submission with loading state
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Uploading...';
+    });
+
+    // Drag and drop functionality
+    const dropZone = document.querySelector('.card-body');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropZone.style.backgroundColor = '#f8f9fa';
+        dropZone.style.border = '2px dashed #007bff';
+    }
+
+    function unhighlight(e) {
+        dropZone.style.backgroundColor = '';
+        dropZone.style.border = '';
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            fileInput.files = files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    }
+});
+</script>
+{% endblock %}

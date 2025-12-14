@@ -1,0 +1,1000 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Batch Upload - VeriSior{% endblock %}
+{% block page_title %}Batch Upload Senior Citizens{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- UPLOAD FORM - Show if no validation results yet -->
+        {% if not validation_results %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-cloud-upload-alt me-2"></i>
+                <strong>Upload Excel/CSV File</strong>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Select File to Upload</label>
+                                <input type="file" name="excel_file" class="form-control form-control-lg"
+                                       accept=".xlsx,.xls,.csv" required
+                                       id="fileInput">
+                                <small class="text-muted d-block mt-2">
+                                    Supported formats: Excel (.xlsx, .xls) or CSV (.csv)
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-check-circle me-2"></i>Validate File
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Info:</strong> First, upload your file to validate the data. You'll then review any errors and can edit them before the final upload.
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Download Template Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <i class="fas fa-file-download me-2"></i>
+                <strong>Download Template</strong>
+            </div>
+            <div class="card-body">
+                <p>Don't have the right format? Download our template with the correct columns:</p>
+                <a href="{% url 'download_template' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-download me-2"></i>Download Template
+                </a>
+            </div>
+        </div>
+
+        <!-- Column Reference Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <i class="fas fa-columns me-2"></i>
+                <strong>Required Columns</strong>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for col in sample_data %}
+                            <tr>
+                                <td><code>{{ col.column }}</code></td>
+                                <td>
+                                    {% if col.required == 'Yes' %}
+                                    <span class="badge bg-danger">Required</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Optional</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ col.description }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Messages Section -->
+        {% if batch_upload_errors %}
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Previous Upload Errors</strong>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for error in batch_upload_errors %}
+                    <div class="list-group-item list-group-item-danger">
+                        {{ error }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Stats Section -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <i class="fas fa-chart-bar me-2"></i>
+                <strong>Database Stats</strong>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6>Total Senior Citizens in Database</h6>
+                            <h3 class="text-primary">{{ total_seniors }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6>Next Auto-Generated ID Number</h6>
+                            <code class="h5">{{ next_global_count }}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VALIDATION REVIEW PAGE - Show if validation results exist -->
+        {% else %}
+        <!-- Summary Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-chart-pie me-2"></i>
+                        <strong>Validation Summary: {{ file_name }}</strong>
+                    </span>
+                    <span class="badge bg-white text-primary">{{ total_rows }} Total Rows</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card bg-success text-white p-3 rounded">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle fa-3x me-3"></i>
+                                <div>
+                                    <div class="small">Valid Rows</div>
+                                    <div class="h3 mb-0">{{ valid_rows }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-warning text-white p-3 rounded">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle fa-3x me-3"></i>
+                                <div>
+                                    <div class="small">With Warnings</div>
+                                    <div class="h3 mb-0">{{ warning_rows }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-danger text-white p-3 rounded">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-times-circle fa-3x me-3"></i>
+                                <div>
+                                    <div class="small">With Errors</div>
+                                    <div class="h3 mb-0">{{ error_rows }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card bg-info text-white p-3 rounded">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-upload fa-3x me-3"></i>
+                                <div>
+                                    <div class="small">Ready to Upload</div>
+                                    <div class="h3 mb-0">{{ valid_rows }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="btn-group me-2" role="group">
+                            <button type="button" class="btn btn-outline-info" id="expandAll">
+                                <i class="fas fa-expand-alt"></i> Expand All
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="collapseAll">
+                                <i class="fas fa-compress-alt"></i> Collapse All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button type="button" class="btn btn-primary" id="uploadValidRows">
+                            <i class="fas fa-upload"></i> Resolve & Upload
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row-by-Row Results -->
+        <div id="rowResults">
+            {% for result in validation_results %}
+            <div class="card mb-3 row-card" data-status="{{ result.status }}" data-row="{{ result.row_number }}">
+                <div class="card-header"
+                     style="{% if result.status == 'error' %}background-color: #f8d7da; border-left: 4px solid #dc3545;{% elif result.status == 'warning' %}background-color: #fff3cd; border-left: 4px solid #ffc107;{% else %}background-color: #d4edda; border-left: 4px solid #28a745;{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge {% if result.status == 'error' %}bg-danger{% elif result.status == 'warning' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                Row {{ result.excel_row }}
+                            </span>
+                            <strong class="ms-2">
+                                {{ result.data.first_name|default:"[No First Name]" }}
+                                {{ result.data.last_name|default:"[No Last Name]" }}
+                            </strong>
+                            {% if result.data.birth_date %}
+                            <span class="ms-2 text-muted">(DOB: {{ result.data.birth_date|date:"m/d/Y" }})</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if result.errors %}
+                            <span class="badge bg-danger me-2">{{ result.errors|length }} Error(s)</span>
+                            {% endif %}
+                            {% if result.warnings %}
+                            <span class="badge bg-warning text-dark me-2">{{ result.warnings|length }} Warning(s)</span>
+                            {% endif %}
+                            <button class="btn btn-sm btn-outline-secondary toggle-row" data-row="{{ result.row_number }}">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body row-details" style="display: none;">
+                    <!-- Errors Section -->
+                    {% if result.errors %}
+                    <div class="errors-section mb-3">
+                        <h6 class="text-danger">
+                            <i class="fas fa-times-circle me-2"></i>Errors That Must Be Fixed:
+                        </h6>
+                        {% for error in result.errors %}
+                        <div class="alert alert-danger mb-2">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="error-info">
+                                        <strong>{{ error.field }}</strong>
+                                        <span class="badge bg-danger ms-2">{{ error.type }}</span>
+                                        <p class="mb-1 mt-2">{{ error.message }}</p>
+                                        {% if error.current_value %}
+                                        <small class="text-muted">
+                                            Current value: <code>{{ error.current_value }}</code>
+                                        </small>
+                                        {% endif %}
+                                        {% if error.existing_record %}
+                                        <div class="mt-2 p-2 bg-light rounded">
+                                            <strong>Existing Record:</strong><br>
+                                            <small>
+                                                Name: {{ error.existing_record.name }}<br>
+                                                {% if error.existing_record.id_number %}ID: {{ error.existing_record.id_number }}<br>{% endif %}
+                                                {% if error.existing_record.birth_date %}DOB: {{ error.existing_record.birth_date }}<br>{% endif %}
+                                                {% if error.existing_record.barangay %}Barangay: {{ error.existing_record.barangay }}{% endif %}
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="action-buttons">
+                                        <label class="small text-muted d-block mb-2">Available Actions:</label>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            {% for action in error.actions %}
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-primary error-action-btn"
+                                                    data-row="{{ result.row_number }}"
+                                                    data-field="{{ error.field }}"
+                                                    data-action="{{ action }}"
+                                                    data-error-type="{{ error.type }}">
+                                                {% if action == 'edit' %}
+                                                <i class="fas fa-edit"></i> Edit Value
+                                                {% elif action == 'skip' %}
+                                                <i class="fas fa-step-forward"></i> Skip This Row
+                                                {% elif action == 'replace' %}
+                                                <i class="fas fa-sync-alt"></i> Replace Existing
+                                                {% elif action == 'merge' %}
+                                                <i class="fas fa-code-branch"></i> Merge Data
+                                                {% elif action == 'generate_new_id' %}
+                                                <i class="fas fa-plus-circle"></i> Generate New ID
+                                                {% elif action == 'clear' %}
+                                                <i class="fas fa-eraser"></i> Clear Field
+                                                {% else %}
+                                                {{ action|title }}
+                                                {% endif %}
+                                            </button>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Warnings Section -->
+                    {% if result.warnings %}
+                    <div class="warnings-section mb-3">
+                        <h6 class="text-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Warnings (Optional):
+                        </h6>
+                        {% for warning in result.warnings %}
+                        <div class="alert alert-warning mb-2">
+                            <strong>{{ warning.field }}</strong>
+                            <span class="badge bg-warning text-dark ms-2">{{ warning.type }}</span>
+                            <p class="mb-0 mt-1">{{ warning.message }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Data Preview -->
+                    <div class="data-preview mt-3">
+                        <h6><i class="fas fa-table me-2"></i>Row Data:</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>ID Number:</strong></td>
+                                        <td>{{ result.data.id_number|default:"<em>Will be auto-generated</em>" }}</td>
+                                        <td><strong>Gender:</strong></td>
+                                        <td>{{ result.data.gender|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>First Name:</strong></td>
+                                        <td>{{ result.data.first_name|default:"N/A" }}</td>
+                                        <td><strong>Last Name:</strong></td>
+                                        <td>{{ result.data.last_name|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Birth Date:</strong></td>
+                                        <td>{{ result.data.birth_date|date:"m/d/Y"|default:"N/A" }}</td>
+                                        <td><strong>Age:</strong></td>
+                                        <td>{{ result.data.age|default:"N/A" }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>House #:</strong></td>
+                                        <td>{{ result.data.house_number|default:"N/A" }}</td>
+                                        <td><strong>Street:</strong></td>
+                                        <td>{{ result.data.street|default:"N/A" }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Row Actions -->
+                    <div class="row-actions mt-3 text-end">
+                        {% if result.status == 'error' %}
+                        <button type="button" class="btn btn-danger btn-sm skip-row-btn" data-row="{{ result.row_number }}">
+                            <i class="fas fa-ban"></i> Skip This Row
+                        </button>
+                        {% elif result.status == 'warning' %}
+                        <button type="button" class="btn btn-success btn-sm include-row-btn" data-row="{{ result.row_number }}">
+                            <i class="fas fa-check"></i> Include This Row
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn btn-outline-danger btn-sm exclude-row-btn" data-row="{{ result.row_number }}">
+                            <i class="fas fa-minus-circle"></i> Exclude This Row
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Bottom Action Bar -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'batch_upload' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Start Over
+                    </a>
+                    <div>
+                        <button type="button" class="btn btn-outline-warning me-2" id="fixAllErrors">
+                            <i class="fas fa-tools"></i> Fix All Fixable Errors
+                        </button>
+                        <button type="button" class="btn btn-primary" id="proceedUpload">
+                            <i class="fas fa-cloud-upload-alt"></i> Upload {{ valid_rows }} Valid Rows Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Error Resolution Modal -->
+<div class="modal fade" id="errorResolutionModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-circle me-2"></i>Resolve Upload Issues
+                </h5>
+                <span class="badge bg-light text-danger">Before Upload</span>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div id="errorsList">
+                    <!-- Errors will be populated here -->
+                </div>
+                <div id="noErrorsMessage" class="alert alert-success" style="display: none;">
+                    <i class="fas fa-check-circle me-2"></i>All issues have been resolved! Ready to upload.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="backToReview">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Review
+                </button>
+                <button type="button" class="btn btn-primary" id="proceedToUpload" disabled>
+                    <i class="fas fa-cloud-upload-alt me-2"></i>Proceed with Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Field Modal -->
+<div class="modal fade" id="editFieldModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Edit Field
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editFieldForm">
+                    <input type="hidden" id="editRow" name="row">
+                    <input type="hidden" id="editField" name="field">
+
+                    <div class="mb-3">
+                        <label class="form-label">Field:</label>
+                        <input type="text" class="form-control" id="editFieldName" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">New Value:</label>
+                        <input type="text" class="form-control" id="editValue" name="value" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Action Modal -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card {
+    border-left: 4px solid rgba(255,255,255,0.3);
+    transition: transform 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+.row-card {
+    transition: all 0.3s;
+}
+.row-card:hover {
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
+}
+.row-details {
+    border-top: 2px solid #dee2e6;
+}
+.error-info {
+    font-size: 0.9rem;
+}
+.action-buttons {
+    position: sticky;
+    top: 20px;
+}
+.error-action-btn {
+    font-size: 0.85rem;
+    text-align: left;
+}
+.toggle-row {
+    transition: transform 0.3s;
+}
+.toggle-row.rotated i {
+    transform: rotate(180deg);
+}
+code {
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+}
+.data-preview table {
+    font-size: 0.85rem;
+}
+.btn-group-vertical .btn {
+    margin-bottom: 0.25rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editModal = new bootstrap.Modal(document.getElementById('editFieldModal'));
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+    const errorResolutionModal = new bootstrap.Modal(document.getElementById('errorResolutionModal'));
+
+    // State management for row errors
+    const rowErrorState = {};
+
+    // Initialize error state from page data
+    document.querySelectorAll('.row-card').forEach(card => {
+        const rowNum = card.dataset.row;
+        const hasErrors = card.querySelectorAll('.error-action-btn').length > 0;
+        rowErrorState[rowNum] = {
+            hasErrors: hasErrors,
+            resolved: false,
+            actions: []
+        };
+    });
+
+    // Toggle row details
+    document.querySelectorAll('.toggle-row').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.dataset.row;
+            const details = this.closest('.row-card').querySelector('.row-details');
+            const icon = this.querySelector('i');
+
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                details.style.display = 'none';
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        });
+    });
+
+    // Expand/Collapse all
+    document.getElementById('expandAll').addEventListener('click', function() {
+        document.querySelectorAll('.row-details').forEach(details => {
+            details.style.display = 'block';
+        });
+        document.querySelectorAll('.toggle-row i').forEach(icon => {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        });
+    });
+
+    document.getElementById('collapseAll').addEventListener('click', function() {
+        document.querySelectorAll('.row-details').forEach(details => {
+            details.style.display = 'none';
+        });
+        document.querySelectorAll('.toggle-row i').forEach(icon => {
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        });
+    });
+
+    // Error action buttons
+    document.querySelectorAll('.error-action-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.dataset.action;
+            const row = this.dataset.row;
+            const field = this.dataset.field;
+            const errorType = this.dataset.errorType;
+
+            if (action === 'edit') {
+                // Open edit modal
+                document.getElementById('editRow').value = row;
+                document.getElementById('editField').value = field;
+                document.getElementById('editFieldName').value = field;
+                editModal.show();
+            } else if (action === 'skip') {
+                // Skip this row
+                confirmAction('skip', row, `Are you sure you want to skip Row ${row}?`);
+            } else if (action === 'replace') {
+                // Replace existing record
+                confirmAction('replace', row, `This will REPLACE the existing record with data from Row ${row}. Continue?`);
+            } else if (action === 'merge') {
+                // Merge with existing
+                confirmAction('merge', row, `This will MERGE data from Row ${row} with the existing record. Continue?`);
+            } else if (action === 'generate_new_id') {
+                // Generate new ID
+                confirmAction('generate_new_id', row, `Generate a new ID for Row ${row}?`);
+            } else if (action === 'clear') {
+                // Clear field
+                confirmAction('clear', row, `Clear the ${field} field for Row ${row}?`, field);
+            }
+        });
+    });
+
+    function confirmAction(action, row, message, field = null) {
+        document.getElementById('confirmMessage').textContent = message;
+
+        document.getElementById('confirmAction').onclick = function() {
+            // Submit action to backend
+            fetch('{% url "batch_upload_action" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    action: action,
+                    row: row,
+                    field: field
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+
+            confirmModal.hide();
+        };
+
+        confirmModal.show();
+    }
+
+    // Save edit
+    document.getElementById('saveEdit').addEventListener('click', function() {
+        const row = document.getElementById('editRow').value;
+        const field = document.getElementById('editField').value;
+        const value = document.getElementById('editValue').value;
+
+        // Submit to backend
+        fetch('{% url "batch_upload_action" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                action: 'edit',
+                row: row,
+                field: field,
+                value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+
+        editModal.hide();
+    });
+
+    // Upload valid rows - NOW SHOWS ERROR RESOLUTION FIRST
+    document.getElementById('uploadValidRows').addEventListener('click', function() {
+        const errorRows = document.querySelectorAll('.row-card[data-status="error"]');
+        if (errorRows.length > 0) {
+            showErrorResolutionModal();
+        } else {
+            proceedWithUpload();
+        }
+    });
+
+    document.getElementById('proceedUpload').addEventListener('click', function() {
+        const errorRows = document.querySelectorAll('.row-card[data-status="error"]');
+        if (errorRows.length > 0) {
+            showErrorResolutionModal();
+        } else {
+            proceedWithUpload();
+        }
+    });
+
+    // Error Resolution Modal Handlers
+    function showErrorResolutionModal() {
+        const errorsList = document.getElementById('errorsList');
+        errorsList.innerHTML = '';
+
+        const errorRows = document.querySelectorAll('.row-card[data-status="error"]');
+
+        if (errorRows.length === 0) {
+            document.getElementById('noErrorsMessage').style.display = 'block';
+            document.getElementById('proceedToUpload').disabled = false;
+            errorResolutionModal.show();
+            return;
+        }
+
+        let unresolvedCount = 0;
+
+        errorRows.forEach((card, index) => {
+            const rowNum = card.dataset.row;
+            const rowName = card.querySelector('.row-details').querySelector('.data-preview')
+                ? `Row ${rowNum}: ${card.querySelector('strong').textContent}`
+                : `Row ${rowNum}`;
+
+            const errorItems = card.querySelectorAll('.errors-section .alert-danger');
+
+            errorItems.forEach((errorAlert) => {
+                const field = errorAlert.querySelector('strong').textContent;
+                const errorType = errorAlert.querySelector('.badge').textContent;
+                const message = errorAlert.querySelector('p').textContent;
+                const errorInfo = {
+                    rowNum: rowNum,
+                    field: field,
+                    type: errorType,
+                    message: message
+                };
+
+                unresolvedCount++;
+
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-item card mb-3 border-danger';
+                errorDiv.id = `error-${rowNum}-${field}`;
+                errorDiv.innerHTML = `
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge bg-danger me-2">Row ${rowNum}</span>
+                                <strong>${field}</strong>
+                                <span class="badge bg-warning text-dark ms-2">${errorType}</span>
+                            </div>
+                            <span class="status-badge badge bg-secondary">Unresolved</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">${message}</p>
+                        <div class="action-options">
+                            <button type="button" class="btn btn-sm btn-warning resolve-error-btn" data-action="edit" data-row="${rowNum}" data-field="${field}">
+                                <i class="fas fa-edit me-1"></i>Edit Value
+                            </button>
+                            <button type="button" class="btn btn-sm btn-info resolve-error-btn" data-action="clear" data-row="${rowNum}" data-field="${field}">
+                                <i class="fas fa-eraser me-1"></i>Clear Field
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger resolve-error-btn ignore-btn" data-action="ignore" data-row="${rowNum}" data-field="${field}">
+                                <i class="fas fa-times me-1"></i>Ignore This Row
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                errorsList.appendChild(errorDiv);
+            });
+        });
+
+        // Add event listeners to error action buttons
+        document.querySelectorAll('.resolve-error-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.dataset.action;
+                const rowNum = this.dataset.row;
+                const field = this.dataset.field;
+                const errorItem = document.getElementById(`error-${rowNum}-${field}`);
+
+                if (action === 'edit') {
+                    // Open edit modal for this specific error
+                    document.getElementById('editRow').value = rowNum;
+                    document.getElementById('editField').value = field;
+                    document.getElementById('editFieldName').value = field;
+                    document.getElementById('editValue').value = '';
+
+                    // Temporarily store the error item reference for later
+                    document.getElementById('editFieldModal').dataset.errorItem = `error-${rowNum}-${field}`;
+
+                    editModal.hide();
+                    setTimeout(() => editModal.show(), 100);
+                } else if (action === 'clear') {
+                    // Send clear action to backend
+                    fetch('{% url "batch_upload_action" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            action: 'clear',
+                            row: rowNum,
+                            field: field
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            markErrorAsResolved(rowNum, field, 'clear', errorItem);
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    });
+                } else if (action === 'ignore') {
+                    // Send ignore action to backend
+                    fetch('{% url "batch_upload_action" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            action: 'ignore',
+                            row: rowNum,
+                            field: field
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            markErrorAsResolved(rowNum, field, 'ignore', errorItem);
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    });
+                }
+            });
+        });
+
+        document.getElementById('proceedToUpload').disabled = unresolvedCount > 0;
+        errorResolutionModal.show();
+    }
+
+    function markErrorAsResolved(rowNum, field, action, errorItem) {
+        const statusBadge = errorItem.querySelector('.status-badge');
+        statusBadge.textContent = action === 'ignore' ? 'Ignored' : 'Cleared';
+        statusBadge.className = 'status-badge badge resolved ' + (action === 'ignore' ? 'bg-secondary' : 'bg-info');
+
+        // Disable action buttons
+        errorItem.querySelectorAll('.resolve-error-btn').forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        });
+
+        // Mark row with action taken
+        const rowCard = document.querySelector(`.row-card[data-row="${rowNum}"]`);
+        if (rowCard) {
+            if (action === 'ignore') {
+                rowCard.dataset.status = 'ignored';
+                rowCard.style.opacity = '0.6';
+            }
+        }
+
+        // Count unresolved errors (badges WITHOUT the 'resolved' class)
+        const unresolvedErrors = document.querySelectorAll('#errorsList .status-badge:not(.resolved)').length;
+
+        // Enable proceed button if all errors are resolved
+        document.getElementById('proceedToUpload').disabled = unresolvedErrors > 0;
+
+        // Show success message if all resolved
+        if (unresolvedErrors === 0) {
+            document.getElementById('errorsList').style.display = 'none';
+            document.getElementById('noErrorsMessage').style.display = 'block';
+        }
+    }
+
+    document.getElementById('backToReview').addEventListener('click', function() {
+        errorResolutionModal.hide();
+    });
+
+    document.getElementById('proceedToUpload').addEventListener('click', function() {
+        proceedWithUpload();
+    });
+
+    function proceedWithUpload() {
+        // Collect ignored rows
+        const ignoredRows = new Set();
+        document.querySelectorAll('.row-card[data-status="ignored"]').forEach(card => {
+            ignoredRows.add(card.dataset.row);
+        });
+
+        // If there are ignored rows, pass them to the upload endpoint
+        if (ignoredRows.size > 0) {
+            const ignoredRowsArray = Array.from(ignoredRows);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{% url "batch_upload_process" %}';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'ignored_rows';
+            input.value = JSON.stringify(ignoredRowsArray);
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = '{{ csrf_token }}';
+
+            form.appendChild(input);
+            form.appendChild(csrfInput);
+            document.body.appendChild(form);
+            form.submit();
+        } else {
+            window.location.href = '{% url "batch_upload_process" %}';
+        }
+    }
+
+    // Handle edit modal save to mark error as resolved
+    document.getElementById('saveEdit').addEventListener('click', function() {
+        const row = document.getElementById('editRow').value;
+        const field = document.getElementById('editField').value;
+        const value = document.getElementById('editValue').value;
+
+        if (!value.trim()) {
+            alert('Please enter a value');
+            return;
+        }
+
+        // Send edit action to backend
+        fetch('{% url "batch_upload_action" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                action: 'edit',
+                row: row,
+                field: field,
+                value: value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mark error as resolved in the modal without reloading
+                const errorItem = document.getElementById(`error-${row}-${field}`);
+                if (errorItem) {
+                    markErrorAsResolved(row, field, 'edit', errorItem);
+                }
+                editModal.hide();
+
+                // Reshow error resolution modal
+                setTimeout(() => errorResolutionModal.show(), 100);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving changes: ' + error);
+        });
+    });
+});
+</script>
+{% endblock %}

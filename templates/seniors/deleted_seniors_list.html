@@ -1,0 +1,232 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Deleted Senior Citizens - VeriSior{% endblock %}
+{% block page_title %}Deleted Records{% endblock %}
+
+{% block content %}
+<!-- Hidden CSRF token for JavaScript form submissions -->
+<form style="display:none;">
+    {% csrf_token %}
+</form>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <!-- Search Form -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-7">
+                        <input type="text" class="form-control" name="q" value="{{ query }}"
+                               placeholder="Search by ID, name...">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'deleted_seniors_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-refresh me-1"></i>Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 h-100 align-items-center">
+            <a href="{% url 'archived_seniors_list' %}" class="btn btn-outline-primary flex-fill">
+                <i class="fas fa-arrow-left me-1"></i>Back to Archived
+            </a>
+            <div class="badge bg-danger fs-6">
+                {{ seniors.paginator.count }} deleted
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Warning Alert -->
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Warning:</strong> Records in this list can be permanently deleted with NO confirmation.
+    Permanent deletion cannot be undone and will remove all associated data.
+</div>
+
+<!-- Results -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="fas fa-trash me-2"></i>
+            Deleted Records
+            {% if query %}
+                - Search Results for "{{ query }}"
+            {% endif %}
+            <span class="badge bg-danger ms-2">{{ seniors.paginator.count }} total</span>
+        </span>
+    </div>
+    <div class="card-body p-0">
+        {% if seniors %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID Number</th>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Deleted Date</th>
+                            <th>Deleted By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for senior in seniors %}
+                        <tr>
+                            <td><code class="text-secondary">{{ senior.id_number }}</code></td>
+                            <td>
+                                <div class="fw-semibold text-muted">{{ senior.last_name }}, {{ senior.first_name }}</div>
+                                {% if senior.middle_name %}
+                                <small class="text-muted">{{ senior.middle_name }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ senior.get_age|default:'N/A' }}</td>
+                            <td>
+                                {% if senior.deleted_at %}
+                                    <small class="text-muted">{{ senior.deleted_at|date:"M d, Y H:i" }}</small>
+                                {% else %}
+                                    <small class="text-muted">Unknown</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if senior.deleted_by %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <div class="avatar-initial bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 11px;">
+                                                {{ senior.deleted_by.first_name.0|default:senior.deleted_by.username.0|upper }}{{ senior.deleted_by.last_name.0|default:'' }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold small">{{ senior.deleted_by.first_name }} {{ senior.deleted_by.last_name }}</div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-danger permanent-delete-now"
+                                        data-senior-id="{{ senior.pk }}"
+                                        data-senior-name="{{ senior.first_name }} {{ senior.last_name }}"
+                                        data-senior-number="{{ senior.id_number }}"
+                                        title="Permanently Delete (No Confirmation)">
+                                    <i class="fas fa-trash-alt me-1"></i>Permanently Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if seniors.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Deleted seniors pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if seniors.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ seniors.previous_page_number }}&q={{ query }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in seniors.paginator.page_range %}
+                            {% if seniors.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > seniors.number|add:'-3' and num < seniors.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&q={{ query }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if seniors.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ seniors.next_page_number }}&q={{ query }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-trash fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Deleted Records Found</h5>
+                {% if query %}
+                    <p class="text-muted">Try adjusting your search criteria</p>
+                    <a href="{% url 'deleted_seniors_list' %}" class="btn btn-outline-primary">Clear Filters</a>
+                {% else %}
+                    <p class="text-muted">No senior citizen records have been deleted yet.</p>
+                    <a href="{% url 'archived_seniors_list' %}" class="btn btn-primary">View Archived Records</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.table td {
+    vertical-align: middle;
+}
+.avatar-initial {
+    font-weight: 600;
+    font-size: 11px;
+}
+.alert-danger {
+    border-left: 4px solid #dc3545;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle permanent delete buttons - NO CONFIRMATION
+    document.querySelectorAll('.permanent-delete-now').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const seniorId = this.dataset.seniorId;
+            const seniorName = this.dataset.seniorName;
+            const seniorNumber = this.dataset.seniorNumber;
+
+            // Disable button immediately
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
+
+            // Create form and submit IMMEDIATELY - NO CONFIRMATION
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/government/seniors/${seniorId}/permanent-delete/`;
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

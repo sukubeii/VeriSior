@@ -1,0 +1,1128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senior Citizen ID - {{ senior.id_number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .print-mode-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .mode-btn {
+            background: #e0e0e0;
+            color: #333;
+            border: 2px solid #ccc;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .zoom-controls button,
+        .print-actions button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .zoom-controls button:hover,
+        .print-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3) !important;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #757F9A 0%, #D7DDE8 100%) !important;
+            box-shadow: 0 4px 8px rgba(117, 127, 154, 0.3) !important;
+        }
+
+        .zoom-level {
+            font-weight: bold;
+            color: #667eea;
+            min-width: 60px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .print-guide {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border: 2px solid #ff9a56;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .print-guide h4 {
+            margin: 0 0 12px 0;
+            color: #8b4513;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .print-guide ul {
+            margin: 0;
+            padding-left: 25px;
+            color: #8b4513;
+        }
+
+        .print-guide li {
+            margin: 8px 0;
+            font-weight: 500;
+        }
+
+        /* ID Cards Container */
+        .id-cards-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 80px;
+            flex-wrap: wrap;
+            padding: 30px;
+            transition: transform 0.3s ease;
+            transform-origin: top center;
+        }
+
+        .id-cards-container.zoom-75 {
+            transform: scale(0.75);
+        }
+
+        .id-cards-container.zoom-100 {
+            transform: scale(1);
+        }
+
+        .id-cards-container.zoom-125 {
+            transform: scale(1.25);
+        }
+
+        .id-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .id-card-label {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 30px;
+            border-radius: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+        }
+
+        /* ID Card */
+        .id-card {
+            width: 540px;
+            height: 340px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* FRONT CARD DESIGN - Matching Original Template */
+        .id-card.front {
+            background: linear-gradient(135deg, #999 0%, #999 35%, #1565C0 35%, #1565C0 100%);
+            position: relative;
+        }
+
+        .front-header {
+            position: absolute;
+            top: 15px;
+            left: 180px;
+            right: 20px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .front-header .verisior {
+            font-size: 42px;
+            font-weight: 900;
+            color: #FFD700;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin: 0;
+        }
+
+        .front-header .college {
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 2px;
+            margin: 2px 0;
+        }
+
+        .front-header .capstone {
+            font-size: 10px;
+            font-weight: 600;
+            color: #FFD700;
+            letter-spacing: 2px;
+        }
+
+        /* Photo Section - Front */
+        .photo-box {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            width: 130px;
+            height: 155px;
+            background: white;
+            border: 3px solid #1565C0;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-placeholder {
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+        }
+
+        /* Signature Box - Front */
+        .front-signature-box {
+            position: absolute;
+            top: 265px;
+            left: 20px;
+            width: 130px;
+            height: 30px;
+            background: white;
+            border: 2px solid #1565C0;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 3px;
+        }
+
+        .front-signature-box .sig-label {
+            font-size: 7px;
+            font-weight: 600;
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+
+        /* Form Fields - Front */
+        .form-field {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-field label {
+            font-size: 9px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .form-field .field-box {
+            background: white;
+            padding: 5px 8px;
+            border-radius: 2px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #000;
+            min-height: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .name-field {
+            top: 115px;
+            left: 180px;
+            width: 210px;
+        }
+
+        .sex-field {
+            top: 155px;
+            left: 180px;
+            width: 60px;
+        }
+
+        .dob-field {
+            top: 155px;
+            left: 250px;
+            width: 140px;
+        }
+
+        .blood-field {
+            top: 195px;
+            left: 180px;
+            width: 60px;
+        }
+
+        .issued-field {
+            top: 195px;
+            left: 250px;
+            width: 140px;
+        }
+
+        .emergency-field {
+            bottom: 30px;
+            left: 180px;
+            width: 210px;
+        }
+
+        /* QR Code Section - Front */
+        .qr-box {
+            position: absolute;
+            top: 115px;
+            right: 35px;
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 3px solid #000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .qr-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .id-number-text {
+            position: absolute;
+            top: 230px;
+            right: 35px;
+            width: 100px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: 0.5px;
+            word-wrap: break-word;
+        }
+
+        /* BACK CARD DESIGN - Matching Original Template */
+        .id-card.back {
+            background: linear-gradient(135deg, #1565C0 0%, #1565C0 65%, #999 65%, #999 100%);
+            position: relative;
+            padding: 20px;
+        }
+
+        .benefits-title {
+            position: absolute;
+            top: 30px;
+            left: 35px;
+            right: 35px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #000;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .benefits-list {
+            position: absolute;
+            top: 55px;
+            left: 50px;
+            right: 50px;
+            bottom: 95px;
+        }
+
+        .benefits-list ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .benefits-list li {
+            font-size: 7.5px;
+            font-weight: 600;
+            color: #000;
+            line-height: 1.5;
+            margin: 3px 0;
+        }
+
+        .legal-box {
+            position: absolute;
+            bottom: 20px;
+            left: 70px;
+            right: 70px;
+            background: white;
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .legal-box p {
+            font-size: 6.5px;
+            font-weight: 700;
+            color: #000;
+            line-height: 1.3;
+            margin: 1px 0;
+        }
+
+        /* BULLETPROOF Print Styles */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            @page {
+                size: landscape;
+                margin: 0.4in;
+            }
+
+            html {
+                width: 100%;
+                height: 100%;
+            }
+
+            body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                overflow: hidden !important;
+            }
+
+            .control-panel,
+            .print-guide,
+            .id-card-label {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+
+            .id-cards-container {
+                display: table !important;
+                table-layout: fixed !important;
+                width: 600px !important;
+                margin: 40px auto !important;
+                padding: 0 !important;
+                transform: none !important;
+                border-spacing: 20px 0 !important;
+            }
+
+            .id-card-wrapper {
+                display: table-cell !important;
+                width: 290px !important;
+                vertical-align: top !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                page-break-inside: avoid !important;
+            }
+
+            .id-card {
+                width: 290px !important;
+                height: 182px !important;
+                max-width: 290px !important;
+                max-height: 182px !important;
+                min-width: 290px !important;
+                min-height: 182px !important;
+                box-shadow: none !important;
+                border-radius: 8px !important;
+                overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 1px solid #ccc !important;
+            }
+
+            /* Scale down front card elements */
+            .id-card.front {
+                background: linear-gradient(135deg, #999 0%, #999 35%, #1565C0 35%, #1565C0 100%) !important;
+            }
+
+            .front-header {
+                top: 8px !important;
+                left: 95px !important;
+                right: 10px !important;
+            }
+
+            .front-header .verisior {
+                font-size: 22px !important;
+            }
+
+            .front-header .college {
+                font-size: 7px !important;
+            }
+
+            .front-header .capstone {
+                font-size: 5.5px !important;
+            }
+
+            .photo-box {
+                top: 52px !important;
+                left: 10px !important;
+                width: 68px !important;
+                height: 82px !important;
+                border: 2px solid #1565C0 !important;
+            }
+
+            .photo-placeholder {
+                font-size: 6px !important;
+            }
+
+            .front-signature-box {
+                top: 140px !important;
+                left: 10px !important;
+                width: 68px !important;
+                height: 16px !important;
+                border: 1px solid #1565C0 !important;
+                padding-bottom: 2px !important;
+            }
+
+            .front-signature-box .sig-label {
+                font-size: 4px !important;
+            }
+
+            .form-field label {
+                font-size: 5px !important;
+            }
+
+            .form-field .field-box {
+                padding: 2px 4px !important;
+                font-size: 5.5px !important;
+                min-height: 10px !important;
+            }
+
+            .name-field {
+                top: 60px !important;
+                left: 95px !important;
+                width: 110px !important;
+            }
+
+            .sex-field {
+                top: 82px !important;
+                left: 95px !important;
+                width: 32px !important;
+            }
+
+            .dob-field {
+                top: 82px !important;
+                left: 132px !important;
+                width: 73px !important;
+            }
+
+            .blood-field {
+                top: 103px !important;
+                left: 95px !important;
+                width: 32px !important;
+            }
+
+            .issued-field {
+                top: 103px !important;
+                left: 132px !important;
+                width: 73px !important;
+            }
+
+            .emergency-field {
+                bottom: 15px !important;
+                left: 95px !important;
+                width: 110px !important;
+            }
+
+            .qr-box {
+                top: 60px !important;
+                right: 18px !important;
+                width: 53px !important;
+                height: 53px !important;
+                border: 2px solid #000 !important;
+            }
+
+            .id-number-text {
+                top: 121px !important;
+                right: 18px !important;
+                width: 53px !important;
+                font-size: 5.5px !important;
+            }
+
+            /* Scale down back card elements */
+            .id-card.back {
+                background: linear-gradient(135deg, #1565C0 0%, #1565C0 65%, #999 65%, #999 100%) !important;
+                padding: 10px !important;
+            }
+
+            .benefits-title {
+                top: 15px !important;
+                left: 18px !important;
+                right: 18px !important;
+                font-size: 5.8px !important;
+            }
+
+            .benefits-list {
+                top: 28px !important;
+                left: 26px !important;
+                right: 26px !important;
+                bottom: 50px !important;
+            }
+
+            .benefits-list ul {
+                padding-left: 10px !important;
+            }
+
+            .benefits-list li {
+                font-size: 4px !important;
+                line-height: 1.4 !important;
+                margin: 1.5px 0 !important;
+            }
+
+            .legal-box {
+                bottom: 10px !important;
+                left: 37px !important;
+                right: 37px !important;
+                padding: 4px !important;
+            }
+
+            .legal-box p {
+                font-size: 3.5px !important;
+                line-height: 1.2 !important;
+            }
+        }
+
+        /* PVC CARD PRINTER STYLES - CR80 Standard (3.375" × 2.125") */
+        body.pvc-mode .print-guide ul li:first-child {
+            display: none; /* Hide landscape instruction for PVC mode */
+        }
+
+        @media print {
+            body.pvc-mode {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body.pvc-mode @page {
+                size: 3.375in 2.125in;
+                margin: 0;
+            }
+
+            body.pvc-mode .container {
+                width: 3.375in !important;
+                max-width: 3.375in !important;
+                height: 2.125in !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body.pvc-mode .id-cards-container {
+                display: block !important;
+                width: 3.375in !important;
+                height: 2.125in !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border-spacing: 0 !important;
+                transform: none !important;
+            }
+
+            body.pvc-mode .id-card-wrapper {
+                display: block !important;
+                width: 3.375in !important;
+                height: 2.125in !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                page-break-after: always !important;
+            }
+
+            body.pvc-mode .id-card-wrapper:last-child {
+                page-break-after: auto !important;
+            }
+
+            body.pvc-mode .id-card {
+                width: 3.375in !important;
+                height: 2.125in !important;
+                max-width: 3.375in !important;
+                max-height: 2.125in !important;
+                min-width: 3.375in !important;
+                min-height: 2.125in !important;
+                border-radius: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* PVC Front Card Scaling - CR80: 3.375in × 2.125in */
+            /* Scale factor from 540px × 340px: ~0.625 */
+            body.pvc-mode .id-card.front {
+                background: linear-gradient(135deg, #999 0%, #999 35%, #1565C0 35%, #1565C0 100%) !important;
+            }
+
+            body.pvc-mode .front-header {
+                top: 0.094in !important;
+                left: 1.125in !important;
+                right: 0.125in !important;
+            }
+
+            body.pvc-mode .front-header .verisior {
+                font-size: 0.263in !important;
+                letter-spacing: 0.019in !important;
+            }
+
+            body.pvc-mode .front-header .college {
+                font-size: 0.081in !important;
+                letter-spacing: 0.013in !important;
+            }
+
+            body.pvc-mode .front-header .capstone {
+                font-size: 0.063in !important;
+                letter-spacing: 0.013in !important;
+            }
+
+            body.pvc-mode .photo-box {
+                top: 0.625in !important;
+                left: 0.125in !important;
+                width: 0.813in !important;
+                height: 0.969in !important;
+                border: 0.019in solid #1565C0 !important;
+                border-radius: 0.05in !important;
+            }
+
+            body.pvc-mode .front-signature-box {
+                top: 1.656in !important;
+                left: 0.125in !important;
+                width: 0.813in !important;
+                height: 0.188in !important;
+                border: 0.013in solid #1565C0 !important;
+                border-radius: 0.025in !important;
+                padding-bottom: 0.019in !important;
+            }
+
+            body.pvc-mode .front-signature-box .sig-label {
+                font-size: 0.044in !important;
+                letter-spacing: 0.003in !important;
+            }
+
+            body.pvc-mode .form-field label {
+                font-size: 0.056in !important;
+                margin-bottom: 0.013in !important;
+            }
+
+            body.pvc-mode .form-field .field-box {
+                padding: 0.031in 0.05in !important;
+                font-size: 0.063in !important;
+                min-height: 0.125in !important;
+                border-radius: 0.013in !important;
+            }
+
+            body.pvc-mode .name-field {
+                top: 0.719in !important;
+                left: 1.125in !important;
+                width: 1.313in !important;
+            }
+
+            body.pvc-mode .sex-field {
+                top: 0.969in !important;
+                left: 1.125in !important;
+                width: 0.375in !important;
+            }
+
+            body.pvc-mode .dob-field {
+                top: 0.969in !important;
+                left: 1.563in !important;
+                width: 0.875in !important;
+            }
+
+            body.pvc-mode .blood-field {
+                top: 1.219in !important;
+                left: 1.125in !important;
+                width: 0.375in !important;
+            }
+
+            body.pvc-mode .issued-field {
+                top: 1.219in !important;
+                left: 1.563in !important;
+                width: 0.875in !important;
+            }
+
+            body.pvc-mode .emergency-field {
+                bottom: 0.188in !important;
+                left: 1.125in !important;
+                width: 1.313in !important;
+            }
+
+            body.pvc-mode .qr-box {
+                top: 0.719in !important;
+                right: 0.219in !important;
+                width: 0.625in !important;
+                height: 0.625in !important;
+                border: 0.019in solid #000 !important;
+                border-radius: 0.05in !important;
+            }
+
+            body.pvc-mode .id-number-text {
+                top: 1.438in !important;
+                right: 0.219in !important;
+                width: 0.625in !important;
+                font-size: 0.063in !important;
+                letter-spacing: 0.003in !important;
+            }
+
+            /* PVC Back Card Scaling */
+            body.pvc-mode .id-card.back {
+                background: linear-gradient(135deg, #1565C0 0%, #1565C0 65%, #999 65%, #999 100%) !important;
+                padding: 0.125in !important;
+            }
+
+            body.pvc-mode .benefits-title {
+                top: 0.188in !important;
+                left: 0.219in !important;
+                right: 0.219in !important;
+                font-size: 0.069in !important;
+                letter-spacing: 0.003in !important;
+            }
+
+            body.pvc-mode .benefits-list {
+                top: 0.344in !important;
+                left: 0.313in !important;
+                right: 0.313in !important;
+                bottom: 0.594in !important;
+            }
+
+            body.pvc-mode .benefits-list ul {
+                padding-left: 0.125in !important;
+                margin: 0 !important;
+            }
+
+            body.pvc-mode .benefits-list li {
+                font-size: 0.047in !important;
+                line-height: 1.5 !important;
+                margin: 0.019in 0 !important;
+            }
+
+            body.pvc-mode .legal-box {
+                bottom: 0.125in !important;
+                left: 0.438in !important;
+                right: 0.438in !important;
+                padding: 0.05in !important;
+                border-radius: 0.031in !important;
+            }
+
+            body.pvc-mode .legal-box p {
+                font-size: 0.041in !important;
+                line-height: 1.3 !important;
+                margin: 0.006in 0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Print Guidelines -->
+        <div class="print-guide">
+            <h4 id="guideTitle">📋 CRITICAL: Print Setup Instructions</h4>
+            <ul id="paperInstructions">
+                <li><strong style="color: #d32f2f; font-size: 16px;">⚠️ MUST DO: Click "More settings" and change Layout to LANDSCAPE!</strong></li>
+                <li>Paper size: <strong>Letter (8.5" × 11")</strong></li>
+                <li>Margins: <strong>Default</strong></li>
+                <li>Scale: <strong>Default (100%)</strong></li>
+                <li>Enable <strong>"Background graphics"</strong> to print colors</li>
+                <li>Color: <strong>Color</strong> (not black & white)</li>
+                <li>Both ID cards should be visible side-by-side in preview</li>
+            </ul>
+            <ul id="pvcInstructions" style="display: none;">
+                <li>Card size: <strong>CR80 Standard (3.375" × 2.125")</strong></li>
+                <li>Configure your PVC printer to <strong>CR80/Credit Card size</strong></li>
+                <li>Margins: <strong>None (0mm)</strong></li>
+                <li>Enable <strong>"Background graphics"</strong> to print colors</li>
+                <li>Print quality: <strong>High/Best</strong></li>
+                <li>Front and back will print on <strong>separate pages</strong></li>
+                <li>Ensure PVC cards are <strong>loaded correctly</strong> in printer</li>
+            </ul>
+            <div style="background: #ffebee; border: 3px solid #d32f2f; padding: 12px; margin-top: 12px; border-radius: 8px;">
+                <strong id="warningText" style="color: #d32f2f; font-size: 14px;">🚨 If cards are cut off: Check LANDSCAPE orientation!</strong>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-group">
+                <label>🖨️ Print Mode:</label>
+                <div class="print-mode-selector">
+                    <button class="mode-btn active" id="paperModeBtn" onclick="setPrintMode('paper')">📄 Paper Printer</button>
+                    <button class="mode-btn" id="pvcModeBtn" onclick="setPrintMode('pvc')">💳 PVC Card Printer</button>
+                </div>
+            </div>
+
+            <div class="control-group" id="zoomControls">
+                <label>🔍 Zoom Level:</label>
+                <div class="zoom-controls">
+                    <button onclick="setZoom(75)">75%</button>
+                    <button onclick="setZoom(100)">100%</button>
+                    <button onclick="setZoom(125)">125%</button>
+                    <span class="zoom-level" id="zoomLevel">100%</span>
+                </div>
+            </div>
+
+            <div class="control-group print-actions">
+                <button class="btn-success" onclick="window.print()">🖨️ Print ID Card</button>
+                <button class="btn-secondary" onclick="window.close()">✖ Close Preview</button>
+            </div>
+        </div>
+
+        <!-- ID Cards -->
+        <div class="id-cards-container" id="cardsContainer">
+            <!-- FRONT CARD -->
+            <div class="id-card-wrapper">
+                <div class="id-card-label">FRONT SIDE</div>
+                <div class="id-card front">
+                    <!-- Header -->
+                    <div class="front-header">
+                        <div class="verisior">VERISIOR</div>
+                        <div class="college">STI COLLEGE NOVALICHES</div>
+                        <div class="capstone">CAPSTONE PROJECT</div>
+                    </div>
+
+                    <!-- Photo -->
+                    <div class="photo-box">
+                        {% if senior.photo %}
+                            <img src="{{ senior.photo.url }}" alt="Photo">
+                        {% else %}
+                            <div class="photo-placeholder">No Photo<br>Available</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Signature Box (Front) -->
+                    <div class="front-signature-box">
+                        <div class="sig-label">SIGNATURE</div>
+                    </div>
+
+                    <!-- Form Fields -->
+                    <div class="form-field name-field">
+                        <label>Last Name, First Name:</label>
+                        <div class="field-box">{{ senior.last_name|upper }}, {{ senior.first_name|upper }}{% if senior.middle_name %} {{ senior.middle_name|upper|first }}.{% endif %}</div>
+                    </div>
+
+                    <div class="form-field sex-field">
+                        <label>Sex:</label>
+                        <div class="field-box">{{ senior.get_gender_display }}</div>
+                    </div>
+
+                    <div class="form-field dob-field">
+                        <label>Date of Birth:</label>
+                        <div class="field-box">{{ senior.birth_date|date:"m/d/Y" }}</div>
+                    </div>
+
+                    <div class="form-field blood-field">
+                        <label>Blood Type:</label>
+                        <div class="field-box">{{ senior.blood_type|default:"N/A" }}</div>
+                    </div>
+
+                    <div class="form-field issued-field">
+                        <label>Date Issued:</label>
+                        <div class="field-box">
+                            {% if senior.application_date %}
+                                {{ senior.application_date|date:"m/d/Y" }}
+                            {% else %}
+                                {{ senior.created_at|date:"m/d/Y" }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-field emergency-field">
+                        <label>Emergency Contact:</label>
+                        <div class="field-box">{{ senior.emergency_contact_name|default:"N/A" }} - {{ senior.emergency_contact_number|default:"N/A" }}</div>
+                    </div>
+
+                    <!-- QR Code -->
+                    <div class="qr-box">
+                        {% if senior.qr_code %}
+                            <img src="{{ senior.qr_code.url }}" alt="QR">
+                        {% else %}
+                            <div style="font-size: 9px; color: #999;">QR</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="id-number-text">{{ senior.id_number }}</div>
+                </div>
+            </div>
+
+            <!-- BACK CARD -->
+            <div class="id-card-wrapper">
+                <div class="id-card-label">BACK SIDE</div>
+                <div class="id-card back">
+                    <!-- Benefits Title -->
+                    <div class="benefits-title">
+                        BENEFITS AND PRIVILEDGE UNDER REPUBLIC ACT NO. 9994
+                    </div>
+
+                    <!-- Benefits List -->
+                    <div class="benefits-list">
+                        <ul>
+                            <li>Free Medical, dental, diagnostic, and laboratory services in all government Facilities</li>
+                            <li>20% discount in purchase of medicines essential medical supplies, accessories, and equipment, including prescribed vitamins.</li>
+                            <li>20% discount in hotels, restaurants, recreation centers, etc.</li>
+                            <li>20% discount in theaters, cinema houses and concert halls, etc.</li>
+                            <li>20% discount in medical/dental services diagnostic and laboratory fees in private facilities.</li>
+                            <li>20% discount in fare for domestic air,sea travel and public.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Legal Box -->
+                    <div class="legal-box">
+                        <p>Only for the exclusive use of Senior Citizens:</p>
+                        <p>Abuse of privileges is punishable by law</p>
+                        <p>Person & corporation violating RA 9994 shall be penalized.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setZoom(level) {
+            const container = document.getElementById('cardsContainer');
+            const zoomDisplay = document.getElementById('zoomLevel');
+            container.classList.remove('zoom-75', 'zoom-100', 'zoom-125');
+            container.classList.add('zoom-' + level);
+            zoomDisplay.textContent = level + '%';
+            localStorage.setItem('idPrintZoom', level);
+        }
+
+        function setPrintMode(mode) {
+            const body = document.body;
+            const paperBtn = document.getElementById('paperModeBtn');
+            const pvcBtn = document.getElementById('pvcModeBtn');
+            const paperInstructions = document.getElementById('paperInstructions');
+            const pvcInstructions = document.getElementById('pvcInstructions');
+            const warningText = document.getElementById('warningText');
+            const zoomControls = document.getElementById('zoomControls');
+
+            if (mode === 'pvc') {
+                // Enable PVC mode
+                body.classList.add('pvc-mode');
+                paperBtn.classList.remove('active');
+                pvcBtn.classList.add('active');
+                paperInstructions.style.display = 'none';
+                pvcInstructions.style.display = 'block';
+                warningText.textContent = '🚨 Ensure PVC cards are loaded and printer is set to CR80 size!';
+                zoomControls.style.display = 'none'; // Hide zoom for PVC mode
+                localStorage.setItem('idPrintMode', 'pvc');
+            } else {
+                // Enable Paper mode
+                body.classList.remove('pvc-mode');
+                paperBtn.classList.add('active');
+                pvcBtn.classList.remove('active');
+                paperInstructions.style.display = 'block';
+                pvcInstructions.style.display = 'none';
+                warningText.textContent = '🚨 If cards are cut off: Check LANDSCAPE orientation!';
+                zoomControls.style.display = 'flex'; // Show zoom for paper mode
+                localStorage.setItem('idPrintMode', 'paper');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            // Restore saved zoom
+            const savedZoom = localStorage.getItem('idPrintZoom') || 100;
+            setZoom(parseInt(savedZoom));
+
+            // Restore saved print mode
+            const savedMode = localStorage.getItem('idPrintMode') || 'paper';
+            setPrintMode(savedMode);
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>
