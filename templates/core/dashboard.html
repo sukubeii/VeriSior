@@ -1,0 +1,734 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Government Dashboard - VeriSior{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Statistics Cards -->
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="totalSeniors">{{ total_seniors|default:0 }}</div>
+                <div class="stat-label">Total Senior Citizens</div>
+                <div class="stat-trend">
+                    <span class="trend-up" id="newSeniorsWeek">+{{ new_seniors_this_week|default:0 }} this week</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon pending">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="pendingApprovals">{{ pending_approvals|default:0 }}</div>
+                <div class="stat-label">Pending Approvals</div>
+                <div class="stat-trend">
+                    <span class="trend-neutral" id="approvedWeek">{{ approved_this_week|default:0 }} approved this week</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon verification">
+                <i class="fas fa-shield-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="verificationRequests">{{ pending_verification_requests|default:0 }}</div>
+                <div class="stat-label">Verification Requests</div>
+                <div class="stat-trend">
+                    <span class="trend-up" id="verificationsToday">{{ verifications_today|default:0 }} today</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-heart-pulse"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value" id="systemUptime">{{ system_uptime|default:"99.9" }}%</div>
+                <div class="stat-label">System Uptime</div>
+                <div class="stat-trend">
+                    <span class="trend-up">Last 30 days</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- System Status Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card analytics-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-chart-line me-2"></i>System Status Overview</span>
+                <div class="chart-controls">
+                    <select class="form-select form-select-sm" id="systemStatusPeriod">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="systemStatusChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Senior Citizens Created Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card analytics-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-user-plus me-2"></i>New Senior Citizens</span>
+                <div class="chart-controls">
+                    <select class="form-select form-select-sm" id="newSeniorsPeriod">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="newSeniorsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Deceased Senior Citizens Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card analytics-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-heart-broken me-2"></i>Deceased Records</span>
+                <div class="chart-controls">
+                    <select class="form-select form-select-sm" id="deceasedPeriod">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="deceasedChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discount Applications Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card analytics-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-tags me-2"></i>Discount Applications</span>
+                <div class="chart-controls">
+                    <select class="form-select form-select-sm" id="discountPeriod">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="discountChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- ID Renewals Chart -->
+    <div class="col-lg-6 mb-4">
+        <div class="card analytics-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-sync-alt me-2"></i>ID Renewals</span>
+                <div class="chart-controls">
+                    <select class="form-select form-select-sm" id="renewalsPeriod">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="renewalsChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bolt me-2"></i>Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Basic role-based checks to avoid template errors -->
+                    {% if user.role != 'EM' %}
+                    <div class="col-md-6">
+                        <a href="{% url 'senior_create' %}" class="btn btn-primary w-100 action-btn">
+                            <i class="fas fa-plus mb-2"></i>
+                            <div>Create Senior Record</div>
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.role != 'EM' %}
+                    <div class="col-md-6">
+                        <a href="{% url 'batch_upload' %}" class="btn btn-outline-primary w-100 action-btn">
+                            <i class="fas fa-file-upload mb-2"></i>
+                            <div>Batch Upload</div>
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if pending_approvals > 0 and user.role != 'EM' %}
+                    <div class="col-md-6">
+                        <a href="{% url 'approval_list' %}" class="btn btn-warning w-100 action-btn">
+                            <i class="fas fa-check-circle mb-2"></i>
+                            <div>Review Approvals</div>
+                            <small class="badge bg-light text-dark">{{ pending_approvals }}</small>
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.can_export_dashboard_reports %}
+                    <div class="col-md-6">
+                        <a href="{% url 'export_csv' %}" class="btn btn-outline-success w-100 action-btn">
+                            <i class="fas fa-download mb-2"></i>
+                            <div>Export Senior Records</div>
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.role != 'EM' %}
+                    <div class="col-md-6">
+                        <a href="{% url 'messages_list' %}" class="btn btn-outline-info w-100 action-btn">
+                            <i class="fas fa-envelope mb-2"></i>
+                            <div>Messages</div>
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="col-md-6">
+                        <a href="{% url 'settings' %}" class="btn btn-outline-secondary w-100 action-btn">
+                            <i class="fas fa-cog mb-2"></i>
+                            <div>Settings</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Enhanced Statistics Cards */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 120px;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.stat-icon.pending {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.stat-icon.verification {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.stat-icon.success {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.stat-trend {
+    font-size: 12px;
+}
+
+.trend-up {
+    color: #10b981;
+    font-weight: 500;
+}
+
+.trend-down {
+    color: #ef4444;
+    font-weight: 500;
+}
+
+.trend-neutral {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Analytics Cards */
+.analytics-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.analytics-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.analytics-card .card-header {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 16px 20px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.analytics-card .card-body {
+    padding: 20px;
+}
+
+.chart-controls .form-select {
+    min-width: 120px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+/* Action Buttons */
+.action-btn {
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn i {
+    font-size: 20px;
+    display: block;
+}
+
+.action-btn div {
+    font-size: 13px;
+    margin: 0;
+}
+
+.action-btn small.badge {
+    margin-top: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-card {
+        height: auto;
+        min-height: 100px;
+        padding: 20px;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .stat-value {
+        font-size: 28px;
+    }
+    
+    .action-btn {
+        height: 70px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Chart configuration options
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: '#f3f4f6'
+                },
+                ticks: {
+                    color: '#6b7280'
+                }
+            },
+            x: {
+                grid: {
+                    color: '#f3f4f6'
+                },
+                ticks: {
+                    color: '#6b7280'
+                }
+            }
+        }
+    };
+
+    // Initialize all charts
+    const systemStatusCtx = document.getElementById('systemStatusChart').getContext('2d');
+    const systemStatusChart = new Chart(systemStatusCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Active Users',
+                data: [],
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Response Time (ms)',
+                data: [],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            ...chartOptions,
+            scales: {
+                ...chartOptions.scales,
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                    ticks: {
+                        color: '#6b7280'
+                    }
+                }
+            }
+        }
+    });
+
+    const newSeniorsCtx = document.getElementById('newSeniorsChart').getContext('2d');
+    const newSeniorsChart = new Chart(newSeniorsCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'New Registrations',
+                data: [],
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: '#3b82f6',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: chartOptions
+    });
+
+    const deceasedCtx = document.getElementById('deceasedChart').getContext('2d');
+    const deceasedChart = new Chart(deceasedCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Deceased Records',
+                data: [],
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: chartOptions
+    });
+
+    const discountCtx = document.getElementById('discountChart').getContext('2d');
+    const discountChart = new Chart(discountCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Applications',
+                data: [],
+                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                borderColor: '#10b981',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: chartOptions
+    });
+
+    const renewalsCtx = document.getElementById('renewalsChart').getContext('2d');
+    const renewalsChart = new Chart(renewalsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending', 'Overdue'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: [
+                    '#10b981',
+                    '#f59e0b',
+                    '#ef4444'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
+            }
+        }
+    });
+
+    // Generate labels helper function
+    function generateLabels(period) {
+        const labels = [];
+        for (let i = period - 1; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        }
+        return labels;
+    }
+
+    // INDEPENDENT UPDATE FUNCTIONS FOR EACH CHART
+
+    function updateSystemStatusChart(period) {
+        fetch(`/core/api/system-status/?period=${period}`)
+            .then(response => response.ok ? response.json() : Promise.reject(response))
+            .then(data => {
+                systemStatusChart.data.labels = data.labels || generateLabels(period);
+                systemStatusChart.data.datasets[0].data = data.active_users || [];
+                systemStatusChart.data.datasets[1].data = data.response_times || [];
+                systemStatusChart.update();
+            })
+            .catch(error => {
+                console.error('Error loading system status data:', error);
+                systemStatusChart.data.labels = generateLabels(period);
+                systemStatusChart.data.datasets[0].data = [];
+                systemStatusChart.data.datasets[1].data = [];
+                systemStatusChart.update();
+            });
+    }
+
+    function updateNewSeniorsChart(period) {
+        fetch(`/core/api/new-seniors/?period=${period}`)
+            .then(response => response.ok ? response.json() : Promise.reject(response))
+            .then(data => {
+                newSeniorsChart.data.labels = data.labels || generateLabels(period);
+                newSeniorsChart.data.datasets[0].data = data.counts || [];
+                newSeniorsChart.update();
+            })
+            .catch(error => {
+                console.error('Error loading new seniors data:', error);
+                newSeniorsChart.data.labels = generateLabels(period);
+                newSeniorsChart.data.datasets[0].data = [];
+                newSeniorsChart.update();
+            });
+    }
+
+    function updateDeceasedChart(period) {
+        fetch(`/core/api/deceased-seniors/?period=${period}`)
+            .then(response => response.ok ? response.json() : Promise.reject(response))
+            .then(data => {
+                deceasedChart.data.labels = data.labels || generateLabels(period);
+                deceasedChart.data.datasets[0].data = data.counts || [];
+                deceasedChart.update();
+            })
+            .catch(error => {
+                console.error('Error loading deceased seniors data:', error);
+                deceasedChart.data.labels = generateLabels(period);
+                deceasedChart.data.datasets[0].data = [];
+                deceasedChart.update();
+            });
+    }
+
+    function updateDiscountChart(period) {
+        fetch(`/core/api/discount-applications/?period=${period}`)
+            .then(response => response.ok ? response.json() : Promise.reject(response))
+            .then(data => {
+                discountChart.data.labels = data.labels || generateLabels(period);
+                discountChart.data.datasets[0].data = data.counts || [];
+                discountChart.update();
+            })
+            .catch(error => {
+                console.error('Error loading discount applications data:', error);
+                discountChart.data.labels = generateLabels(period);
+                discountChart.data.datasets[0].data = [];
+                discountChart.update();
+            });
+    }
+
+    function updateRenewalsChart(period) {
+        fetch(`/core/api/renewals-status/?period=${period}`)
+            .then(response => response.ok ? response.json() : Promise.reject(response))
+            .then(data => {
+                renewalsChart.data.datasets[0].data = [
+                    data.completed || 0,
+                    data.pending || 0,
+                    data.overdue || 0
+                ];
+                renewalsChart.update();
+            })
+            .catch(error => {
+                console.error('Error loading renewals status data:', error);
+                renewalsChart.data.datasets[0].data = [0, 0, 0];
+                renewalsChart.update();
+            });
+    }
+
+    // Dashboard stats update
+    function updateDashboardStats() {
+        fetch('/core/api/dashboard-stats/')
+            .then(response => response.ok ? response.json() : Promise.reject(response))
+            .then(data => {
+                document.getElementById('totalSeniors').textContent = data.total_seniors || 0;
+                document.getElementById('newSeniorsWeek').textContent = `+${data.new_seniors_this_week || 0} this week`;
+                document.getElementById('pendingApprovals').textContent = data.pending_approvals || 0;
+                document.getElementById('approvedWeek').textContent = `${data.approved_this_week || 0} approved this week`;
+                document.getElementById('verificationRequests').textContent = data.pending_verification_requests || 0;
+                document.getElementById('verificationsToday').textContent = `${data.verifications_today || 0} today`;
+                document.getElementById('systemUptime').textContent = `${data.system_uptime || 99.9}%`;
+            })
+            .catch(error => console.error('Error updating dashboard stats:', error));
+    }
+
+    // INDEPENDENT EVENT LISTENERS FOR EACH DROPDOWN
+
+    document.getElementById('systemStatusPeriod').addEventListener('change', function(e) {
+        updateSystemStatusChart(parseInt(e.target.value));
+    });
+
+    document.getElementById('newSeniorsPeriod').addEventListener('change', function(e) {
+        updateNewSeniorsChart(parseInt(e.target.value));
+    });
+
+    document.getElementById('deceasedPeriod').addEventListener('change', function(e) {
+        updateDeceasedChart(parseInt(e.target.value));
+    });
+
+    document.getElementById('discountPeriod').addEventListener('change', function(e) {
+        updateDiscountChart(parseInt(e.target.value));
+    });
+
+    document.getElementById('renewalsPeriod').addEventListener('change', function(e) {
+        updateRenewalsChart(parseInt(e.target.value));
+    });
+
+    // Initial load - each chart with default 30 days
+    updateSystemStatusChart(30);
+    updateNewSeniorsChart(30);
+    updateDeceasedChart(30);
+    updateDiscountChart(30);
+    updateRenewalsChart(30);
+    updateDashboardStats();
+
+    // Auto-refresh every 5 minutes
+    setInterval(function() {
+        // Get current period for each chart
+        const systemPeriod = parseInt(document.getElementById('systemStatusPeriod').value);
+        const newSeniorsPeriod = parseInt(document.getElementById('newSeniorsPeriod').value);
+        const deceasedPeriod = parseInt(document.getElementById('deceasedPeriod').value);
+        const discountPeriod = parseInt(document.getElementById('discountPeriod').value);
+        const renewalsPeriod = parseInt(document.getElementById('renewalsPeriod').value);
+        
+        updateSystemStatusChart(systemPeriod);
+        updateNewSeniorsChart(newSeniorsPeriod);
+        updateDeceasedChart(deceasedPeriod);
+        updateDiscountChart(discountPeriod);
+        updateRenewalsChart(renewalsPeriod);
+        updateDashboardStats();
+    }, 300000); // 5 minutes
+
+    console.log('Dashboard initialized with independent chart controls');
+});
+</script>
+{% endblock %}

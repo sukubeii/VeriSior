@@ -1,0 +1,1088 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Edit Landing Page Content - VeriSior{% endblock %}
+{% block page_title %}Edit Landing Page Content{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form method="post" id="contentForm">
+                {% csrf_token %}
+                
+                <!-- Hero Section -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-star me-2"></i>Hero Section
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.hero_title.label }}</label>
+                                    {{ form.hero_title }}
+                                    <div class="character-counter" data-target="id_hero_title" data-min="3" data-max="15"></div>
+                                    <div class="form-text">3-15 characters required</div>
+                                    {% if form.hero_title.errors %}
+                                        <div class="text-danger small">{{ form.hero_title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.hero_subtitle.label }}</label>
+                                    {{ form.hero_subtitle }}
+                                    <div class="character-counter" data-target="id_hero_subtitle" data-min="10" data-max="100"></div>
+                                    <div class="form-text">10-100 characters required</div>
+                                    {% if form.hero_subtitle.errors %}
+                                        <div class="text-danger small">{{ form.hero_subtitle.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>Features Section
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.features_title.label }}</label>
+                                    {{ form.features_title }}
+                                    <div class="character-counter" data-target="id_features_title" data-min="10" data-max="50"></div>
+                                    <div class="form-text">10-50 characters required</div>
+                                    {% if form.features_title.errors %}
+                                        <div class="text-danger small">{{ form.features_title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.features_subtitle.label }}</label>
+                                    {{ form.features_subtitle }}
+                                    <div class="character-counter" data-target="id_features_subtitle" data-min="10" data-max="100"></div>
+                                    <div class="form-text">10-100 characters required</div>
+                                    {% if form.features_subtitle.errors %}
+                                        <div class="text-danger small">{{ form.features_subtitle.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carousel Slides -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-images me-2"></i>Carousel Slides
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Slide 1 -->
+                        <h6 class="text-primary mb-3">Slide 1: Security Feature</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide1_title.label }}</label>
+                                    {{ form.slide1_title }}
+                                    <div class="character-counter" data-target="id_slide1_title" data-min="10" data-max="30"></div>
+                                    <div class="form-text">10-30 characters</div>
+                                    {% if form.slide1_title.errors %}
+                                        <div class="text-danger small">{{ form.slide1_title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide1_subtitle.label }}</label>
+                                    {{ form.slide1_subtitle }}
+                                    <div class="character-counter" data-target="id_slide1_subtitle" data-min="10" data-max="20"></div>
+                                    <div class="form-text">10-20 characters</div>
+                                    {% if form.slide1_subtitle.errors %}
+                                        <div class="text-danger small">{{ form.slide1_subtitle.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide1_description.label }}</label>
+                                    {{ form.slide1_description }}
+                                    <div class="character-counter" data-target="id_slide1_description" data-min="10" data-max="150"></div>
+                                    <div class="form-text">10-150 characters</div>
+                                    {% if form.slide1_description.errors %}
+                                        <div class="text-danger small">{{ form.slide1_description.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Slide 2 -->
+                        <h6 class="text-primary mb-3">Slide 2: Discount Feature</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide2_title.label }}</label>
+                                    {{ form.slide2_title }}
+                                    <div class="character-counter" data-target="id_slide2_title" data-min="10" data-max="30"></div>
+                                    <div class="form-text">10-30 characters</div>
+                                    {% if form.slide2_title.errors %}
+                                        <div class="text-danger small">{{ form.slide2_title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide2_subtitle.label }}</label>
+                                    {{ form.slide2_subtitle }}
+                                    <div class="character-counter" data-target="id_slide2_subtitle" data-min="10" data-max="20"></div>
+                                    <div class="form-text">10-20 characters</div>
+                                    {% if form.slide2_subtitle.errors %}
+                                        <div class="text-danger small">{{ form.slide2_subtitle.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide2_description.label }}</label>
+                                    {{ form.slide2_description }}
+                                    <div class="character-counter" data-target="id_slide2_description" data-min="10" data-max="150"></div>
+                                    <div class="form-text">10-150 characters</div>
+                                    {% if form.slide2_description.errors %}
+                                        <div class="text-danger small">{{ form.slide2_description.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Slide 3 -->
+                        <h6 class="text-primary mb-3">Slide 3: Advanced Security</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide3_title.label }}</label>
+                                    {{ form.slide3_title }}
+                                    <div class="character-counter" data-target="id_slide3_title" data-min="10" data-max="30"></div>
+                                    <div class="form-text">10-30 characters</div>
+                                    {% if form.slide3_title.errors %}
+                                        <div class="text-danger small">{{ form.slide3_title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide3_subtitle.label }}</label>
+                                    {{ form.slide3_subtitle }}
+                                    <div class="character-counter" data-target="id_slide3_subtitle" data-min="10" data-max="20"></div>
+                                    <div class="form-text">10-20 characters</div>
+                                    {% if form.slide3_subtitle.errors %}
+                                        <div class="text-danger small">{{ form.slide3_subtitle.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.slide3_description.label }}</label>
+                                    {{ form.slide3_description }}
+                                    <div class="character-counter" data-target="id_slide3_description" data-min="10" data-max="150"></div>
+                                    <div class="form-text">10-150 characters</div>
+                                    {% if form.slide3_description.errors %}
+                                        <div class="text-danger small">{{ form.slide3_description.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Us Section -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>About Us Section
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.about_title.label }}</label>
+                                    {{ form.about_title }}
+                                    <div class="character-counter" data-target="id_about_title" data-min="3" data-max="15"></div>
+                                    <div class="form-text">3-15 characters</div>
+                                    {% if form.about_title.errors %}
+                                        <div class="text-danger small">{{ form.about_title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.about_description.label }}</label>
+                                    {{ form.about_description }}
+                                    <div class="character-counter" data-target="id_about_description" data-min="10" data-max="300"></div>
+                                    <div class="form-text">10-300 characters</div>
+                                    {% if form.about_description.errors %}
+                                        <div class="text-danger small">{{ form.about_description.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Members Section -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users me-2"></i>Team Members
+                        </h5>
+                        <div>
+                            <a href="{% url 'edit_team_member' %}" class="btn btn-light btn-sm me-2">
+                                <i class="fas fa-plus me-1"></i>Add New Member
+                            </a>
+                            <button type="button" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#teamHelpModal">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info d-flex align-items-center mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <div>
+                                <strong>Team Member Management:</strong> Team members are managed separately from landing page content.
+                                Use the buttons above to add, edit, or manage team member photos and information.
+                                Changes to team members will automatically appear on the landing page.
+                            </div>
+                        </div>
+
+                        <!-- Display Current Team Members -->
+                        <div id="teamMembersPreview">
+                            {% if team_members %}
+                                <h6 class="text-success mb-3">Current Team Members:</h6>
+                                <div class="row">
+                                    {% for member in team_members %}
+                                    <div class="col-md-6 col-xl-4 mb-4">
+                                        <div class="team-preview-card border rounded p-3">
+                                            <div class="d-flex align-items-center mb-3">
+                                                {% if member.photo %}
+                                                    <img src="{{ member.photo.url }}" alt="{{ member.name }}"
+                                                         class="team-preview-photo rounded-circle me-3"
+                                                         style="width: 50px; height: 50px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="team-preview-photo-placeholder rounded-circle me-3 d-flex align-items-center justify-content-center"
+                                                         style="width: 50px; height: 50px; background-color: #e9ecef;">
+                                                        <i class="fas fa-user text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">{{ member.name }}</h6>
+                                                    <small class="text-muted">{{ member.role }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <small class="text-muted">Technical:</small>
+                                                <p class="small mb-1">{{ member.technical_skills|truncatechars:60 }}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <small class="text-muted">Soft Skills:</small>
+                                                <p class="small mb-1">{{ member.soft_skills|truncatechars:40 }}</p>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'edit_team_member' member.pk %}" class="btn btn-outline-primary btn-sm flex-fill">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </a>
+                                                {% if member.is_active %}
+                                                    <button class="btn btn-outline-warning btn-sm"
+                                                            onclick="toggleTeamMemberStatus({{ member.pk }})"
+                                                            title="Deactivate">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                {% else %}
+                                                    <button class="btn btn-outline-success btn-sm"
+                                                            onclick="toggleTeamMemberStatus({{ member.pk }})"
+                                                            title="Activate">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                            {% if not member.is_active %}
+                                                <div class="mt-2">
+                                                    <span class="badge bg-warning">Inactive</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <h6 class="text-muted">No team members added yet</h6>
+                                    <p class="text-muted">Add team members to display them on the landing page.</p>
+                                    <a href="{% url 'edit_team_member' %}" class="btn btn-success">
+                                        <i class="fas fa-plus me-2"></i>Add First Team Member
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Help Modal -->
+                <div class="modal fade" id="teamHelpModal" tabindex="-1" aria-labelledby="teamHelpModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="teamHelpModalLabel">
+                                    <i class="fas fa-question-circle me-2"></i>Team Member Management Help
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h6>How to manage team members:</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fas fa-plus text-success me-2"></i>
+                                        <strong>Add New Member:</strong> Click "Add New Member" to create a new team member profile with photo upload.
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-edit text-primary me-2"></i>
+                                        <strong>Edit Member:</strong> Click the "Edit" button on any team member card to modify their information and photo.
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-eye text-info me-2"></i>
+                                        <strong>Show/Hide:</strong> Use the eye icon to show or hide team members from the landing page without deleting them.
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-camera text-warning me-2"></i>
+                                        <strong>Photos:</strong> Upload photos in JPG, PNG, or GIF format. Recommended size: 200x200px for best results.
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-sort text-secondary me-2"></i>
+                                        <strong>Order:</strong> Set the display order using the "Order" field when editing (0 = first).
+                                    </li>
+                                </ul>
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-lightbulb me-2"></i>
+                                    <strong>Tip:</strong> Changes to team members will automatically appear on the landing page.
+                                    No need to republish or save the landing page content again.
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <a href="{% url 'edit_team_member' %}" class="btn btn-primary">Add Team Member</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Items Management Section -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                        <h5 class="mb-0">
+                            <i class="fas fa-question-circle me-2"></i>FAQ Items
+                        </h5>
+                        <div>
+                            <a href="{% url 'edit_faq_item' %}" class="btn btn-light btn-sm me-2">
+                                <i class="fas fa-plus me-1"></i>Add New FAQ
+                            </a>
+                            <button type="button" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#faqItemsHelpModal">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info d-flex align-items-center mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <div>
+                                <strong>FAQ Items Management:</strong> FAQ items are managed separately from landing page content.
+                                Use the buttons above to add, edit, or manage FAQ questions and answers with custom icons.
+                                Changes to FAQ items will automatically appear on the landing page.
+                            </div>
+                        </div>
+
+                        <!-- Display Current FAQ Items -->
+                        <div id="faqItemsPreview">
+                            {% if faq_items %}
+                                <h6 class="text-info mb-3">Current FAQ Items:</h6>
+                                <div class="row">
+                                    {% for faq in faq_items %}
+                                    <div class="col-md-6 col-xl-4 mb-4">
+                                        <div class="faq-item-preview-card border rounded p-3">
+                                            <div class="d-flex align-items-start mb-3">
+                                                <div class="faq-item-icon me-3 flex-shrink-0">
+                                                    <div class="d-flex align-items-center justify-content-center"
+                                                         style="width: 35px; height: 35px; background-color: #e3f2fd; border-radius: 50%; font-size: 16px;">
+                                                        <i class="{{ faq.icon_class }} text-info"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1 small fw-bold">{{ faq.question|truncatechars:45 }}</h6>
+                                                    <small class="text-muted">Order: {{ faq.order }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <small class="text-muted">Answer:</small>
+                                                <p class="small mb-1">{{ faq.answer|truncatechars:80 }}</p>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'edit_faq_item' faq.pk %}" class="btn btn-outline-primary btn-sm flex-fill">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </a>
+                                                {% if faq.is_active %}
+                                                    <button class="btn btn-outline-warning btn-sm"
+                                                            onclick="toggleFAQItemStatus({{ faq.pk }})"
+                                                            title="Deactivate">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                {% else %}
+                                                    <button class="btn btn-outline-success btn-sm"
+                                                            onclick="toggleFAQItemStatus({{ faq.pk }})"
+                                                            title="Activate">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                            {% if not faq.is_active %}
+                                                <div class="mt-2">
+                                                    <span class="badge bg-warning">Inactive</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                                    <h6 class="text-muted">No FAQ items added yet</h6>
+                                    <p class="text-muted">Add FAQ items to display them on the landing page.</p>
+                                    <a href="{% url 'edit_faq_item' %}" class="btn btn-info">
+                                        <i class="fas fa-plus me-2"></i>Add First FAQ Item
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Items Help Modal -->
+                <div class="modal fade" id="faqItemsHelpModal" tabindex="-1" aria-labelledby="faqItemsHelpModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="faqItemsHelpModalLabel">
+                                    <i class="fas fa-question-circle me-2"></i>FAQ Items Management Help
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h6>How to manage FAQ items:</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fas fa-plus text-success me-2"></i>
+                                        <strong>Add New FAQ:</strong> Click "Add New FAQ" to create a new FAQ item with question, answer, and custom icon.
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-edit text-primary me-2"></i>
+                                        <strong>Edit FAQ:</strong> Click the "Edit" button on any FAQ card to modify the question, answer, icon, or order.
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-eye text-info me-2"></i>
+                                        <strong>Show/Hide:</strong> Use the eye icon to show or hide FAQ items from the landing page without deleting them.
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-icons text-warning me-2"></i>
+                                        <strong>Icons:</strong> Use Font Awesome icon classes like 'fas fa-question-circle' for different FAQ categories.
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-sort text-secondary me-2"></i>
+                                        <strong>Order:</strong> Set the display order using the "Order" field when editing (0 = first).
+                                    </li>
+                                </ul>
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-lightbulb me-2"></i>
+                                    <strong>Tip:</strong> FAQ changes will automatically appear on the landing page.
+                                    Organize FAQ items by topic and use descriptive icons for better user experience.
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <a href="{% url 'edit_faq_item' %}" class="btn btn-primary">Add FAQ Item</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Section -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-question-circle me-2"></i>FAQ Section
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.faq_title.label }}</label>
+                                    {{ form.faq_title }}
+                                    <div class="character-counter" data-target="id_faq_title" data-min="10" data-max="30"></div>
+                                    <div class="form-text">10-30 characters</div>
+                                    {% if form.faq_title.errors %}
+                                        <div class="text-danger small">{{ form.faq_title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.faq_subtitle.label }}</label>
+                                    {{ form.faq_subtitle }}
+                                    <div class="character-counter" data-target="id_faq_subtitle" data-min="10" data-max="100"></div>
+                                    <div class="form-text">10-100 characters</div>
+                                    {% if form.faq_subtitle.errors %}
+                                        <div class="text-danger small">{{ form.faq_subtitle.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Section -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-envelope me-2"></i>Contact Section
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.contact_title.label }}</label>
+                                    {{ form.contact_title }}
+                                    <div class="character-counter" data-target="id_contact_title" data-min="3" data-max="15"></div>
+                                    <div class="form-text">3-15 characters</div>
+                                    {% if form.contact_title.errors %}
+                                        <div class="text-danger small">{{ form.contact_title.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.contact_subtitle.label }}</label>
+                                    {{ form.contact_subtitle }}
+                                    <div class="character-counter" data-target="id_contact_subtitle" data-min="10" data-max="100"></div>
+                                    <div class="form-text">10-100 characters</div>
+                                    {% if form.contact_subtitle.errors %}
+                                        <div class="text-danger small">{{ form.contact_subtitle.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="text-danger mb-3">Contact Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.office_name.label }}</label>
+                                    {{ form.office_name }}
+                                    <div class="character-counter" data-target="id_office_name" data-min="10" data-max="30"></div>
+                                    <div class="form-text">10-30 characters</div>
+                                    {% if form.office_name.errors %}
+                                        <div class="text-danger small">{{ form.office_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.office_address.label }}</label>
+                                    {{ form.office_address }}
+                                    <div class="character-counter" data-target="id_office_address" data-min="10" data-max="100"></div>
+                                    <div class="form-text">10-100 characters</div>
+                                    {% if form.office_address.errors %}
+                                        <div class="text-danger small">{{ form.office_address.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.phone_number.label }}</label>
+                                    {{ form.phone_number }}
+                                    <div class="character-counter" data-target="id_phone_number" data-min="11" data-max="11"></div>
+                                    <div class="form-text">Exactly 11 digits (numbers only)</div>
+                                    {% if form.phone_number.errors %}
+                                        <div class="text-danger small">{{ form.phone_number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.email_address.label }}</label>
+                                    {{ form.email_address }}
+                                    <div class="character-counter" data-target="id_email_address" data-min="10" data-max="30"></div>
+                                    <div class="form-text">10-30 characters</div>
+                                    {% if form.email_address.errors %}
+                                        <div class="text-danger small">{{ form.email_address.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="text-center mb-4">
+                    <button type="button" class="btn btn-primary btn-lg me-3" data-bs-toggle="modal" data-bs-target="#saveConfirmModal">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-lg" data-bs-toggle="modal" data-bs-target="#cancelConfirmModal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Save Changes Confirmation Modal -->
+<div class="modal fade" id="saveConfirmModal" tabindex="-1" aria-labelledby="saveConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="saveConfirmModalLabel">
+                    <i class="fas fa-save me-2"></i>Confirm Save Changes
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-question-circle fa-2x text-primary me-3"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-2">Are you sure you want to save these changes?</h6>
+                        <p class="mb-0 text-muted">This will update the landing page content and the changes will be visible to all visitors immediately.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>No, Keep Editing
+                </button>
+                <button type="button" class="btn btn-primary" onclick="confirmSave()">
+                    <i class="fas fa-save me-1"></i>Yes, Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="cancelConfirmModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Cancel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-2">Are you sure you want to cancel?</h6>
+                        <p class="mb-0 text-muted">Any unsaved changes will be lost. This action cannot be undone.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-edit me-1"></i>Continue Editing
+                </button>
+                <button type="button" class="btn btn-warning" onclick="confirmCancel()">
+                    <i class="fas fa-times me-1"></i>Yes, Discard Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.character-counter {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    text-align: right;
+    font-weight: 600;
+}
+
+.character-counter.success {
+    color: #28a745;
+}
+
+.character-counter.warning {
+    color: #ffc107;
+}
+
+.character-counter.danger {
+    color: #dc3545;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.form-label {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+hr {
+    margin: 1.5rem 0;
+    border-color: #dee2e6;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+/* Team Member Preview Cards */
+.team-preview-card {
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+}
+
+.team-preview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.team-preview-photo {
+    border: 2px solid #28a745;
+}
+
+.team-preview-photo-placeholder {
+    border: 2px dashed #dee2e6;
+}
+
+/* FAQ Item Preview Cards */
+.faq-item-preview-card {
+    transition: all 0.3s ease;
+    background-color: #fdfdfd;
+    border-color: #e9ecef !important;
+}
+
+.faq-item-preview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: #dee2e6 !important;
+}
+
+/* Modal Styling */
+#teamHelpModal .modal-body ul li,
+#faqItemsHelpModal .modal-body ul li {
+    padding: 0.5rem 0;
+}
+
+#teamHelpModal .modal-body .alert,
+#faqItemsHelpModal .modal-body .alert {
+    border: none;
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validation rules mapping
+    const validationRules = {
+        'id_hero_title': { min: 3, max: 15, label: 'Hero Title' },
+        'id_hero_subtitle': { min: 10, max: 100, label: 'Hero Subtitle' },
+        'id_features_title': { min: 10, max: 50, label: 'Features Title' },
+        'id_features_subtitle': { min: 10, max: 100, label: 'Features Subtitle' },
+        'id_slide1_title': { min: 10, max: 30, label: 'Slide 1 Title' },
+        'id_slide1_subtitle': { min: 10, max: 20, label: 'Slide 1 Subtitle' },
+        'id_slide1_description': { min: 10, max: 150, label: 'Slide 1 Description' },
+        'id_slide2_title': { min: 10, max: 30, label: 'Slide 2 Title' },
+        'id_slide2_subtitle': { min: 10, max: 20, label: 'Slide 2 Subtitle' },
+        'id_slide2_description': { min: 10, max: 150, label: 'Slide 2 Description' },
+        'id_slide3_title': { min: 10, max: 30, label: 'Slide 3 Title' },
+        'id_slide3_subtitle': { min: 10, max: 20, label: 'Slide 3 Subtitle' },
+        'id_slide3_description': { min: 10, max: 150, label: 'Slide 3 Description' },
+        'id_about_title': { min: 3, max: 15, label: 'About Title' },
+        'id_about_description': { min: 10, max: 300, label: 'About Description' },
+        'id_faq_title': { min: 10, max: 30, label: 'FAQ Title' },
+        'id_faq_subtitle': { min: 10, max: 100, label: 'FAQ Subtitle' },
+        'id_contact_title': { min: 3, max: 15, label: 'Contact Title' },
+        'id_contact_subtitle': { min: 10, max: 100, label: 'Contact Subtitle' },
+        'id_office_name': { min: 10, max: 30, label: 'Office Name' },
+        'id_office_address': { min: 10, max: 100, label: 'Office Address' },
+        'id_phone_number': { min: 11, max: 11, label: 'Phone Number', type: 'phone' },
+        'id_email_address': { min: 10, max: 30, label: 'Email Address', type: 'email' }
+    };
+
+    // Initialize character counters
+    Object.keys(validationRules).forEach(fieldId => {
+        const input = document.getElementById(fieldId);
+        if (!input) return;
+
+        const rules = validationRules[fieldId];
+        const counter = input.parentNode.querySelector('.character-counter');
+        
+        if (!counter) return;
+        
+        // Update counter function
+        function updateCounter() {
+            const currentLength = input.value.length;
+            const { min, max } = rules;
+            
+            counter.textContent = `${currentLength}/${max} (min: ${min})`;
+            
+            // Color coding
+            counter.classList.remove('warning', 'danger', 'success');
+            
+            if (currentLength < min) {
+                counter.classList.add('danger');
+            } else if (currentLength >= max - 10) {
+                counter.classList.add('warning');
+            } else {
+                counter.classList.add('success');
+            }
+        }
+        
+        // Update on input
+        updateCounter();
+        input.addEventListener('input', updateCounter);
+        input.addEventListener('keyup', updateCounter);
+    });
+
+    // Phone number validation - digits only
+    const phoneInput = document.getElementById('id_phone_number');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Remove non-digits
+            this.value = this.value.replace(/\D/g, '');
+            
+            // Limit to 11 digits
+            if (this.value.length > 11) {
+                this.value = this.value.slice(0, 11);
+            }
+        });
+    }
+
+    // Form validation before submit
+    const form = document.getElementById('contentForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let hasErrors = false;
+            const errors = [];
+
+            Object.keys(validationRules).forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (!input) return;
+
+                const rules = validationRules[fieldId];
+                const value = input.value.trim();
+                const length = value.length;
+
+                // Clear previous errors
+                input.classList.remove('is-invalid');
+                
+                // Validate length
+                if (length < rules.min) {
+                    hasErrors = true;
+                    input.classList.add('is-invalid');
+                    errors.push(`${rules.label} must be at least ${rules.min} characters`);
+                } else if (length > rules.max) {
+                    hasErrors = true;
+                    input.classList.add('is-invalid');
+                    errors.push(`${rules.label} must not exceed ${rules.max} characters`);
+                }
+
+                // Phone number specific validation
+                if (rules.type === 'phone') {
+                    if (!/^\d{11}$/.test(value)) {
+                        hasErrors = true;
+                        input.classList.add('is-invalid');
+                        errors.push(`${rules.label} must be exactly 11 digits`);
+                    }
+                }
+
+                // Email specific validation
+                if (rules.type === 'email') {
+                    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailPattern.test(value)) {
+                        hasErrors = true;
+                        input.classList.add('is-invalid');
+                        errors.push(`${rules.label} must be a valid email address`);
+                    }
+                }
+            });
+
+            if (hasErrors) {
+                e.preventDefault();
+                
+                // Show errors
+                const errorMessage = errors.join('\n• ');
+                showAlert(`Please fix the following errors:\n\n• ${errorMessage}`, 'danger');
+                
+                // Scroll to first error
+                const firstError = document.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    }
+
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 400px; white-space: pre-line;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 8000);
+    }
+});
+
+// Function to handle save confirmation
+function confirmSave() {
+    // Close the modal
+    const saveModal = bootstrap.Modal.getInstance(document.getElementById('saveConfirmModal'));
+    saveModal.hide();
+    
+    // Submit the form
+    document.getElementById('contentForm').submit();
+}
+
+// Function to handle cancel confirmation
+function confirmCancel() {
+    // Close the modal
+    const cancelModal = bootstrap.Modal.getInstance(document.getElementById('cancelConfirmModal'));
+    cancelModal.hide();
+    
+    // Redirect to the cancel URL
+    window.location.href = "{% url 'simple_content_management' %}";
+}
+
+// Team Member Status Toggle Function
+function toggleTeamMemberStatus(memberId) {
+    if (confirm('Are you sure you want to change the status of this team member?')) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`{% url 'toggle_team_member_status' 0 %}`.replace('0', memberId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showAlert('Error updating team member status: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred while updating team member status.', 'danger');
+        });
+    }
+}
+
+// FAQ Item Status Toggle Function
+function toggleFAQItemStatus(faqId) {
+    if (confirm('Are you sure you want to change the status of this FAQ item?')) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`{% url 'toggle_faq_status' 0 %}`.replace('0', faqId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showAlert('Error updating FAQ status: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred while updating FAQ status.', 'danger');
+        });
+    }
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

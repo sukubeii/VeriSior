@@ -1,0 +1,95 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Delete FAQ Item - VeriSior{% endblock %}
+{% block page_title %}Delete FAQ Item{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trash me-2"></i>Delete FAQ Item
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-triangle me-3"></i>
+                        <div>
+                            <strong>Warning!</strong> This action cannot be undone. The FAQ item will be permanently removed from the system and will no longer appear on the landing page.
+                        </div>
+                    </div>
+
+                    <div class="faq-preview p-4 mb-4 bg-light rounded">
+                        <div class="d-flex align-items-start">
+                            <div class="faq-icon me-3 flex-shrink-0">
+                                <div class="d-flex align-items-center justify-content-center"
+                                     style="width: 40px; height: 40px; background-color: #e9ecef; border-radius: 50%;">
+                                    <i class="{{ faq_item.icon_class }} text-secondary"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-2 fw-bold">{{ faq_item.question }}</h6>
+                                <p class="text-muted mb-2">{{ faq_item.answer }}</p>
+                                <div class="small text-muted">
+                                    <span class="me-3">Order: {{ faq_item.order }}</span>
+                                    {% if faq_item.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-danger btn-lg me-3">
+                                <i class="fas fa-trash me-2"></i>Yes, Delete FAQ Item
+                            </button>
+                            <a href="{% url 'simple_content_management' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.faq-preview {
+    border: 2px dashed #dee2e6;
+}
+
+.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+}
+
+.card-header h5 {
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-lg {
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .text-center .btn-lg:last-child {
+        margin-bottom: 0;
+    }
+}
+</style>
+{% endblock %}

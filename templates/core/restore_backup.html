@@ -1,0 +1,645 @@
+{% extends 'base/dashboard_base.html' %}
+{% load permission_tags %}
+
+{% block title %}Restore Backup - VeriSior{% endblock %}
+{% block page_title %}Restore System Backup{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Main Restore Interface -->
+    <div class="row g-4">
+        <!-- Restore Panel -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-wrapper bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+                            <i class="fas fa-upload text-warning fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1 fw-semibold">Restore System Backup</h5>
+                            <p class="text-muted mb-0 small">Restore system from encrypted backup with key validation</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <!-- Warning Notice -->
+                    <div class="alert alert-warning border-0" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-exclamation-triangle text-warning fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-2 fw-semibold">Important Warning</h6>
+                                <ul class="mb-0 small">
+                                    <li>This operation will <strong>replace all current data</strong> with the backup data</li>
+                                    <li>Ensure you have a <strong>current backup</strong> before proceeding</li>
+                                    <li>This process cannot be undone without another backup</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Message -->
+                    {% if success %}
+                    <div class="alert alert-success border-0 fade-in" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-1 fw-semibold">Backup Restored Successfully!</h6>
+                                <p class="mb-0">{{ success }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Error Message -->
+                    {% if error %}
+                    <div class="alert alert-danger border-0 fade-in">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-exclamation-circle text-danger fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-1 fw-semibold">Restore Failed</h6>
+                                <div class="mb-0">{{ error|safe }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Restore Method Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="fas fa-folder-open text-primary me-2"></i>Restoration Method
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="restore_method" id="method_upload" value="upload" checked>
+                                    <label class="form-check-label" for="method_upload">
+                                        <div class="fw-semibold">Upload Backup Files</div>
+                                        <div class="text-muted small">Recommended - Upload ZIP and key file</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="restore_method" id="method_path" value="path">
+                                    <label class="form-check-label" for="method_path">
+                                        <div class="fw-semibold">Server Path</div>
+                                        <div class="text-muted small">For server-side backup files only</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Restore Form -->
+                    <form id="restoreForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- File Upload Method -->
+                        <div id="uploadMethod" class="restore-method-section">
+                            <div class="alert alert-info border-0 mb-4" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>How it works:</strong> Upload your backup ZIP file and encryption key file. The system will validate and restore your data.
+                            </div>
+
+                            <!-- Backup ZIP File Upload -->
+                            <div class="mb-4">
+                                <label for="backup_file" class="form-label fw-semibold">
+                                    <i class="fas fa-file-archive text-primary me-2"></i>Backup ZIP File
+                                </label>
+                                <input type="file" 
+                                       class="form-control" 
+                                       id="backup_file" 
+                                       name="backup_file"
+                                       accept=".zip"
+                                       required>
+                                <div class="form-text">
+                                    Select the backup ZIP file (e.g., verisior_full_backup_20251028_162732.zip)
+                                </div>
+                                <div id="backup_file_info" class="mt-2 d-none">
+                                    <small class="text-muted">
+                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                        <span id="backup_file_name"></span> (<span id="backup_file_size"></span>)
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Encryption Key File Upload -->
+                            <div class="mb-4">
+                                <label for="key_file" class="form-label fw-semibold">
+                                    <i class="fas fa-key text-success me-2"></i>Encryption Key File
+                                </label>
+                                <input type="file" 
+                                       class="form-control" 
+                                       id="key_file" 
+                                       name="key_file"
+                                       accept=".key,.json"
+                                       required>
+                                <div class="form-text">
+                                    Select the encryption key file (verisior_backup.key)
+                                </div>
+                                <div id="key_file_info" class="mt-2 d-none">
+                                    <small class="text-muted">
+                                        <i class="fas fa-check-circle text-success me-1"></i>
+                                        <span id="key_file_name"></span> (<span id="key_file_size"></span>)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Path Method (Hidden by default) -->
+                        <div id="pathMethod" class="restore-method-section d-none">
+                            <div class="alert alert-warning border-0 mb-4" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Note:</strong> This method only works for backup files located on the server. If you're on a different computer, use the Upload method instead.
+                            </div>
+
+                            <!-- Backup Location Selection -->
+                            <div class="mb-4">
+                                <label for="backup_location" class="form-label fw-semibold">
+                                    <i class="fas fa-folder text-primary me-2"></i>Server Backup Location
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="backup_location" 
+                                           name="backup_location" 
+                                           placeholder="/home/user/backups or /path/to/backups">
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle text-info me-1"></i>
+                                    Enter the full server path to the folder containing the backup file and encryption key
+                                </div>
+                            </div>
+
+                            <!-- Path Examples -->
+                            <div class="mb-4">
+                                <div class="bg-light rounded-3 p-3">
+                                    <h6 class="fw-semibold mb-2">
+                                        <i class="fas fa-lightbulb text-warning me-2"></i>Server Path Examples
+                                    </h6>
+                                    <div class="small">
+                                        <div class="mb-1"><strong>Linux Server:</strong> <code>/home/ubuntu/backups</code></div>
+                                        <div class="mb-1"><strong>Linux Server:</strong> <code>/var/backups/verisior</code></div>
+                                        <div class="mb-1"><strong>Windows Server:</strong> <code>C:\Backups\VeriSior</code></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confirmation Checkbox -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmRestore" required>
+                                <label class="form-check-label fw-semibold text-danger" for="confirmRestore">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    I understand that this will replace all current data and cannot be undone
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <a href="{% url 'backup' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Backup
+                            </a>
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="submit" class="btn btn-warning" id="restoreBackupBtn">
+                                    <i class="fas fa-upload me-1"></i>Restore Backup
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Restore Progress (Hidden initially) -->
+                    <div id="restoreProgress" class="d-none mt-4">
+                        <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm text-primary me-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-semibold">Restore in Progress</h6>
+                                    <p class="mb-0 small">Processing backup files and restoring database...</p>
+                                    <p class="mb-0 small text-muted">This may take several minutes. Please do not close this window.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information Panel -->
+        <div class="col-lg-4">
+            <!-- Pre-Restore Checklist -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-wrapper bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="fas fa-clipboard-check text-warning"></i>
+                        </div>
+                        <h6 class="mb-0 fw-semibold">Pre-Restore Checklist</h6>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="checklist">
+                        <div class="checklist-item mb-3 p-2 bg-light rounded-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check1">
+                                <label class="form-check-label small" for="check1">
+                                    <strong>Current data backed up</strong><br>
+                                    Ensure you have a recent backup of current data
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="checklist-item mb-3 p-2 bg-light rounded-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check2">
+                                <label class="form-check-label small" for="check2">
+                                    <strong>Backup files ready</strong><br>
+                                    Both backup ZIP and encryption key files are ready
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="checklist-item mb-3 p-2 bg-light rounded-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check3">
+                                <label class="form-check-label small" for="check3">
+                                    <strong>Users notified</strong><br>
+                                    All users have been informed of the maintenance
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="checklist-item mb-3 p-2 bg-light rounded-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check4">
+                                <label class="form-check-label small" for="check4">
+                                    <strong>Maintenance window</strong><br>
+                                    System is in maintenance mode if possible
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 text-center">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Complete checklist items before proceeding
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help & Troubleshooting -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-wrapper bg-info bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="fas fa-question-circle text-info"></i>
+                        </div>
+                        <h6 class="mb-0 fw-semibold">Help & Troubleshooting</h6>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="accordion accordion-flush" id="helpAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                    <small>Common Issues</small>
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                                <div class="accordion-body small">
+                                    <strong>Wrong file selected:</strong> Ensure you select the ZIP file for backup and .key file for encryption.<br><br>
+                                    <strong>Files too large:</strong> Large backups may take time to upload. Be patient.<br><br>
+                                    <strong>Permission denied:</strong> Check your user permissions.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                    <small>Required Files</small>
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                                <div class="accordion-body small">
+                                    You need TWO files to restore:<br>
+                                    • <strong>Backup ZIP</strong> - The .zip backup archive<br>
+                                    • <strong>Encryption Key</strong> - verisior_backup.key file
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                    <small>Safety Tips</small>
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                                <div class="accordion-body small">
+                                    • Always create a backup before restoring<br>
+                                    • Test restoration on non-production systems first<br>
+                                    • Verify backup integrity before proceeding<br>
+                                    • Inform users about maintenance downtime
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.icon-wrapper {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.alert {
+    border-radius: 12px;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn:disabled {
+    transform: none;
+    box-shadow: none;
+}
+
+.checklist-item {
+    transition: all 0.3s ease;
+}
+
+.checklist-item:hover {
+    background-color: #e9ecef !important;
+}
+
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.form-control:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+.restore-method-section {
+    transition: all 0.3s ease;
+}
+
+.accordion-button {
+    padding: 0.5rem 0;
+    background: none;
+    border: none;
+    font-size: 0.875rem;
+}
+
+.accordion-button:not(.collapsed) {
+    color: #0d6efd;
+    background: none;
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.accordion-item {
+    border: none;
+}
+
+.accordion-body {
+    padding: 0.5rem 0 1rem 0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CSRF token function
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Method selection handling
+    const uploadMethod = document.getElementById('uploadMethod');
+    const pathMethod = document.getElementById('pathMethod');
+    const backupFileInput = document.getElementById('backup_file');
+    const keyFileInput = document.getElementById('key_file');
+    const backupLocationInput = document.getElementById('backup_location');
+
+    document.querySelectorAll('input[name="restore_method"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'upload') {
+                uploadMethod.classList.remove('d-none');
+                pathMethod.classList.add('d-none');
+                
+                // Make upload fields required
+                backupFileInput.required = true;
+                keyFileInput.required = true;
+                backupLocationInput.required = false;
+            } else {
+                uploadMethod.classList.add('d-none');
+                pathMethod.classList.remove('d-none');
+                
+                // Make path field required
+                backupFileInput.required = false;
+                keyFileInput.required = false;
+                backupLocationInput.required = true;
+            }
+            
+            updateRestoreButtonState();
+        });
+    });
+
+    // File selection handling with info display
+    backupFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const fileInfo = document.getElementById('backup_file_info');
+            const fileName = document.getElementById('backup_file_name');
+            const fileSize = document.getElementById('backup_file_size');
+            
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.remove('d-none');
+        }
+        updateRestoreButtonState();
+    });
+
+    keyFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const fileInfo = document.getElementById('key_file_info');
+            const fileName = document.getElementById('key_file_name');
+            const fileSize = document.getElementById('key_file_size');
+            
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.remove('d-none');
+        }
+        updateRestoreButtonState();
+    });
+
+    // Format file size helper
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    }
+
+    // Confirmation checkbox
+    document.getElementById('confirmRestore').addEventListener('change', function() {
+        updateRestoreButtonState();
+    });
+
+    // Path input change
+    backupLocationInput.addEventListener('input', function() {
+        updateRestoreButtonState();
+    });
+
+    // Update restore button state
+    function updateRestoreButtonState() {
+        const restoreBtn = document.getElementById('restoreBackupBtn');
+        const confirmChecked = document.getElementById('confirmRestore').checked;
+        const uploadSelected = document.getElementById('method_upload').checked;
+        
+        let canRestore = confirmChecked;
+        
+        if (uploadSelected) {
+            const hasBackupFile = backupFileInput.files.length > 0;
+            const hasKeyFile = keyFileInput.files.length > 0;
+            canRestore = canRestore && hasBackupFile && hasKeyFile;
+        } else {
+            const hasPath = backupLocationInput.value.trim().length > 0;
+            canRestore = canRestore && hasPath;
+        }
+        
+        restoreBtn.disabled = !canRestore;
+    }
+
+    // Form submission
+    document.getElementById('restoreForm').addEventListener('submit', function(e) {
+        const uploadSelected = document.getElementById('method_upload').checked;
+        
+        if (uploadSelected) {
+            const backupFile = backupFileInput.files[0];
+            const keyFile = keyFileInput.files[0];
+            
+            if (!backupFile || !keyFile) {
+                e.preventDefault();
+                alert('Please select both backup ZIP file and encryption key file.');
+                return;
+            }
+            
+            // Check file extensions
+            if (!backupFile.name.endsWith('.zip')) {
+                e.preventDefault();
+                alert('Backup file must be a ZIP file.');
+                return;
+            }
+            
+            if (!keyFile.name.endsWith('.key') && !keyFile.name.endsWith('.json')) {
+                e.preventDefault();
+                alert('Key file must be a .key or .json file.');
+                return;
+            }
+        } else {
+            const backupLocation = backupLocationInput.value.trim();
+            
+            if (!backupLocation) {
+                e.preventDefault();
+                alert('Please enter a backup location path.');
+                return;
+            }
+        }
+        
+        if (!document.getElementById('confirmRestore').checked) {
+            e.preventDefault();
+            alert('Please confirm that you understand the implications of this restore operation.');
+            return;
+        }
+        
+        const checkedItems = document.querySelectorAll('.checklist input[type="checkbox"]:checked').length;
+        if (checkedItems < 2) {
+            if (!confirm('Not all checklist items are completed. Are you sure you want to proceed?\n\nThis could lead to data loss or restoration failure.')) {
+                e.preventDefault();
+                return;
+            }
+        }
+        
+        // Show progress
+        document.getElementById('restoreProgress').classList.remove('d-none');
+        document.getElementById('restoreForm').style.opacity = '0.5';
+        document.getElementById('restoreBackupBtn').disabled = true;
+        
+        // Show loading message
+        document.getElementById('restoreBackupBtn').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Restoring...';
+    });
+
+    // Initialize
+    updateRestoreButtonState();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,576 @@
+{% extends 'base/dashboard_base.html' %}
+{% load permission_tags %}
+
+{% block title %}System Backup - VeriSior{% endblock %}
+{% block page_title %}System Backup{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Main Backup Interface -->
+    <div class="row g-4">
+        <!-- Backup Creation Panel -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                            <i class="fas fa-download text-primary fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1 fw-semibold">Create System Backup</h5>
+                            <p class="text-muted mb-0 small">Create encrypted backup to local storage</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <!-- Backup Status Display -->
+                    <div id="backupStatus" class="d-none">
+                        <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm text-primary me-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-semibold">Backup in Progress</h6>
+                                    <div class="progress mb-2" style="height: 8px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             id="progressBar" 
+                                             role="progressbar" 
+                                             style="width: 0%" 
+                                             aria-valuenow="0" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                    <p class="mb-0 small" id="statusMessage">Initializing backup process...</p>
+                                    <p class="mb-0 small text-muted" id="timeInfo"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup Form -->
+                    <form id="backupForm" method="post">
+                        {% csrf_token %}
+
+                        <!-- Info Alert -->
+                        <div class="alert alert-info border-0 mb-4" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>How it works:</strong> Your backup will be created securely and automatically downloaded to your computer when ready. You'll also be able to download the encryption key separately for storage.
+                        </div>
+
+                        <!-- Backup Name -->
+                        <div class="mb-4">
+                            <label for="backup_name" class="form-label fw-semibold">
+                                <i class="fas fa-tag text-secondary me-2"></i>Backup Name
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="backup_name" 
+                                   name="backup_name" 
+                                   placeholder="verisior_backup_{{ 'now'|date:'Ymd_His' }}"
+                                   value="verisior_backup_{{ 'now'|date:'Ymd_His' }}">
+                            <div class="form-text">Descriptive name for this backup</div>
+                        </div>
+
+                        <!-- Backup Type Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-database text-success me-2"></i>Backup Type
+                            </label>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="backup_type" id="backup_full" value="full" checked>
+                                        <label class="form-check-label" for="backup_full">
+                                            <div class="fw-semibold">Full System Backup</div>
+                                            <div class="text-muted small">Database + Media Files</div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="backup_type" id="backup_db" value="db_only">
+                                        <label class="form-check-label" for="backup_db">
+                                            <div class="fw-semibold">Database Only</div>
+                                            <div class="text-muted small">Faster, smaller backup</div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Options (Collapsible) -->
+                        <div class="mb-4">
+                            <button class="btn btn-link p-0 text-decoration-none fw-semibold" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#advancedOptions">
+                                <i class="fas fa-cog me-2"></i>Advanced Options
+                                <i class="fas fa-chevron-down ms-1"></i>
+                            </button>
+                            
+                            <div class="collapse mt-3" id="advancedOptions">
+                                <div class="border rounded-3 p-3 bg-light">
+                                    <label for="exclude_patterns" class="form-label fw-semibold">
+                                        <i class="fas fa-filter text-warning me-2"></i>Exclude Patterns
+                                    </label>
+                                    <textarea class="form-control"
+                                              id="exclude_patterns"
+                                              name="exclude_patterns"
+                                              rows="4"
+                                              placeholder=".*\.log&#10;.*\.tmp&#10;media/temp/.*"></textarea>
+                                    <div class="form-text">
+                                        Regular expressions to exclude files (one per line). Leave blank for default exclusions.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-outline-secondary" id="clearForm">
+                                <i class="fas fa-undo me-1"></i>Clear Form
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="createBackupBtn">
+                                <i class="fas fa-download me-1"></i>Create Backup
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Backup Results (Hidden initially) -->
+                    <div id="backupResults" class="d-none mt-4">
+                        <div class="alert alert-success border-0" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-check-circle text-success fa-2x me-3"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-3 fw-semibold">Backup Created Successfully!</h6>
+                                    <div id="backupResultsContent">
+                                        <!-- Results will be populated here -->
+                                    </div>
+                                    <div class="mt-4 pt-3 border-top">
+                                        <h6 class="mb-3 fw-semibold">Download Your Backup</h6>
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <button class="btn btn-success btn-sm w-100" id="downloadBackupFile">
+                                                    <i class="fas fa-download me-1"></i>Download Backup File
+                                                </button>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <button class="btn btn-info btn-sm w-100" id="downloadEncryptionKey">
+                                                    <i class="fas fa-key me-1"></i>Download Encryption Key
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-outline-primary btn-sm" id="createAnotherBackup">
+                                            <i class="fas fa-plus me-1"></i>Create Another Backup
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Display -->
+                    <div id="backupError" class="d-none mt-4">
+                        <div class="alert alert-danger">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-exclamation-triangle me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Backup Failed</h6>
+                                    <p class="mb-0" id="errorMessage"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information & Statistics -->
+        <div class="col-lg-4">
+            <!-- System Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-wrapper bg-info bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="fas fa-info-circle text-info"></i>
+                        </div>
+                        <h6 class="mb-0 fw-semibold">System Information</h6>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-center p-2 bg-light rounded-2">
+                                <div class="fw-bold text-primary">{{ media_file_count|default:"0" }}</div>
+                                <div class="text-muted small">Media Files</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-2 bg-light rounded-2">
+                                <div class="fw-bold text-success">{{ media_size|default:"0 B" }}</div>
+                                <div class="text-muted small">Media Size</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if largest_files %}
+                    <div class="mt-3">
+                        <h6 class="fw-semibold mb-2">Largest Files</h6>
+                        <div class="list-group list-group-flush">
+                            {% for file_path, file_size in largest_files|slice:":5" %}
+                            <div class="list-group-item border-0 px-0 py-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-truncate me-2">
+                                        <small class="text-muted">{{ file_path|truncatechars:30 }}</small>
+                                    </div>
+                                    <small class="fw-semibold">{{ file_size }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-wrapper bg-secondary bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="fas fa-bolt text-secondary"></i>
+                        </div>
+                        <h6 class="mb-0 fw-semibold">Quick Actions</h6>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'restore_backup' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-upload me-2"></i>Restore Backup
+                        </a>
+                        <a href="{% url 'cleanup_media' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-broom me-2"></i>Cleanup Media
+                        </a>
+                        <button class="btn btn-outline-info" onclick="checkSystemHealth()">
+                            <i class="fas fa-heartbeat me-2"></i>System Health Check
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden File Input for Directory Selection -->
+<input type="file" id="hiddenFileInput" webkitdirectory style="display: none;">
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.icon-wrapper {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.alert {
+    border-radius: 12px;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.list-group-item {
+    border-radius: 0;
+}
+
+#backupStatus .alert {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.collapse {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let backupInProgress = false;
+    let statusCheckInterval = null;
+
+    // CSRF token function
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Note: Browse folder functionality removed - backups are now downloaded automatically
+
+    // Clear form functionality
+    document.getElementById('clearForm').addEventListener('click', function() {
+        document.getElementById('backupForm').reset();
+        document.getElementById('backup_name').value = 'verisior_backup_' + new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+        hideAllMessages();
+    });
+
+    // Form submission
+    document.getElementById('backupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (backupInProgress) {
+            alert('Backup is already in progress. Please wait for it to complete.');
+            return;
+        }
+
+        startBackup();
+    });
+
+    function startBackup() {
+        backupInProgress = true;
+        hideAllMessages();
+        showBackupStatus();
+        
+        const formData = new FormData(document.getElementById('backupForm'));
+        
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'started') {
+                // Start checking status
+                startStatusCheck();
+            } else if (data.error) {
+                showError(data.error);
+                backupInProgress = false;
+            }
+        })
+        .catch(error => {
+            showError('Failed to start backup: ' + error.message);
+            backupInProgress = false;
+        });
+    }
+
+    function startStatusCheck() {
+        statusCheckInterval = setInterval(checkBackupStatus, 2000); // Check every 2 seconds
+    }
+
+    function checkBackupStatus() {
+        const formData = new FormData();
+        formData.append('check_status', 'true');
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            updateBackupStatus(data);
+            
+            if (data.status === 'completed') {
+                clearInterval(statusCheckInterval);
+                showBackupResults(data);
+                backupInProgress = false;
+            } else if (data.status === 'error') {
+                clearInterval(statusCheckInterval);
+                showError(data.error || 'Backup failed');
+                backupInProgress = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error checking backup status:', error);
+        });
+    }
+
+    function updateBackupStatus(data) {
+        const progressBar = document.getElementById('progressBar');
+        const statusMessage = document.getElementById('statusMessage');
+        const timeInfo = document.getElementById('timeInfo');
+
+        if (data.progress) {
+            progressBar.style.width = data.progress + '%';
+            progressBar.setAttribute('aria-valuenow', data.progress);
+        }
+
+        if (data.message) {
+            statusMessage.textContent = data.message;
+        }
+
+        if (data.overall_duration) {
+            timeInfo.textContent = data.overall_duration;
+        }
+    }
+
+    function showBackupStatus() {
+        document.getElementById('backupStatus').classList.remove('d-none');
+        document.getElementById('backupForm').style.opacity = '0.5';
+        document.getElementById('createBackupBtn').disabled = true;
+    }
+
+    function hideBackupStatus() {
+        document.getElementById('backupStatus').classList.add('d-none');
+        document.getElementById('backupForm').style.opacity = '1';
+        document.getElementById('createBackupBtn').disabled = false;
+    }
+
+    function showBackupResults(data) {
+        hideBackupStatus();
+
+        const resultsContent = document.getElementById('backupResultsContent');
+        resultsContent.innerHTML = `
+            <div class="mb-2">
+                <strong>Duration:</strong> ${data.duration || 'Unknown'}
+            </div>
+            <div class="mb-2">
+                <strong>Type:</strong> ${data.backup_type === 'full' ? 'Full System Backup' : 'Database Only'}
+            </div>
+            ${data.backup_info ? `
+                <div class="mb-2">
+                    <strong>File Size:</strong> ${data.backup_info.zip_size || 'Unknown'}
+                </div>
+            ` : ''}
+        `;
+
+        document.getElementById('backupResults').classList.remove('d-none');
+
+        // Set up event handlers for download buttons
+        document.getElementById('downloadBackupFile').onclick = function() {
+            // Trigger the download endpoint
+            window.location.href = '{% url "download_backup" %}';
+        };
+
+        document.getElementById('downloadEncryptionKey').onclick = function() {
+            // Trigger the download keys endpoint
+            window.location.href = '{% url "download_keys" %}';
+        };
+
+        document.getElementById('createAnotherBackup').onclick = function() {
+            document.getElementById('backupResults').classList.add('d-none');
+            clearForm();
+        };
+    }
+
+    function showError(message) {
+        hideBackupStatus();
+        document.getElementById('errorMessage').textContent = message;
+        document.getElementById('backupError').classList.remove('d-none');
+    }
+
+    function hideAllMessages() {
+        document.getElementById('backupStatus').classList.add('d-none');
+        document.getElementById('backupResults').classList.add('d-none');
+        document.getElementById('backupError').classList.add('d-none');
+    }
+
+    function clearForm() {
+        document.getElementById('backupForm').reset();
+        document.getElementById('backup_name').value = 'verisior_backup_' + new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+        hideAllMessages();
+    }
+
+    // Auto-update backup name when backup type changes
+    document.querySelectorAll('input[name="backup_type"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const nameField = document.getElementById('backup_name');
+            const currentName = nameField.value;
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+            
+            if (this.value === 'db_only') {
+                nameField.value = 'verisior_db_backup_' + timestamp;
+            } else {
+                nameField.value = 'verisior_full_backup_' + timestamp;
+            }
+        });
+    });
+});
+
+// System health check function
+function checkSystemHealth() {
+    alert('System health check functionality would be implemented here.\n\nThis would check:\n- Database connectivity\n- File system permissions\n- Available disk space\n- System resources');
+}
+</script>
+{% endblock %}

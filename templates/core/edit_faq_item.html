@@ -1,0 +1,388 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} FAQ Item - VeriSior{% endblock %}
+{% block page_title %}{{ action }} FAQ Item{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>{{ action }} FAQ Item
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="faqItemForm">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <!-- Icon Preview -->
+                            <div class="col-md-3 text-center mb-4">
+                                <div class="icon-preview-section">
+                                    <div class="icon-preview mb-3">
+                                        <div class="faq-icon-large mx-auto d-flex align-items-center justify-content-center"
+                                             id="iconPreview"
+                                             style="width: 80px; height: 80px; background-color: #e9ecef; border: 3px solid #dee2e6; border-radius: 50%; font-size: 2rem;">
+                                            {% if faq_item.icon_class %}
+                                                <i class="{{ faq_item.icon_class }} text-info"></i>
+                                            {% else %}
+                                                <i class="fas fa-question-circle text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden input for icon class -->
+                                    <input type="hidden" name="icon_class" id="id_icon_class" value="{{ faq_item.icon_class|default:'fas fa-question-circle' }}">
+
+                                    <div class="icon-suggestions">
+                                        <label class="form-label small fw-semibold">Select FAQ Icon:</label>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm icon-suggestion" data-icon="fas fa-question-circle">
+                                                <i class="fas fa-question-circle me-1"></i> General
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm icon-suggestion" data-icon="fas fa-shield-alt">
+                                                <i class="fas fa-shield-alt me-1"></i> Security
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm icon-suggestion" data-icon="fas fa-user-plus">
+                                                <i class="fas fa-user-plus me-1"></i> Registration
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm icon-suggestion" data-icon="fas fa-mobile-alt">
+                                                <i class="fas fa-mobile-alt me-1"></i> Technology
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm icon-suggestion" data-icon="fas fa-headset">
+                                                <i class="fas fa-headset me-1"></i> Support
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm icon-suggestion" data-icon="fas fa-lock">
+                                                <i class="fas fa-lock me-1"></i> Privacy
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm icon-suggestion" data-icon="fas fa-cog">
+                                                <i class="fas fa-cog me-1"></i> Settings
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm icon-suggestion" data-icon="fas fa-info-circle">
+                                                <i class="fas fa-info-circle me-1"></i> Information
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Fields -->
+                            <div class="col-md-9">
+                                <!-- Question -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">{{ form.question.label }} <span class="text-danger">*</span></label>
+                                    {{ form.question }}
+                                    <div class="character-counter" data-target="id_question" data-max="120"></div>
+                                    <div class="form-text">{{ form.question.help_text }}</div>
+                                    {% if form.question.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.question.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Answer -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">{{ form.answer.label }} <span class="text-danger">*</span></label>
+                                    {{ form.answer }}
+                                    <div class="character-counter" data-target="id_answer" data-max="500"></div>
+                                    <div class="form-text">{{ form.answer.help_text }}</div>
+                                    {% if form.answer.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.answer.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Order and Status -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">{{ form.order.label }}</label>
+                                            {{ form.order }}
+                                            <div class="form-text">{{ form.order.help_text }}</div>
+                                            {% if form.order.errors %}
+                                                <div class="text-danger small">
+                                                    {{ form.order.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                {{ form.is_active }}
+                                                <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                                                    {{ form.is_active.label }}
+                                                </label>
+                                            </div>
+                                            <div class="form-text">Active FAQ items are displayed on the landing page</div>
+                                            {% if form.is_active.errors %}
+                                                <div class="text-danger small">
+                                                    {{ form.is_active.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="text-center mt-4 pt-4 border-top">
+                            <button type="submit" class="btn btn-info btn-lg me-3">
+                                <i class="fas fa-save me-2"></i>Save FAQ Item
+                            </button>
+                            <a href="{% url 'simple_content_management' %}" class="btn btn-secondary btn-lg me-3">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            {% if faq_item.pk %}
+                            <a href="{% url 'delete_faq_item' faq_item.pk %}"
+                               class="btn btn-danger btn-lg"
+                               onclick="return confirm('Are you sure you want to delete this FAQ item?')">
+                                <i class="fas fa-trash me-2"></i>Delete
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.character-counter {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    text-align: right;
+    color: #6c757d;
+}
+
+.character-counter.warning {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.character-counter.danger {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.icon-preview-section {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 2rem 1rem;
+}
+
+.faq-icon-large {
+    transition: all 0.3s ease;
+    border-radius: 50%;
+}
+
+.faq-icon-large:hover {
+    transform: scale(1.05);
+    border-color: #17a2b8;
+}
+
+.icon-suggestions .btn {
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.icon-suggestion:hover {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+.icon-suggestion.active {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-switch .form-check-input {
+    width: 3rem;
+    height: 1.5rem;
+}
+
+.form-switch .form-check-input:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+}
+
+.card-header h5 {
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .icon-preview-section {
+        margin-bottom: 2rem;
+    }
+
+    .btn-lg {
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Icon preview functionality
+    const iconPreview = document.getElementById('iconPreview');
+    const iconClassInput = document.getElementById('id_icon_class');
+
+    function updateIconPreview(iconClass) {
+        iconPreview.innerHTML = '';
+        const iconElement = document.createElement('i');
+        iconElement.className = iconClass + ' text-info';
+        iconPreview.appendChild(iconElement);
+    }
+
+    // Icon suggestion buttons
+    const iconSuggestions = document.querySelectorAll('.icon-suggestion');
+    iconSuggestions.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const iconClass = this.getAttribute('data-icon');
+            iconClassInput.value = iconClass;
+            updateIconPreview(iconClass);
+
+            // Visual feedback
+            iconSuggestions.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Set initial active state
+    const currentIcon = iconClassInput.value;
+    iconSuggestions.forEach(button => {
+        if (button.getAttribute('data-icon') === currentIcon) {
+            button.classList.add('active');
+        }
+    });
+
+    // Initialize character counters
+    const counters = document.querySelectorAll('.character-counter');
+
+    counters.forEach(counter => {
+        const targetId = counter.getAttribute('data-target');
+        const maxLength = parseInt(counter.getAttribute('data-max'));
+        const input = document.getElementById(targetId);
+
+        if (input) {
+            function updateCounter() {
+                const currentLength = input.value.length;
+                const remaining = maxLength - currentLength;
+
+                counter.textContent = `${currentLength}/${maxLength}`;
+
+                counter.classList.remove('warning', 'danger');
+                if (remaining <= 10 && remaining > 0) {
+                    counter.classList.add('warning');
+                } else if (remaining <= 0) {
+                    counter.classList.add('danger');
+                }
+            }
+
+            updateCounter();
+            input.addEventListener('input', updateCounter);
+            input.addEventListener('keyup', updateCounter);
+        }
+    });
+
+    // Form validation
+    const form = document.getElementById('faqItemForm');
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+
+        // Check character limits
+        counters.forEach(counter => {
+            const targetId = counter.getAttribute('data-target');
+            const maxLength = parseInt(counter.getAttribute('data-max'));
+            const input = document.getElementById(targetId);
+
+            if (input && input.value.length > maxLength) {
+                hasErrors = true;
+                input.classList.add('is-invalid');
+            } else if (input) {
+                input.classList.remove('is-invalid');
+            }
+        });
+
+        // Check required fields
+        const requiredFields = ['id_question', 'id_answer'];
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field && !field.value.trim()) {
+                hasErrors = true;
+                field.classList.add('is-invalid');
+            } else if (field) {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (hasErrors) {
+            e.preventDefault();
+            showAlert('Please fix the errors before saving.', 'danger');
+
+            // Scroll to first error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+});
+</script>
+{% endblock %}

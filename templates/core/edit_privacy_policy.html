@@ -1,0 +1,410 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Edit Privacy Policy - VeriSior{% endblock %}
+{% block page_title %}Edit Privacy Policy{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <form method="post" id="privacyPolicyForm">
+                {% csrf_token %}
+
+                <!-- Privacy Policy Header -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>Privacy Policy Information
+                            </h5>
+                            {% if privacy_policy %}
+                                <div>
+                                    <span class="badge bg-light text-dark me-2">Version {{ privacy_policy.version }}</span>
+                                    {% if privacy_policy.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.title.label }}</label>
+                                    {{ form.title }}
+                                    <div class="character-counter" data-target="id_title" data-max="100"></div>
+                                    <div class="form-text">{{ form.title.help_text }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.version.label }}</label>
+                                    {{ form.version }}
+                                    <div class="form-text">{{ form.version.help_text }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">{{ form.effective_date.label }}</label>
+                                    {{ form.effective_date }}
+                                    <div class="form-text">{{ form.effective_date.help_text }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        {{ form.is_active.label }}
+                                    </label>
+                                    <div class="form-text">{{ form.is_active.help_text }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Policy Content Sections -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-alt me-2"></i>Privacy Policy Content
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Introduction Section -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Introduction
+                            </h6>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ form.introduction.label }}</label>
+                                {{ form.introduction }}
+                                <div class="character-counter" data-target="id_introduction" data-max="1000"></div>
+                                <div class="form-text">{{ form.introduction.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Information We Collect Section -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-database me-2"></i>Information We Collect
+                            </h6>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ form.information_collected.label }}</label>
+                                {{ form.information_collected }}
+                                <div class="character-counter" data-target="id_information_collected" data-max="1500"></div>
+                                <div class="form-text">{{ form.information_collected.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- How We Use Your Information Section -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-cogs me-2"></i>How We Use Your Information
+                            </h6>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ form.information_usage.label }}</label>
+                                {{ form.information_usage }}
+                                <div class="character-counter" data-target="id_information_usage" data-max="1500"></div>
+                                <div class="form-text">{{ form.information_usage.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- How We Protect Your Information Section -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-lock me-2"></i>How We Protect Your Information
+                            </h6>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ form.information_protection.label }}</label>
+                                {{ form.information_protection }}
+                                <div class="character-counter" data-target="id_information_protection" data-max="1200"></div>
+                                <div class="form-text">{{ form.information_protection.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Data Retention Section -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-archive me-2"></i>Data Retention
+                            </h6>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ form.data_retention.label }}</label>
+                                {{ form.data_retention }}
+                                <div class="character-counter" data-target="id_data_retention" data-max="800"></div>
+                                <div class="form-text">{{ form.data_retention.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Your Rights and Choices Section -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-user-shield me-2"></i>Your Rights and Choices
+                            </h6>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ form.user_rights.label }}</label>
+                                {{ form.user_rights }}
+                                <div class="character-counter" data-target="id_user_rights" data-max="1000"></div>
+                                <div class="form-text">{{ form.user_rights.help_text }}</div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Contact Information Section -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-envelope me-2"></i>Privacy Contact Information
+                            </h6>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ form.contact_information.label }}</label>
+                                {{ form.contact_information }}
+                                <div class="character-counter" data-target="id_contact_information" data-max="500"></div>
+                                <div class="form-text">{{ form.contact_information.help_text }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center mb-4">
+                    <button type="submit" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-save me-2"></i>Save Privacy Policy
+                    </button>
+                    <a href="{% url 'simple_content_management' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.character-counter {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    text-align: right;
+}
+
+.character-counter.warning {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.character-counter.danger {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.form-label {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+hr {
+    margin: 1.5rem 0;
+    border-color: #dee2e6;
+}
+
+.privacy-policy-preview {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.privacy-sections h5 {
+    margin-top: 2rem;
+}
+
+.privacy-sections h5:first-child {
+    margin-top: 0;
+}
+
+/* Animation for cards */
+.card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form validation styles */
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.invalid-feedback {
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize character counters
+    const counters = document.querySelectorAll('.character-counter');
+
+    counters.forEach(counter => {
+        const targetId = counter.getAttribute('data-target');
+        const maxLength = parseInt(counter.getAttribute('data-max'));
+        const input = document.getElementById(targetId);
+
+        if (input) {
+            // Update counter on input
+            function updateCounter() {
+                const currentLength = input.value.length;
+                const remaining = maxLength - currentLength;
+
+                counter.textContent = `${currentLength}/${maxLength}`;
+
+                // Color coding
+                counter.classList.remove('warning', 'danger');
+                if (remaining <= 50 && remaining > 0) {
+                    counter.classList.add('warning');
+                } else if (remaining <= 0) {
+                    counter.classList.add('danger');
+                }
+            }
+
+            // Initial update
+            updateCounter();
+
+            // Update on input events
+            input.addEventListener('input', updateCounter);
+            input.addEventListener('keyup', updateCounter);
+            input.addEventListener('paste', function() {
+                setTimeout(updateCounter, 10);
+            });
+        }
+    });
+
+    // Form validation
+    const form = document.getElementById('privacyPolicyForm');
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+
+        // Check all inputs for length violations
+        counters.forEach(counter => {
+            const targetId = counter.getAttribute('data-target');
+            const maxLength = parseInt(counter.getAttribute('data-max'));
+            const input = document.getElementById(targetId);
+
+            if (input && input.value.length > maxLength) {
+                hasErrors = true;
+                input.classList.add('is-invalid');
+
+                // Show error message
+                let errorDiv = input.parentNode.querySelector('.invalid-feedback');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback';
+                    input.parentNode.appendChild(errorDiv);
+                }
+                errorDiv.textContent = `Text exceeds maximum length of ${maxLength} characters.`;
+            } else if (input) {
+                input.classList.remove('is-invalid');
+                const errorDiv = input.parentNode.querySelector('.invalid-feedback');
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+            }
+        });
+
+        // Check required fields
+        const requiredFields = ['id_title', 'id_version', 'id_introduction'];
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field && !field.value.trim()) {
+                hasErrors = true;
+                field.classList.add('is-invalid');
+
+                let errorDiv = field.parentNode.querySelector('.invalid-feedback');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback';
+                    field.parentNode.appendChild(errorDiv);
+                }
+                errorDiv.textContent = 'This field is required.';
+            }
+        });
+
+        if (hasErrors) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Show alert
+            showAlert('Please fix the validation errors before saving.', 'danger');
+        } else {
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        }
+    });
+
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+});
+
+</script>
+{% endblock %}

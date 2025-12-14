@@ -1,0 +1,546 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Content Management - VeriSior{% endblock %}
+{% block page_title %}Content Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Overview Card -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm content-card">
+                <div class="card-body text-center">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-edit text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Landing Page Content Management</h5>
+                    <p class="card-text text-muted">Edit all text content that appears on the landing page including hero section, features, about us, team members, FAQ, and contact information</p>
+                    <a href="{% url 'edit_landing_page_content' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-edit me-2"></i>Edit All Content
+                    </a>
+                    <div class="mt-3">
+                        <small class="text-muted">Last updated: {{ content.updated_at|date:"M d, Y g:i A" }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Content Preview -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-eye text-info me-2"></i>Current Content Preview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Hero Section Preview -->
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-2">
+                            <i class="fas fa-star me-2"></i>Hero Section
+                        </h6>
+                        <div class="preview-box p-3 border rounded">
+                            <h4 class="mb-2">{{ content.hero_title }}</h4>
+                            <p class="text-muted">{{ content.hero_subtitle }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Features Section Preview -->
+                    <div class="mb-4">
+                        <h6 class="text-info mb-2">
+                            <i class="fas fa-cog me-2"></i>Features Section
+                        </h6>
+                        <div class="preview-box p-3 border rounded">
+                            <h5 class="mb-2">{{ content.features_title }}</h5>
+                            <p class="text-muted">{{ content.features_subtitle }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Carousel Slides Preview -->
+                    <div class="mb-4">
+                        <h6 class="text-success mb-2">
+                            <i class="fas fa-images me-2"></i>Carousel Slides
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="preview-box p-3 border rounded mb-3">
+                                    <h6 class="fw-bold">Slide 1: {{ content.slide1_title }}</h6>
+                                    <p class="small text-primary">{{ content.slide1_subtitle }}</p>
+                                    <p class="small text-muted">{{ content.slide1_description|truncatechars:100 }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-box p-3 border rounded mb-3">
+                                    <h6 class="fw-bold">Slide 2: {{ content.slide2_title }}</h6>
+                                    <p class="small text-primary">{{ content.slide2_subtitle }}</p>
+                                    <p class="small text-muted">{{ content.slide2_description|truncatechars:100 }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="preview-box p-3 border rounded mb-3">
+                                    <h6 class="fw-bold">Slide 3: {{ content.slide3_title }}</h6>
+                                    <p class="small text-primary">{{ content.slide3_subtitle }}</p>
+                                    <p class="small text-muted">{{ content.slide3_description|truncatechars:100 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Section Preview -->
+                    <div class="mb-4">
+                        <h6 class="text-warning mb-2">
+                            <i class="fas fa-info-circle me-2"></i>About Section
+                        </h6>
+                        <div class="preview-box p-3 border rounded">
+                            <h5 class="mb-2">{{ content.about_title }}</h5>
+                            <p class="text-muted">{{ content.about_description }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Team Members Preview -->
+                    <div class="mb-4">
+                        <h6 class="text-success mb-2">
+                            <i class="fas fa-users me-2"></i>Team Members Section
+                        </h6>
+                        <div class="preview-box p-3 border rounded">
+                            {% if team_members %}
+                                <div class="row">
+                                    {% for member in team_members %}
+                                    <div class="col-md-3 mb-3">
+                                        <div class="text-center">
+                                            {% if member.photo %}
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 overflow-hidden"
+                                                     style="width: 60px; height: 60px; border: 2px solid #28a745;">
+                                                    <img src="{{ member.photo.url }}" alt="{{ member.name }}"
+                                                         style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                            {% else %}
+                                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold mx-auto mb-2"
+                                                     style="width: 60px; height: 60px; font-size: 18px;">
+                                                    {{ member.name|first|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <h6 class="mb-1">{{ member.name }}</h6>
+                                            <p class="small text-primary mb-1">{{ member.role }}</p>
+                                            <div class="small text-muted">
+                                                <div><strong>Tech:</strong> {{ member.technical_skills|truncatechars:30 }}</div>
+                                                <div><strong>Soft:</strong> {{ member.soft_skills|truncatechars:30 }}</div>
+                                            </div>
+                                            {% if not member.is_active %}
+                                                <span class="badge bg-warning mt-1">Inactive</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-3 text-center">
+                                    <a href="{% url 'edit_landing_page_content' %}" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-edit me-1"></i>Manage Team Members
+                                    </a>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">No team members added yet.</p>
+                                    <a href="{% url 'edit_landing_page_content' %}" class="btn btn-success btn-sm mt-2">
+                                        <i class="fas fa-plus me-1"></i>Add Team Members
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- FAQ Section Preview -->
+                    <div class="mb-4">
+                        <h6 class="text-secondary mb-2">
+                            <i class="fas fa-question-circle me-2"></i>FAQ Section
+                        </h6>
+                        <div class="preview-box p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="mb-1">{{ content.faq_title }}</h5>
+                                    <p class="text-muted mb-0">{{ content.faq_subtitle }}</p>
+                                </div>
+                                <div>
+                                    <a href="{% url 'edit_faq_item' %}" class="btn btn-outline-secondary btn-sm me-2">
+                                        <i class="fas fa-plus me-1"></i>Add FAQ
+                                    </a>
+                                    <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#faqHelpModal">
+                                        <i class="fas fa-question-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {% if faq_items %}
+                                <div class="row">
+                                    {% for faq in faq_items %}
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="faq-preview-card border rounded p-3">
+                                            <div class="d-flex align-items-start mb-2">
+                                                <div class="faq-icon me-2 flex-shrink-0">
+                                                    <i class="{{ faq.icon_class }} text-secondary"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1 small fw-bold">{{ faq.question|truncatechars:60 }}</h6>
+                                                    <p class="small text-muted mb-2">{{ faq.answer|truncatechars:80 }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="small text-muted">
+                                                    Order: {{ faq.order }}
+                                                    {% if not faq.is_active %}
+                                                        <span class="badge bg-warning ms-1">Inactive</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'edit_faq_item' faq.pk %}" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    {% if faq.is_active %}
+                                                        <button class="btn btn-outline-warning btn-sm"
+                                                                onclick="toggleFAQStatus({{ faq.pk }})"
+                                                                title="Deactivate">
+                                                            <i class="fas fa-eye-slash"></i>
+                                                        </button>
+                                                    {% else %}
+                                                        <button class="btn btn-outline-success btn-sm"
+                                                                onclick="toggleFAQStatus({{ faq.pk }})"
+                                                                title="Activate">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">{{ active_faq_items }} of {{ total_faq_items }} FAQ items active</small>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-question-circle fa-2x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">No FAQ items added yet.</p>
+                                    <a href="{% url 'edit_faq_item' %}" class="btn btn-secondary btn-sm mt-2">
+                                        <i class="fas fa-plus me-1"></i>Add First FAQ Item
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- FAQ Help Modal -->
+                    <div class="modal fade" id="faqHelpModal" tabindex="-1" aria-labelledby="faqHelpModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="faqHelpModalLabel">
+                                        <i class="fas fa-question-circle me-2"></i>FAQ Management Help
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <h6>How to manage FAQ items:</h6>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fas fa-plus text-success me-2"></i>
+                                            <strong>Add New FAQ:</strong> Click "Add FAQ" to create a new FAQ item with question, answer, and custom icon.
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-edit text-primary me-2"></i>
+                                            <strong>Edit FAQ:</strong> Click the edit icon on any FAQ card to modify the question, answer, icon, or order.
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-eye text-info me-2"></i>
+                                            <strong>Show/Hide:</strong> Use the eye icon to show or hide FAQ items from the landing page without deleting them.
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-icons text-warning me-2"></i>
+                                            <strong>Icons:</strong> Use Font Awesome icon classes like 'fas fa-question-circle' for different FAQ categories.
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-sort text-secondary me-2"></i>
+                                            <strong>Order:</strong> Set the display order using the "Order" field when editing (0 = first).
+                                        </li>
+                                    </ul>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-lightbulb me-2"></i>
+                                        <strong>Tip:</strong> FAQ changes will automatically appear on the landing page. Organize FAQ items by topic and use descriptive icons for better user experience.
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <a href="{% url 'edit_faq_item' %}" class="btn btn-primary">Add FAQ Item</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Contact Section Preview -->
+                    <div class="mb-4">
+                        <h6 class="text-danger mb-2">
+                            <i class="fas fa-envelope me-2"></i>Contact Section
+                        </h6>
+                        <div class="preview-box p-3 border rounded">
+                            <h5 class="mb-2">{{ content.contact_title }}</h5>
+                            <p class="text-muted mb-3">{{ content.contact_subtitle }}</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>Office:</strong> {{ content.office_name }}</p>
+                                    <p class="mb-2"><strong>Address:</strong> {{ content.office_address|linebreaksbr }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-2"><strong>Phone:</strong> {{ content.phone_number }}</p>
+                                    <p class="mb-2"><strong>Email:</strong> {{ content.email_address }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Policy Section Preview -->
+                    <div class="mb-4">
+                        <h6 class="text-dark mb-2">
+                            <i class="fas fa-shield-alt me-2"></i>Privacy Policy
+                        </h6>
+                        <div class="preview-box p-3 border rounded">
+                            {% if privacy_policy %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h5 class="mb-1">{{ privacy_policy.title }}</h5>
+                                        <p class="text-muted mb-0">Version {{ privacy_policy.version }} - Last updated: {{ privacy_policy.last_updated|date:"M d, Y" }}</p>
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'edit_privacy_policy' %}" class="btn btn-outline-dark btn-sm">
+                                            <i class="fas fa-edit me-1"></i>Edit Policy
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong>Introduction:</strong> {{ privacy_policy.introduction|truncatechars:80 }}</p>
+                                        <p class="mb-2"><strong>Information Usage:</strong> {{ privacy_policy.information_usage|truncatechars:80 }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong>Data Protection:</strong> {{ privacy_policy.information_protection|truncatechars:80 }}</p>
+                                        <p class="mb-2"><strong>User Rights:</strong> {{ privacy_policy.user_rights|truncatechars:80 }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    {% if privacy_policy.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-shield-alt fa-2x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">No privacy policy created yet.</p>
+                                    <a href="{% url 'edit_privacy_policy' %}" class="btn btn-dark btn-sm mt-2">
+                                        <i class="fas fa-plus me-1"></i>Create Privacy Policy
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.content-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.content-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(0, 123, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.feature-icon i {
+    font-size: 2rem;
+}
+
+.preview-box {
+    background: #f8f9fa;
+    border-color: #dee2e6 !important;
+    transition: all 0.2s ease;
+}
+
+.preview-box:hover {
+    background: #e9ecef;
+    border-color: #adb5bd !important;
+}
+
+.preview-box h4,
+.preview-box h5,
+.preview-box h6 {
+    color: #495057;
+}
+
+.card-header {
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+@media (max-width: 768px) {
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .feature-icon i {
+        font-size: 1.5rem;
+    }
+    
+    .btn {
+        font-size: 0.9rem;
+    }
+}
+
+/* Animation for cards */
+.card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* FAQ Preview Cards */
+.faq-preview-card {
+    transition: all 0.3s ease;
+    background-color: #fdfdfd;
+    border-color: #e9ecef !important;
+}
+
+.faq-preview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: #dee2e6 !important;
+}
+
+.faq-icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+.faq-preview-card .btn-group .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* FAQ Help Modal */
+#faqHelpModal .modal-body ul li {
+    padding: 0.5rem 0;
+}
+
+#faqHelpModal .modal-body .alert {
+    border: none;
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Content Management page initialized successfully');
+});
+
+// FAQ Status Toggle Function
+function toggleFAQStatus(faqId) {
+    if (confirm('Are you sure you want to change the status of this FAQ item?')) {
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`{% url 'toggle_faq_status' 0 %}`.replace('0', faqId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showAlert(data.message, 'success');
+
+                // Reload the page after a short delay to show updated status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showAlert('Error updating FAQ status: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred while updating FAQ status.', 'danger');
+        });
+    }
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}
