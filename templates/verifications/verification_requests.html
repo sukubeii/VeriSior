@@ -1,0 +1,329 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Verification Requests - VeriSior{% endblock %}
+{% block page_title %}Verification Requests{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <!-- Filter Form -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        <select name="status" class="form-control">
+                            <option value="APPROVED" {% if status == 'APPROVED' %}selected{% endif %}>Approved</option>
+                            <option value="ALL" {% if status == 'ALL' %}selected{% endif %}>All Active</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'verification_requests' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-refresh me-1"></i>Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="d-flex gap-2 h-100 align-items-center">
+            {% if is_archived_view %}
+                <a href="{% url 'verification_requests' %}" class="btn btn-primary flex-fill">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Requests
+                </a>
+            {% else %}
+                <a href="{% url 'archived_verification_requests' %}" class="btn btn-outline-secondary flex-fill">
+                    <i class="fas fa-archive me-1"></i>View Archived
+                </a>
+            {% endif %}
+            <div class="badge bg-info fs-6">
+                {{ requests.paginator.count }} total
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not is_archived_view %}
+<!-- Archive Actions for Active Requests Only -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="post" id="archiveForm" action="{% url 'archive_verification_requests' %}">
+            {% csrf_token %}
+            <div class="d-flex gap-2 align-items-center">
+                <button type="submit" class="btn btn-warning" id="archiveBtn" disabled>
+                    <i class="fas fa-archive me-1"></i>Archive Selected
+                </button>
+                <span class="text-muted" id="selectedCount">0 selected</span>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<!-- Results -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            {% if is_archived_view %}
+                <i class="fas fa-archive me-2"></i>Archived Requests
+            {% else %}
+                <i class="fas fa-list me-2"></i>All Verification Requests
+            {% endif %}
+        </span>
+    </div>
+    <div class="card-body p-0">
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            {% if not is_archived_view %}
+                            <th width="50">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            {% endif %}
+                            <th>Request ID</th>
+                            <th>Requested ID Number</th>
+                            <th>Establishment</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            {% if is_archived_view %}
+                            <th>Archived Date</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for verification_request in requests %}
+                        <tr>
+                            {% if not is_archived_view %}
+                            <td>
+                                <input type="checkbox" name="selected_requests" value="{{ verification_request.pk }}" 
+                                       class="form-check-input request-checkbox" form="archiveForm">
+                            </td>
+                            {% endif %}
+                            <td><code class="text-primary">#{{ verification_request.pk }}</code></td>
+                            <td><code class="text-info">{{ verification_request.id_number }}</code></td>
+                            <td>
+                                {% if verification_request.establishment_user %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <div class="avatar-initial bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 11px;">
+                                                {{ verification_request.establishment_user.username.0|upper }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">{{ verification_request.establishment_user.username }}</div>
+                                            <small class="text-muted">Establishment</small>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <div class="avatar-initial bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 11px;">
+                                                <i class="fas fa-globe"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">Public Portal</div>
+                                            <small class="text-muted">Anonymous</small>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if verification_request.status == 'APPROVED' %}
+                                    <span class="badge badge-success">Approved</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">{{ verification_request.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ verification_request.created_at|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ verification_request.created_at|timesince }} ago</small>
+                            </td>
+                            {% if is_archived_view %}
+                            <td>
+                                <div>{{ verification_request.updated_at|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ verification_request.updated_at|timesince }} ago</small>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if requests.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Verification requests pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if requests.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ requests.previous_page_number }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in requests.paginator.page_range %}
+                            {% if requests.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > requests.number|add:'-3' and num < requests.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if requests.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ requests.next_page_number }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                {% if is_archived_view %}
+                    <i class="fas fa-archive fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Archived Verification Requests</h5>
+                    <p class="text-muted">No verification requests have been archived yet.</p>
+                    <a href="{% url 'verification_requests' %}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Active Requests
+                    </a>
+                {% else %}
+                    {% if status == 'APPROVED' %}
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h5 class="text-muted">No Active Requests</h5>
+                        <p class="text-muted">All verification requests have been processed or archived.</p>
+                    {% else %}
+                        <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Verification Requests</h5>
+                        <p class="text-muted">No verification requests found for the current filter.</p>
+                    {% endif %}
+                    <button type="button" class="btn btn-outline-primary" onclick="window.location.reload()">
+                        <i class="fas fa-refresh me-1"></i>Refresh
+                    </button>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.table td {
+    vertical-align: middle;
+}
+code {
+    font-size: 0.9rem;
+}
+.form-check-input {
+    margin-top: 0;
+}
+.avatar-initial {
+    font-weight: 600;
+    font-size: 11px;
+}
+#archiveBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #000;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const requestCheckboxes = document.querySelectorAll('.request-checkbox');
+    const archiveBtn = document.getElementById('archiveBtn');
+    const selectedCount = document.getElementById('selectedCount');
+
+    // Only add functionality if elements exist (not on archived view)
+    if (selectAllCheckbox && archiveBtn) {
+        // Handle select all functionality
+        selectAllCheckbox.addEventListener('change', function() {
+            requestCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateArchiveButton();
+        });
+
+        // Handle individual checkbox changes
+        requestCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectAllState();
+                updateArchiveButton();
+            });
+        });
+
+        function updateSelectAllState() {
+            const checkedBoxes = document.querySelectorAll('.request-checkbox:checked');
+            selectAllCheckbox.checked = checkedBoxes.length === requestCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < requestCheckboxes.length;
+        }
+
+        function updateArchiveButton() {
+            const checkedBoxes = document.querySelectorAll('.request-checkbox:checked');
+            const count = checkedBoxes.length;
+            
+            archiveBtn.disabled = count === 0;
+            selectedCount.textContent = `${count} selected`;
+        }
+
+        // Handle archive form submission with confirmation
+        document.getElementById('archiveForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default submission
+            
+            const checkedBoxes = document.querySelectorAll('.request-checkbox:checked');
+            
+            if (checkedBoxes.length === 0) {
+                alert('Please select at least one verification request to archive.');
+                return;
+            }
+            
+            // Show confirmation dialog
+            if (confirm(`Are you sure you want to archive ${checkedBoxes.length} verification request(s)?\n\nThis action will move the selected requests to the archived section.`)) {
+                // Show loading state
+                archiveBtn.disabled = true;
+                archiveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Archiving...';
+                
+                // Submit the form
+                this.submit();
+            }
+        });
+    }
+
+    // Auto-refresh every 60 seconds for active requests only
+    {% if not is_archived_view %}
+    setTimeout(function() {
+        window.location.reload();
+    }, 60000);
+    {% endif %}
+});
+</script>
+{% endblock %}

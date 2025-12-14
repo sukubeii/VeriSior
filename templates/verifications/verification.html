@@ -1,0 +1,1396 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Senior Citizen ID Verification - VeriSior{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-blue: #1976d2;
+        --light-blue: #42a5f5;
+        --royal-blue: #1565c0;
+        --secondary-blue: #2196f3;
+        --dark-blue: #0d47a1;
+        --slate-blue: #455a64;
+        --black: #000000;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        min-height: 100vh;
+    }
+
+    .verification-page {
+        padding: 120px 0 60px;
+        position: relative;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--black);
+        text-align: center;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 0;
+        color: var(--slate-blue);
+        text-align: center;
+    }
+
+    .verification-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 12px 40px rgba(13, 71, 161, 0.15);
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(15px);
+        transition: all 0.3s ease;
+        width: 100%;
+        max-width: 600px;
+        min-height: 500px;
+        margin: 0 auto;
+    }
+
+    .verification-card-header {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        color: white;
+        padding: 1.5rem;
+        border: none;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .verification-card-title {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.25rem;
+    }
+
+    .btn-end-session {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid white;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-end-session:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .verification-card-body {
+        padding: 2rem;
+        min-height: 420px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .verification-content {
+        width: 100%;
+        max-width: 450px;
+        text-align: center;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        border: 2px solid rgba(129, 212, 250, 0.3);
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        text-align: center;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--light-blue);
+        box-shadow: 0 0 0 0.2rem rgba(66, 165, 245, 0.25);
+        background: white;
+        outline: none;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--light-blue) 0%, var(--royal-blue) 100%);
+        border: none;
+        padding: 14px 28px;
+        font-weight: 700;
+        border-radius: 12px;
+        color: white;
+        width: 100%;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, var(--royal-blue) 0%, var(--secondary-blue) 100%);
+    }
+
+    .status-icon {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        color: white;
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .bg-danger {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    }
+
+    .verification-details {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1.5rem auto;
+        border: 1px solid #e2e8f0;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-item span:first-child {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .detail-item span:last-child {
+        color: #111827;
+        font-weight: 500;
+    }
+
+    .discount-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1.5rem auto;
+        max-width: 350px;
+    }
+
+    .discount-btn {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem 0.75rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-align: center;
+        color: #374151;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .discount-btn:hover {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .discount-btn.selected {
+        border-color: #059669;
+        background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+        color: #047857;
+    }
+
+    .discount-btn.used {
+        background: rgba(229, 231, 235, 0.5);
+        border-color: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .button-row {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        justify-content: center;
+    }
+
+    .button-row .btn {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 10px;
+    }
+
+    .alert {
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .verification-page {
+            padding: 100px 0 40px;
+        }
+        
+        .verification-card {
+            margin: 0 15px;
+        }
+        
+        .discount-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="hero-section verification-page">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h1 class="hero-title mb-3">Senior Citizen ID Verification</h1>
+            <p class="hero-subtitle mb-0">Verify IDs • Apply Discounts • Track Transactions</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="verification-card" id="verification-card">
+                    <div class="verification-card-header">
+                        <h5 class="verification-card-title" id="verification-card-title">
+                            <i class="fas fa-clipboard-check me-2"></i>ID Verification
+                        </h5>
+                        <button class="btn-end-session" id="end-session-btn" style="display: none;" onclick="confirmEndSession()">
+                            <i class="fas fa-sign-out-alt me-2"></i>End Session
+                        </button>
+                    </div>
+                    <div class="verification-card-body">
+                        <!-- ID Verification Form -->
+                        <div class="verification-content" id="id-verification-form" style="display: none;">
+                            <form id="verification-form">
+                                <div class="mb-3">
+                                    <label for="id_number" class="form-label">
+                                        Senior Citizen ID Number <span style="color: #dc2626;">*</span>
+                                    </label>
+                                    <input type="text" 
+                                        class="form-control" 
+                                        id="id_number"
+                                        maxlength="20"
+                                        placeholder="Enter ID number"
+                                        required>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary-custom" id="verify-btn">
+                                        <i class="fas fa-search me-2"></i>Verify
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Verification Results - Success -->
+                        <div class="verification-content" id="verification-success" style="display: none;">
+                            <div class="status-icon bg-success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h6>ID Verified Successfully!</h6>
+
+                            <div class="verification-details">
+                                <div class="detail-item">
+                                    <span>ID Number:</span>
+                                    <span id="verified-id-number">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Name:</span>
+                                    <span id="verified-name">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Age:</span>
+                                    <span id="verified-age">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Status:</span>
+                                    <span class="badge bg-success">Verified</span>
+                                </div>
+                            </div>
+
+                            <div class="button-row">
+                                <button class="btn btn-success" onclick="startDiscountProcess()">
+                                    <i class="fas fa-percent me-2"></i>Apply Discount
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="verifyAnotherID()">
+                                    <i class="fas fa-redo me-2"></i>Verify Another
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Verification Results - Failed -->
+                        <div class="verification-content" id="verification-failed" style="display: none;">
+                            <div class="status-icon bg-danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <h6>ID Not Found</h6>
+                            <p>Senior Citizen ID <strong id="failed-id-number"></strong> was not found in our database.</p>
+                            <p class="text-muted">This ID may not be registered or may have verification issues.</p>
+                            
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-warning btn-lg" onclick="requestVerification()">
+                                    <i class="fas fa-paper-plane me-2"></i>Request Verification
+                                </button>
+                                <button class="btn btn-outline-primary btn-lg" onclick="verifyAnotherID()">
+                                    <i class="fas fa-redo me-2"></i>Try Another ID
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Establishment Information Form -->
+                        <div class="verification-content" id="establishment-form" style="display: none;">
+                            <p class="text-muted small mb-3">These information will be saved for future transactions</p>
+
+                            <form id="establishment-info-form">
+                                <div class="mb-3">
+                                    <label for="establishment_name" class="form-label">Establishment Name <span style="color: #dc2626;">*</span></label>
+                                    <input type="text" class="form-control" id="establishment_name" maxlength="25" placeholder="Max 25 characters" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="establishment_contact" class="form-label">Contact Number <span style="color: #dc2626;">*</span></label>
+                                    <input type="text" class="form-control" id="establishment_contact" maxlength="11" placeholder="11-digit number" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="establishment_address" class="form-label">Address <span style="color: #dc2626;">*</span></label>
+                                    <input type="text" class="form-control" id="establishment_address" maxlength="25" placeholder="Max 25 characters" required>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Continue
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Discount Amount Form -->
+                        <div class="verification-content" id="discount-amount-form" style="display: none;">
+                            <h6>Enter Discount Amount</h6>
+                            <p class="text-muted small mb-3">Enter the discount amount before selecting category</p>
+
+                            <form id="discount-amount-input-form">
+                                <div class="mb-3">
+                                    <label for="discount_amount" class="form-label">Discount Amount (PHP) <span style="color: #dc2626;">*</span></label>
+                                    <input type="number" class="form-control" id="discount_amount" step="0.01" min="0.01" placeholder="0.00" required>
+                                </div>
+
+                                <div class="verification-details mb-3">
+                                    <div class="detail-item">
+                                        <span>Establishment:</span>
+                                        <span id="establishment-name-display">--</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>Contact:</span>
+                                        <span id="establishment-contact-display">--</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span>Address:</span>
+                                        <span id="establishment-address-display">--</span>
+                                    </div>
+                                </div>
+
+                                <div class="button-row">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="editEstablishmentInfo()">
+                                        <i class="fas fa-edit me-2"></i>Edit Info
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-arrow-right me-2"></i>Next
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Discount Selection -->
+                        <div class="verification-content" id="discount-selection" style="display: none;">
+                            <h6>Select Discount Category</h6>
+                            <div class="discount-grid">
+                                <button type="button" class="discount-btn" data-category="MEDICINE" onclick="selectDiscount('MEDICINE', 'Pharmacy')">
+                                    <i class="fas fa-pills"></i>
+                                    <span>Pharmacy</span>
+                                </button>
+                                <button type="button" class="discount-btn" data-category="GROCERY" onclick="selectDiscount('GROCERY', 'Grocery')">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span>Grocery</span>
+                                </button>
+                                <button type="button" class="discount-btn" data-category="RESTAURANT" onclick="selectDiscount('RESTAURANT', 'Restaurant')">
+                                    <i class="fas fa-utensils"></i>
+                                    <span>Restaurant</span>
+                                </button>
+                                <button type="button" class="discount-btn" data-category="OTHER" onclick="selectDiscount('OTHER', 'Cinema')">
+                                    <i class="fas fa-film"></i>
+                                    <span>Cinema</span>
+                                </button>
+                            </div>
+
+                            <div class="button-row mt-3">
+                                <button class="btn btn-outline-secondary" onclick="showDiscountAmountForm()">
+                                    <i class="fas fa-arrow-left me-2"></i>Back
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Senior Citizen Info Display -->
+                        <div class="verification-content" id="senior-info-display" style="display: none;">
+                            <div class="status-icon bg-info" style="background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <h6>Confirm Discount Application</h6>
+
+                            <div class="verification-details">
+                                <div class="detail-item">
+                                    <span>ID Number:</span>
+                                    <span id="senior-id-display">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Name:</span>
+                                    <span id="senior-name-display">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Age:</span>
+                                    <span id="senior-age-display">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Discount Amount:</span>
+                                    <span class="badge bg-success" id="discount-amount-display">PHP 0.00</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Category:</span>
+                                    <span class="badge" style="background: var(--primary-blue); color: white;" id="selected-discount-display">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Establishment:</span>
+                                    <span id="confirm-establishment-name">--</span>
+                                </div>
+                            </div>
+
+                            <div class="button-row">
+                                <button class="btn btn-outline-secondary" onclick="changeDiscount()">
+                                    <i class="fas fa-edit me-2"></i>Change
+                                </button>
+                                <button class="btn btn-success" onclick="applyDiscount()">
+                                    <i class="fas fa-check me-2"></i>Apply Discount
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Discount Applied Success -->
+                        <div class="verification-content" id="discount-applied" style="display: none;">
+                            <div class="status-icon bg-success">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <h6>Discount Applied Successfully!</h6>
+
+                            <div class="verification-details">
+                                <div class="detail-item">
+                                    <span>Transaction Number:</span>
+                                    <span class="badge bg-primary" id="transaction-number">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Senior:</span>
+                                    <span id="applied-senior-name">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Discount Amount:</span>
+                                    <span class="badge bg-success" id="applied-discount-amount">PHP 0.00</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Category:</span>
+                                    <span class="badge bg-success" id="applied-discount-type">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Establishment:</span>
+                                    <span id="applied-establishment">--</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Time:</span>
+                                    <span id="applied-time">--</span>
+                                </div>
+                            </div>
+
+                            <div class="button-row">
+                                <button class="btn btn-primary" onclick="verifyAnotherID()" style="background: var(--primary-blue); border: none;">
+                                    <i class="fas fa-plus me-2"></i>Verify Another
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Global variables to store current verification data
+let currentSeniorData = null;
+let selectedDiscountCategory = null;
+let selectedDiscountName = null;
+let usedDiscounts = [];
+let userLocation = null; // Store GPS coordinates
+let establishmentInfo = {
+    name: '',
+    contact: '',
+    address: ''
+};
+let discountAmount = 0;
+
+// CSRF Token helper
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Request GPS location
+function requestLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            console.log('Geolocation not supported by browser');
+            resolve(null); // Continue without GPS
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy
+                };
+                console.log('GPS location captured:', userLocation);
+                resolve(userLocation);
+            },
+            (error) => {
+                console.log('GPS error:', error.message);
+                // Don't block the process if GPS fails
+                resolve(null);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            }
+        );
+    });
+}
+
+// Load establishment info from session
+function loadEstablishmentInfo() {
+    return fetch('/verify/api/get-establishment/', {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data) {
+            establishmentInfo = {
+                name: data.data.establishment_name || '',
+                contact: data.data.establishment_contact || '',
+                address: data.data.establishment_address || ''
+            };
+            console.log('Loaded establishment info:', establishmentInfo);
+        }
+        return establishmentInfo;
+    })
+    .catch(error => {
+        console.error('Error loading establishment info:', error);
+        return establishmentInfo;
+    });
+}
+
+// Save establishment info to session
+function saveEstablishmentInfo() {
+    return fetch('/verify/api/save-establishment/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            establishment_name: establishmentInfo.name,
+            establishment_contact: establishmentInfo.contact,
+            establishment_address: establishmentInfo.address
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Establishment info saved successfully');
+            return true;
+        } else {
+            showAlert(data.message || 'Failed to save establishment info', 'danger');
+            return false;
+        }
+    })
+    .catch(error => {
+        console.error('Error saving establishment info:', error);
+        showAlert('Network error occurred. Please try again.', 'danger');
+        return false;
+    });
+}
+
+// Check if establishment info is complete
+function hasEstablishmentInfo() {
+    return establishmentInfo.name && establishmentInfo.contact && establishmentInfo.address;
+}
+
+// Show alert function
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 400px;';
+    alertDiv.innerHTML = `
+        <strong>${message}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Validate ID number - exactly 15 digits only
+function validateIdNumber(idNumber) {
+    // Remove any whitespace
+    idNumber = idNumber.trim();
+    
+    // Check if exactly 15 characters
+    if (idNumber.length !== 15) {
+        return { valid: false, message: 'ID number must be exactly 15 digits' };
+    }
+    
+    // Check if all characters are digits
+    if (!/^\d{15}$/.test(idNumber)) {
+        return { valid: false, message: 'ID number must contain only digits (0-9)' };
+    }
+    
+    return { valid: true };
+}
+
+// Form submission handler
+document.getElementById('verification-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const idNumber = document.getElementById('id_number').value.trim();
+    const verifyBtn = document.getElementById('verify-btn');
+    
+    if (!idNumber) {
+        showAlert('Please enter an ID number', 'warning');
+        return;
+    }
+    
+    // Validate ID number format
+    const validation = validateIdNumber(idNumber);
+    if (!validation.valid) {
+        showAlert(validation.message, 'warning');
+        return;
+    }
+    
+    // Show loading state
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
+    
+    // Request GPS location first
+    requestLocation().then(() => {
+        // Make AJAX request to verify ID
+        fetch('/verify/api/verify-id/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') || '',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                id_number: idNumber
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.senior) {
+                currentSeniorData = data.senior;
+                // WAIT for discount check to complete before showing success
+                return checkUsedDiscounts(idNumber).then(() => {
+                    showVerificationSuccess();
+                });
+            } else {
+                showVerificationFailed(idNumber, data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Network error occurred. Please try again.', 'danger');
+        })
+        .finally(() => {
+            // Reset button
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = '<i class="fas fa-search me-2"></i>Verify';
+        });
+    });
+});
+
+// Add real-time input validation for ID number field
+const idNumberInput = document.getElementById('id_number');
+idNumberInput.addEventListener('input', function(e) {
+    // Remove any non-digit characters
+    this.value = this.value.replace(/\D/g, '');
+    
+    // Limit to 15 digits
+    if (this.value.length > 15) {
+        this.value = this.value.substring(0, 15);
+    }
+    
+    // Visual feedback
+    if (this.value.length === 15) {
+        this.classList.remove('is-invalid');
+        this.classList.add('is-valid');
+    } else if (this.value.length > 0) {
+        this.classList.remove('is-valid');
+        this.classList.add('is-invalid');
+    } else {
+        this.classList.remove('is-valid', 'is-invalid');
+    }
+});
+
+// Prevent non-numeric input
+idNumberInput.addEventListener('keypress', function(e) {
+    // Only allow digits
+    if (!/^\d$/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && e.key !== 'Enter') {
+        e.preventDefault();
+    }
+});
+
+// Establishment form handler
+document.getElementById('establishment-info-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('establishment_name').value.trim();
+    const contact = document.getElementById('establishment_contact').value.trim();
+    const address = document.getElementById('establishment_address').value.trim();
+
+    // Validation
+    if (!name || name.length > 25) {
+        showAlert('Establishment name is required (max 25 characters)', 'warning');
+        return;
+    }
+
+    if (!contact || contact.length !== 11 || !/^\d{11}$/.test(contact)) {
+        showAlert('Valid 11-digit contact number is required', 'warning');
+        return;
+    }
+
+    if (!address || address.length > 25) {
+        showAlert('Establishment address is required (max 25 characters)', 'warning');
+        return;
+    }
+
+    // Save to global variable
+    establishmentInfo = { name, contact, address };
+
+    // Save to session
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+
+    saveEstablishmentInfo().then(success => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Continue';
+
+        if (success) {
+            // Update End Session button visibility
+            updateEndSessionButton();
+
+            // Show ID verification form
+            hideAllContent();
+            document.getElementById('id-verification-form').style.display = 'block';
+            document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-clipboard-check me-2"></i>ID Verification';
+            document.getElementById('id_number').focus();
+        }
+    });
+});
+
+// Establishment contact input - only allow digits
+document.getElementById('establishment_contact').addEventListener('input', function(e) {
+    this.value = this.value.replace(/\D/g, '');
+    if (this.value.length > 11) {
+        this.value = this.value.substring(0, 11);
+    }
+});
+
+// Discount amount form handler
+document.getElementById('discount-amount-input-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const amount = parseFloat(document.getElementById('discount_amount').value);
+
+    if (!amount || amount <= 0) {
+        showAlert('Valid discount amount is required', 'warning');
+        return;
+    }
+
+    discountAmount = amount;
+    showDiscountSelection();
+});
+
+// Show establishment form
+function showEstablishmentForm() {
+    hideAllContent();
+
+    // Pre-fill fields if available
+    if (establishmentInfo.name) {
+        document.getElementById('establishment_name').value = establishmentInfo.name;
+        document.getElementById('establishment_contact').value = establishmentInfo.contact;
+        document.getElementById('establishment_address').value = establishmentInfo.address;
+    }
+
+    document.getElementById('establishment-form').style.display = 'block';
+    document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-building me-2"></i>Establishment Information';
+}
+
+// Show discount amount form
+function showDiscountAmountForm() {
+    hideAllContent();
+
+    // Display establishment info
+    document.getElementById('establishment-name-display').textContent = establishmentInfo.name;
+    document.getElementById('establishment-contact-display').textContent = establishmentInfo.contact;
+    document.getElementById('establishment-address-display').textContent = establishmentInfo.address;
+
+    // Clear previous amount
+    document.getElementById('discount_amount').value = '';
+
+    document.getElementById('discount-amount-form').style.display = 'block';
+    document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-calculator me-2"></i>Discount Amount';
+}
+
+// Edit establishment info
+function editEstablishmentInfo() {
+    showEstablishmentForm();
+}
+
+// Start discount process - checks for establishment info
+function startDiscountProcess() {
+    if (!hasEstablishmentInfo()) {
+        // Show establishment form if not set
+        showEstablishmentForm();
+    } else {
+        // Show discount amount form
+        showDiscountAmountForm();
+    }
+}
+
+function showVerificationSuccess() {
+    console.log('Showing verification success with data:', currentSeniorData);
+    
+    // Hide all other content
+    hideAllContent();
+    
+    // Populate verification success data - with fallbacks for missing data
+    document.getElementById('verified-id-number').textContent = currentSeniorData.id_number || '--';
+    document.getElementById('verified-name').textContent = currentSeniorData.full_name || 
+        (currentSeniorData.first_name && currentSeniorData.last_name ? 
+            `${currentSeniorData.first_name} ${currentSeniorData.last_name}` : '--');
+    document.getElementById('verified-age').textContent = currentSeniorData.age || 'N/A';
+    
+    // Show verification success
+    document.getElementById('verification-success').style.display = 'block';
+    
+    // Update card title
+    document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-check-circle me-2"></i>Verification Success';
+}
+
+function showVerificationFailed(idNumber, message) {
+    // Hide all other content
+    hideAllContent();
+    
+    // Populate failed verification data
+    document.getElementById('failed-id-number').textContent = idNumber;
+    
+    // Show verification failed
+    document.getElementById('verification-failed').style.display = 'block';
+    
+    // Update card title
+    document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Verification Failed';
+}
+
+function checkUsedDiscounts(idNumber) {
+    return fetch('/verify/api/check-discounts/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            id_number: idNumber
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            usedDiscounts = data.used_categories || [];
+            console.log('Used discounts for', idNumber, 'at this location:', usedDiscounts);
+        } else {
+            usedDiscounts = [];
+        }
+        return usedDiscounts;
+    })
+    .catch(error => {
+        console.error('Error checking discounts:', error);
+        usedDiscounts = [];
+        return [];
+    });
+}
+
+function showDiscountSelection() {
+    hideAllContent();
+    
+    // Reset and update discount buttons based on CURRENT used discounts
+    const discountButtons = document.querySelectorAll('.discount-btn');
+    discountButtons.forEach(btn => {
+        const category = btn.getAttribute('data-category');
+        
+        // First, reset the button completely
+        btn.classList.remove('used', 'selected');
+        btn.style.cursor = 'pointer';
+        btn.disabled = false;
+        
+        // Remove "(Used)" text if it exists
+        const span = btn.querySelector('span');
+        if (span && span.textContent.includes('(Used)')) {
+            span.textContent = span.textContent.replace(' (Used)', '').trim();
+        }
+        
+        // Restore onclick handler first based on category
+        switch(category) {
+            case 'MEDICINE':
+                btn.onclick = function() { selectDiscount('MEDICINE', 'Pharmacy'); };
+                break;
+            case 'GROCERY':
+                btn.onclick = function() { selectDiscount('GROCERY', 'Grocery'); };
+                break;
+            case 'RESTAURANT':
+                btn.onclick = function() { selectDiscount('RESTAURANT', 'Restaurant'); };
+                break;
+            case 'OTHER':
+                btn.onclick = function() { selectDiscount('OTHER', 'Cinema'); };
+                break;
+        }
+        
+        // NOW check if this discount is actually used for CURRENT senior at THIS location
+        if (usedDiscounts.includes(category)) {
+            btn.classList.add('used');
+            btn.onclick = null;
+            btn.style.cursor = 'not-allowed';
+            btn.disabled = true;
+            
+            // Add "(Used)" text only if not already there
+            if (!span.textContent.includes('(Used)')) {
+                span.textContent = span.textContent + ' (Used)';
+            }
+        }
+    });
+    
+    document.getElementById('discount-selection').style.display = 'block';
+    document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-percent me-2"></i>Select Discount';
+}
+
+function selectDiscount(category, name) {
+    // Check if discount is already used
+    if (usedDiscounts.includes(category)) {
+        showAlert('This discount has already been used today at this location', 'warning');
+        return;
+    }
+    
+    selectedDiscountCategory = category;
+    selectedDiscountName = name;
+    
+    // Update selected state
+    document.querySelectorAll('.discount-btn').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    document.querySelector(`[data-category="${category}"]`).classList.add('selected');
+    
+    // Show confirmation
+    showDiscountConfirmation();
+}
+
+function showDiscountConfirmation() {
+    hideAllContent();
+
+    // Populate confirmation data
+    document.getElementById('senior-id-display').textContent = currentSeniorData.id_number;
+    document.getElementById('senior-name-display').textContent = currentSeniorData.full_name;
+    document.getElementById('senior-age-display').textContent = currentSeniorData.age || 'N/A';
+    document.getElementById('discount-amount-display').textContent = 'PHP ' + parseFloat(discountAmount).toFixed(2);
+    document.getElementById('selected-discount-display').textContent = selectedDiscountName;
+    document.getElementById('confirm-establishment-name').textContent = establishmentInfo.name;
+
+    document.getElementById('senior-info-display').style.display = 'block';
+    document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-user-check me-2"></i>Confirm Application';
+}
+
+function applyDiscount() {
+    const applyBtn = document.querySelector('#senior-info-display .btn-success');
+    const originalHTML = applyBtn.innerHTML;
+    
+    // Show loading state
+    applyBtn.disabled = true;
+    applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Applying...';
+    
+    // Prepare request data with location and discount amount
+    const requestData = {
+        id_number: currentSeniorData.id_number,
+        category: selectedDiscountCategory,
+        discount_amount: discountAmount
+    };
+
+    // Add GPS data if available
+    if (userLocation) {
+        requestData.latitude = userLocation.latitude;
+        requestData.longitude = userLocation.longitude;
+        requestData.accuracy = userLocation.accuracy;
+        console.log('Sending GPS data with discount application:', userLocation);
+    }
+    
+    fetch('/verify/api/apply-discount/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Always reset button state first
+        applyBtn.disabled = false;
+        applyBtn.innerHTML = originalHTML;
+        
+        if (data.success) {
+            // Add this category to used discounts immediately
+            usedDiscounts.push(selectedDiscountCategory);
+            showDiscountApplied(data.transaction);
+        } else {
+            showAlert(data.message || 'Failed to apply discount', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Network error occurred. Please try again.', 'danger');
+        // Reset button on error
+        applyBtn.disabled = false;
+        applyBtn.innerHTML = originalHTML;
+    });
+}
+
+function showDiscountApplied(transaction) {
+    hideAllContent();
+
+    // Populate applied discount data
+    document.getElementById('transaction-number').textContent = transaction.transaction_number || '--';
+    document.getElementById('applied-senior-name').textContent = transaction.senior_name || currentSeniorData.full_name;
+    document.getElementById('applied-discount-amount').textContent = 'PHP ' + parseFloat(transaction.discount_amount || discountAmount).toFixed(2);
+    document.getElementById('applied-discount-type').textContent = selectedDiscountName;
+    document.getElementById('applied-establishment').textContent = transaction.establishment_name || establishmentInfo.name;
+    document.getElementById('applied-time').textContent = new Date().toLocaleString();
+
+    document.getElementById('discount-applied').style.display = 'block';
+    document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-check-double me-2"></i>Discount Applied';
+
+    showAlert('Discount applied successfully!', 'success');
+}
+
+function requestVerification() {
+    const idNumber = document.getElementById('failed-id-number').textContent;
+    const requestBtn = document.querySelector('#verification-failed .btn-warning');
+    
+    requestBtn.disabled = true;
+    requestBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Requesting...';
+    
+    fetch('/verify/api/request-verification/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            id_number: idNumber
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Verification request submitted successfully!', 'success');
+            setTimeout(() => {
+                verifyAnotherID();
+            }, 2000);
+        } else {
+            showAlert(data.message || 'Failed to submit verification request', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Network error occurred. Please try again.', 'danger');
+    })
+    .finally(() => {
+        requestBtn.disabled = false;
+        requestBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Request Verification';
+    });
+}
+
+function verifyAnotherID() {
+    // Reset all variables
+    currentSeniorData = null;
+    selectedDiscountCategory = null;
+    selectedDiscountName = null;
+    usedDiscounts = [];
+    userLocation = null; // Reset GPS location
+
+    // Clear form
+    document.getElementById('id_number').value = '';
+    document.getElementById('id_number').classList.remove('is-valid', 'is-invalid');
+
+    // Reset ALL buttons in confirmation/application screens
+    const allButtons = document.querySelectorAll('.verification-content .btn');
+    allButtons.forEach(btn => {
+        btn.disabled = false;
+        // Restore original button text for specific buttons
+        if (btn.classList.contains('btn-success') && btn.closest('#senior-info-display')) {
+            btn.innerHTML = '<i class="fas fa-check me-2"></i>Apply Discount';
+        }
+        if (btn.classList.contains('btn-warning')) {
+            btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Request Verification';
+        }
+    });
+
+    // Reset ALL discount buttons to their original state
+    const discountButtons = document.querySelectorAll('.discount-btn');
+    discountButtons.forEach(btn => {
+        const category = btn.getAttribute('data-category');
+
+        // Remove all state classes
+        btn.classList.remove('used', 'selected');
+
+        // Reset styles
+        btn.style.cursor = 'pointer';
+        btn.disabled = false;
+
+        // Restore original onclick handlers based on category
+        switch(category) {
+            case 'MEDICINE':
+                btn.onclick = function() { selectDiscount('MEDICINE', 'Pharmacy'); };
+                break;
+            case 'GROCERY':
+                btn.onclick = function() { selectDiscount('GROCERY', 'Grocery'); };
+                break;
+            case 'RESTAURANT':
+                btn.onclick = function() { selectDiscount('RESTAURANT', 'Restaurant'); };
+                break;
+            case 'OTHER':
+                btn.onclick = function() { selectDiscount('OTHER', 'Cinema'); };
+                break;
+        }
+
+        // Remove "(Used)" text if it exists
+        const span = btn.querySelector('span');
+        if (span && span.textContent.includes('(Used)')) {
+            span.textContent = span.textContent.replace(' (Used)', '').trim();
+        }
+    });
+
+    // Clear all verification result fields
+    document.getElementById('verified-id-number').textContent = '--';
+    document.getElementById('verified-name').textContent = '--';
+    document.getElementById('verified-age').textContent = '--';
+    document.getElementById('senior-id-display').textContent = '--';
+    document.getElementById('senior-name-display').textContent = '--';
+    document.getElementById('senior-age-display').textContent = '--';
+    document.getElementById('selected-discount-display').textContent = '--';
+    document.getElementById('applied-senior-name').textContent = '--';
+    document.getElementById('applied-discount-type').textContent = '--';
+    document.getElementById('applied-time').textContent = '--';
+
+    // Show ID verification form only if establishment info exists
+    hideAllContent();
+    if (hasEstablishmentInfo()) {
+        document.getElementById('id-verification-form').style.display = 'block';
+        document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-clipboard-check me-2"></i>ID Verification';
+        document.getElementById('id_number').focus();
+    } else {
+        // No establishment info - show establishment form
+        document.getElementById('establishment-form').style.display = 'block';
+        document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-building me-2"></i>Establishment Information';
+    }
+}
+
+function changeDiscount() {
+    showDiscountSelection();
+}
+
+// Confirm end session with dialog
+function confirmEndSession() {
+    if (confirm('Are you sure you want to end this session? You will need to re-enter establishment information for the next transaction.')) {
+        endSession();
+    }
+}
+
+// End session - clear establishment info from session
+function endSession() {
+    fetch('/verify/api/clear-establishment/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') || '',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Clear local establishment info
+            establishmentInfo = {
+                name: '',
+                contact: '',
+                address: ''
+            };
+
+            showAlert('Session ended successfully', 'success');
+
+            // Reset and show establishment form
+            initializePage();
+        } else {
+            showAlert(data.message || 'Failed to end session', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error ending session:', error);
+        showAlert('Network error occurred. Please try again.', 'danger');
+    });
+}
+
+// Show or hide End Session button based on session status
+function updateEndSessionButton() {
+    const endSessionBtn = document.getElementById('end-session-btn');
+    if (hasEstablishmentInfo()) {
+        endSessionBtn.style.display = 'block';
+    } else {
+        endSessionBtn.style.display = 'none';
+    }
+}
+
+function hideAllContent() {
+    const contents = [
+        'id-verification-form',
+        'verification-success',
+        'verification-failed',
+        'establishment-form',
+        'discount-amount-form',
+        'discount-selection',
+        'senior-info-display',
+        'discount-applied'
+    ];
+
+    contents.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.display = 'none';
+        }
+    });
+}
+
+// Initialize page - check for existing session
+function initializePage() {
+    // Load establishment info from session
+    loadEstablishmentInfo().then(() => {
+        // Reset form and variables
+        currentSeniorData = null;
+        selectedDiscountCategory = null;
+        selectedDiscountName = null;
+        usedDiscounts = [];
+        userLocation = null;
+
+        // Clear ID input
+        document.getElementById('id_number').value = '';
+        document.getElementById('id_number').classList.remove('is-valid', 'is-invalid');
+
+        // Hide all content
+        hideAllContent();
+
+        // Show appropriate form based on session
+        if (hasEstablishmentInfo()) {
+            // Session exists - show ID verification form
+            document.getElementById('id-verification-form').style.display = 'block';
+            document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-clipboard-check me-2"></i>ID Verification';
+            document.getElementById('id_number').focus();
+        } else {
+            // No session - show establishment form first
+            document.getElementById('establishment-form').style.display = 'block';
+            document.getElementById('verification-card-title').innerHTML = '<i class="fas fa-building me-2"></i>Establishment Information';
+
+            // Clear establishment form fields
+            document.getElementById('establishment_name').value = '';
+            document.getElementById('establishment_contact').value = '';
+            document.getElementById('establishment_address').value = '';
+        }
+
+        // Update End Session button visibility
+        updateEndSessionButton();
+    });
+
+    // Request GPS location on page load (optional - ask for permission early)
+    requestLocation();
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializePage();
+});
+</script>
+
+{% endblock %}
