@@ -1,0 +1,888 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ landing_page_content.hero_title }} - Senior Citizen ID Verification System{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7 hero-content">
+                    <h1 class="hero-title floating">{{ landing_page_content.hero_title }}</h1>
+                    <p class="hero-subtitle">{{ landing_page_content.hero_subtitle }}</p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button type="button" class="btn btn-primary-custom" onclick="openTutorial()">
+                            <i class="fas fa-rocket me-2"></i>Get Started
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="establishment-portal-card floating">
+                        <div class="portal-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h4 class="portal-title">ID Verification and Discount Tracking Portal</h4>
+                        <p class="portal-description">Public verification portal to verify senior citizen IDs and track discounts. No registration required.</p>
+                        <div class="mt-3">
+                            <span class="badge-custom">Public Access</span>
+                            <span class="badge-secondary-custom">Instant Use</span>
+                        </div>
+                        <div class="mt-4">
+                            <button type="button" class="btn btn-primary-custom" onclick="openPublicPortal()">
+                                <i class="fas fa-arrow-right me-2"></i>Access Portal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Simplified Carousel Section -->
+    <section class="carousel-section" id="features" style="padding: 120px 0;">
+        <div class="container">
+            <h2 class="section-title">{{ landing_page_content.features_title }}</h2>
+            <p class="text-center lead mb-5" style="color: rgba(0, 0, 0, 0.9);">
+                {{ landing_page_content.features_subtitle }}
+            </p>
+            
+            <!-- Bootstrap Carousel -->
+            <div id="featuresCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
+                <!-- Carousel Indicators -->
+                <div class="carousel-indicators custom-indicators">
+                    <button type="button" data-bs-target="#featuresCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#featuresCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#featuresCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+                
+                <!-- Carousel Inner -->
+                <div class="carousel-inner">
+                    <!-- Slide 1: Secure ID Verification -->
+                    <div class="carousel-item active">
+                        <div class="carousel-slide-content">
+                            <div class="slide-image">
+                                <div class="feature-icon-display">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                            </div>
+                            <div class="slide-text">
+                                <h3>{{ landing_page_content.slide1_title }}</h3>
+                                <h4>{{ landing_page_content.slide1_subtitle }}</h4>
+                                <p>{{ landing_page_content.slide1_description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 2: Discount Tracking -->
+                    <div class="carousel-item">
+                        <div class="carousel-slide-content">
+                            <div class="slide-image">
+                                <div class="feature-icon-display">
+                                    <i class="fas fa-percent"></i>
+                                </div>
+                            </div>
+                            <div class="slide-text">
+                                <h3>{{ landing_page_content.slide2_title }}</h3>
+                                <h4>{{ landing_page_content.slide2_subtitle }}</h4>
+                                <p>{{ landing_page_content.slide2_description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slide 3: Advanced Security -->
+                    <div class="carousel-item">
+                        <div class="carousel-slide-content">
+                            <div class="slide-image">
+                                <div class="feature-icon-display">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                            </div>
+                            <div class="slide-text">
+                                <h3>{{ landing_page_content.slide3_title }}</h3>
+                                <h4>{{ landing_page_content.slide3_subtitle }}</h4>
+                                <p>{{ landing_page_content.slide3_description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Carousel Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#featuresCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#featuresCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Us Section with Dynamic Team -->
+    <section class="about-us-section" id="about-us" style="padding: 120px 0;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="section-title">{{ landing_page_content.about_title }}</h2>
+                    <p class="lead" style="color: rgba(0, 0, 0, 0.9); max-width: 800px; margin: 0 auto;">
+                        {{ landing_page_content.about_description }}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Dynamic Team Grid -->
+            <div class="row mt-5">
+                <div class="col-lg-12">
+                    <div class="team-container">
+                        {% if team_members_display %}
+                        <div class="team-grid">
+                            {% for member in team_members_display %}
+                            <div class="team-card">
+                                <div class="team-photo">
+                                    {% if member.photo %}
+                                        <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="team-img">
+                                    {% else %}
+                                        <div class="team-photo-placeholder">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <h5 class="team-name">{{ member.name }}</h5>
+                                <p class="team-role">{{ member.role }}</p>
+                                <div class="team-info">
+                                    <div class="info-item">
+                                        <strong>Technical:</strong> {{ member.technical_skills }}
+                                    </div>
+                                    <div class="info-item">
+                                        <strong>Soft Skills:</strong> {{ member.soft_skills }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No team members available at the moment.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQs Section with Dynamic Content -->
+    <section class="faqs-section" id="faqs" style="padding: 120px 0;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="section-title">{{ landing_page_content.faq_title }}</h2>
+                    <p class="lead">
+                        {{ landing_page_content.faq_subtitle }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    {% if faq_items_display %}
+                    <div class="accordion" id="faqAccordion">
+                        {% for faq in faq_items_display %}
+                        <div class="accordion-item" style="border: none; margin-bottom: 1rem; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);">
+                            <h3 class="accordion-header" id="faq{{ forloop.counter }}">
+                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" style="font-weight: 600;">
+                                    <i class="{{ faq.icon_class }} me-3"></i>
+                                    {{ faq.question }}
+                                </button>
+                            </h3>
+                            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body" style="line-height: 1.7;">
+                                    {{ faq.answer }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No FAQ items available at the moment.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Us Section -->
+    <section id="contact" class="contact-section" style="padding: 120px 0;">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title">{{ landing_page_content.contact_title }}</h2>
+                    <p class="lead" style="color: rgba(0, 0, 0, 0.9);">
+                        {{ landing_page_content.contact_subtitle }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <!-- Contact Form -->
+                <div class="col-lg-8 col-xl-6">
+                    <div class="contact-form-card" style="
+                        background: rgba(255, 255, 255, 0.95);
+                        border-radius: 24px;
+                        padding: 3rem;
+                        box-shadow: 0 15px 50px rgba(13, 71, 161, 0.15);
+                        border: 1px solid rgba(129, 212, 250, 0.3);
+                        backdrop-filter: blur(15px);
+                    ">
+                        <form id="contactForm" novalidate>
+                            <!-- Full Name -->
+                            <div class="mb-4">
+                                <label for="contactFullName" class="form-label fw-semibold" style="color: var(--dark-blue);">
+                                    Full Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                    class="form-control contact-input" 
+                                    id="contactFullName" 
+                                    name="fullName"
+                                    placeholder="Enter your full name"
+                                    required>
+                                <div class="contact-error" id="fullNameError"></div>
+                            </div>
+
+                            <!-- Email Address -->
+                            <div class="mb-4">
+                                <label for="contactEmail" class="form-label fw-semibold" style="color: var(--dark-blue);">
+                                    Email Address <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" 
+                                    class="form-control contact-input" 
+                                    id="contactEmail" 
+                                    name="email"
+                                    placeholder="Enter your email address"
+                                    required>
+                                <div class="contact-error" id="emailError"></div>
+                            </div>
+
+                            <!-- Subject -->
+                            <div class="mb-4">
+                                <label for="contactSubject" class="form-label fw-semibold" style="color: var(--dark-blue);">
+                                    Subject <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-control contact-input" id="contactSubject" name="subject" required>
+                                    <option value="">Please select a subject</option>
+                                    <option value="general-inquiry">General Inquiry</option>
+                                    <option value="establishment-partnership">Partnership</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <div class="contact-error" id="subjectError"></div>
+                            </div>
+
+                            <!-- Message -->
+                            <div class="mb-4">
+                                <label for="contactMessage" class="form-label fw-semibold" style="color: var(--dark-blue);">
+                                    Message <span class="text-danger">*</span>
+                                </label>
+                                <textarea class="form-control contact-input" 
+                                        id="contactMessage" 
+                                        name="message"
+                                        rows="5" 
+                                        placeholder="Please describe your inquiry or concern in detail..."
+                                        required></textarea>
+                                <div class="contact-error" id="messageError"></div>
+                            </div>
+
+                            <!-- Privacy Policy Checkbox -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                        type="checkbox" 
+                                        id="privacyPolicyCheck" 
+                                        name="privacyPolicy"
+                                        required>
+                                    <label class="form-check-label" for="privacyPolicyCheck" style="color: var(--slate-blue); font-size: 0.95rem;">
+                                        I have read and agree to the
+                                        <a href="#" id="openPrivacyModal" style="color: #0066cc; font-weight: 700; text-decoration: underline;">
+                                            Privacy Policy
+                                        </a>
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                                <div class="contact-error" id="privacyError"></div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid">
+                                <button type="submit" 
+                                        class="btn btn-modal" 
+                                        id="contactSubmitBtn"
+                                        style="background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%); color: white;">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </div>
+
+                            <!-- Success Message -->
+                            <div id="contactSuccess" class="mt-3" style="display: none;">
+                                <div class="alert alert-success d-flex align-items-center">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <div>
+                                        <strong>Message sent successfully!</strong><br>
+                                        We'll get back to you within 24-48 hours.
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="col-lg-4 mt-5 mt-lg-0">
+                    <div class="contact-info">
+                        <div class="contact-info-item mb-4" style="
+                            background: rgba(255, 255, 255, 0.1);
+                            border-radius: 16px;
+                            padding: 2rem;
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                        ">
+                            <div class="d-flex align-items-start">
+                                <div class="contact-icon me-3" style="
+                                    width: 50px;
+                                    height: 50px;
+                                    background: linear-gradient(135deg, var(--royal-blue) 0%, var(--cornflower) 100%);
+                                    border-radius: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-size: 1.2rem;
+                                ">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: rgb(0, 0, 0);">Office Address</h6>
+                                    <p class="mb-0" style="color: rgba(0, 0, 0, 0.8); font-size: 0.9rem; line-height: 1.5;">
+                                        {{ landing_page_content.office_name }}<br>
+                                        {{ landing_page_content.office_address|linebreaksbr }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="contact-info-item mb-4" style="
+                            background: rgba(255, 255, 255, 0.1);
+                            border-radius: 16px;
+                            padding: 2rem;
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                        ">
+                            <div class="d-flex align-items-start">
+                                <div class="contact-icon me-3" style="
+                                    width: 50px;
+                                    height: 50px;
+                                    background: linear-gradient(135deg, var(--royal-blue) 0%, var(--cornflower) 100%);
+                                    border-radius: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-size: 1.2rem;
+                                ">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: rgb(0, 0, 0);">Phone Numbers</h6>
+                                    <p class="mb-0" style="color: rgba(0, 0, 0, 0.8); font-size: 0.9rem; line-height: 1.5;">
+                                        Main: {{ landing_page_content.phone_number }}<br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="contact-info-item mb-4" style="
+                            background: rgba(255, 255, 255, 0.1);
+                            border-radius: 16px;
+                            padding: 2rem;
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                        ">
+                            <div class="d-flex align-items-start">
+                                <div class="contact-icon me-3" style="
+                                    width: 50px;
+                                    height: 50px;
+                                    background: linear-gradient(135deg, var(--royal-blue) 0%, var(--cornflower) 100%);
+                                    border-radius: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-size: 1.2rem;
+                                ">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: rgb(0, 0, 0);">Email Addresses</h6>
+                                    <p class="mb-0" style="color: rgba(0, 0, 0, 0.8); font-size: 0.9rem; line-height: 1.5;">
+                                        General: {{ landing_page_content.email_address }}<br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="contact-info-item" style="
+                            background: rgba(255, 255, 255, 0.1);
+                            border-radius: 16px;
+                            padding: 2rem;
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                        ">
+                            <div class="d-flex align-items-start">
+                                <div class="contact-icon me-3" style="
+                                    width: 50px;
+                                    height: 50px;
+                                    background: linear-gradient(135deg, var(--royal-blue) 0%, var(--cornflower) 100%);
+                                    border-radius: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: white;
+                                    font-size: 1.2rem;
+                                ">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: rgb(0, 0, 0);">Office Hours</h6>
+                                    <p class="mb-0" style="color: rgba(0, 0, 0, 0.8); font-size: 0.9rem; line-height: 1.5;">
+                                        Monday - Friday: 8:00 AM - 5:00 PM<br>
+                                        Saturday: 9:00 AM - 1:00 PM<br>
+                                        Sunday & Holidays: Closed
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Custom CSS for Simplified Carousel -->
+    <style>
+        /* Carousel Section */
+        .carousel-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 25%, #299eff 50%, #ffffff 100%);
+            color: rgb(255, 255, 255);
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: rgb(0, 0, 0) !important;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            letter-spacing: -0.02em;
+        }
+
+        /* Carousel Custom Styling */
+        #featuresCarousel {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .carousel-slide-content {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 3rem;
+            margin: 0 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            height: 400px;
+            min-height: 400px;
+            max-height: 400px;
+        }
+
+        .slide-image {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 20px;
+            margin-right: 2rem;
+            height: 300px;
+        }
+
+        .feature-icon-display {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            box-shadow: 0 15px 40px rgba(21, 101, 192, 0.3);
+        }
+
+        .slide-text {
+            flex: 1;
+            color: #000000;
+        }
+
+        .slide-text h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #000000;
+        }
+
+        .slide-text h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1976d2;
+        }
+
+        .slide-text p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Custom Carousel Indicators */
+        .custom-indicators {
+            margin-bottom: 2rem;
+        }
+
+        .custom-indicators button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: none;
+            margin: 0 6px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-indicators button.active {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.2);
+        }
+
+        /* Carousel Controls */
+        .carousel-control-prev,
+        .carousel-control-next {
+            width: 50px;
+            height: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .carousel-control-prev {
+            left: -70px;
+        }
+
+        .carousel-control-next {
+            right: -70px;
+        }
+
+        .carousel-control-prev:hover,
+        .carousel-control-next:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Team Section Styles */
+        .team-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .team-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .team-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(65, 105, 225, 0.3);
+            border: 3px solid rgba(65, 105, 225, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .team-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .team-photo-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #1976d2;
+        }
+
+        .team-card:hover .team-photo {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(65, 105, 225, 0.4);
+        }
+
+        .team-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 0.5rem;
+        }
+
+        .team-role {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4169e1;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .team-info {
+            text-align: left;
+        }
+
+        .info-item {
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .info-item strong {
+            color: #000;
+            font-weight: 600;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .carousel-slide-content {
+                flex-direction: column;
+                text-align: center;
+                padding: 2rem;
+                min-height: auto;
+            }
+            
+            .slide-image {
+                margin-right: 0;
+                margin-bottom: 2rem;
+                height: 200px;
+                width: 100%;
+            }
+            
+            .feature-icon-display {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+            
+            .carousel-control-prev,
+            .carousel-control-next {
+                display: none;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .team-card {
+                padding: 1.5rem;
+            }
+            
+            .team-photo {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .team-name {
+                font-size: 1.1rem;
+            }
+            
+            .team-role {
+                font-size: 0.8rem;
+            }
+            
+            .info-item {
+                font-size: 0.8rem;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .team-card {
+                padding: 1rem;
+            }
+            
+            .team-photo {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .info-item {
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+
+    <!-- Video Tutorial Modal -->
+    <div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="tutorialModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white;">
+                    <h5 class="modal-title" id="tutorialModalLabel">
+                        <i class="fas fa-play-circle me-2"></i>How to Use VeriSior - Video Tutorial
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" style="background: #000; min-height: 400px;">
+                    <div class="ratio ratio-16x9">
+                        <div id="tutorialVideoPlayer"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Close
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="openPublicPortal()">
+                        <i class="fas fa-arrow-right me-2"></i>Access Portal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load YouTube IFrame Player API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+    // YouTube Player instance
+    let youtubePlayer = null;
+    let isPlayerReady = false;
+
+    // This function is called by YouTube IFrame API when it's ready
+    window.onYouTubeIframeAPIReady = function() {
+        console.log('YouTube IFrame API is ready');
+        isPlayerReady = true;
+    };
+
+    // Open tutorial video modal
+    function openTutorial() {
+        const modal = new bootstrap.Modal(document.getElementById('tutorialModal'));
+        modal.show();
+
+        // Wait a bit for modal to be fully shown, then load video
+        setTimeout(function() {
+            // If player already exists, just play it
+            if (youtubePlayer) {
+                youtubePlayer.playVideo();
+            } else {
+                // Create new YouTube player
+                youtubePlayer = new YT.Player('tutorialVideoPlayer', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: 'AJLqyhUPIXI',
+                    playerVars: {
+                        'autoplay': 1,
+                        'controls': 1,
+                        'rel': 0,
+                        'modestbranding': 1,
+                        'playsinline': 1,
+                        'enablejsapi': 1,
+                        'origin': window.location.origin
+                    },
+                    events: {
+                        'onReady': function(event) {
+                            console.log('YouTube player is ready');
+                            event.target.playVideo();
+                        },
+                        'onError': function(event) {
+                            console.error('YouTube player error:', event.data);
+                            let errorMsg = 'Error loading video';
+                            switch(event.data) {
+                                case 2:
+                                    errorMsg = 'Invalid video ID';
+                                    break;
+                                case 5:
+                                    errorMsg = 'HTML5 player error';
+                                    break;
+                                case 100:
+                                    errorMsg = 'Video not found or private';
+                                    break;
+                                case 101:
+                                case 150:
+                                    errorMsg = 'Video embedding not allowed';
+                                    break;
+                            }
+                            alert('Tutorial video error: ' + errorMsg);
+                        },
+                        'onStateChange': function(event) {
+                            console.log('YouTube player state changed:', event.data);
+                        }
+                    }
+                });
+            }
+        }, 500);
+
+        // Stop video when modal is closed
+        const tutorialModal = document.getElementById('tutorialModal');
+        const stopVideoHandler = function () {
+            if (youtubePlayer && youtubePlayer.stopVideo) {
+                youtubePlayer.stopVideo();
+            }
+            tutorialModal.removeEventListener('hidden.bs.modal', stopVideoHandler);
+        };
+        tutorialModal.addEventListener('hidden.bs.modal', stopVideoHandler);
+    }
+</script>
+{% endblock %}

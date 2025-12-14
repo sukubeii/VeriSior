@@ -1,0 +1,265 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Deactivate User - VeriSior{% endblock %}
+{% block page_title %}Deactivate User Account{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-user-slash me-2"></i>Deactivate User Account
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Notice:</strong> This action will deactivate the user account. The user will be unable to log in until the account is reactivated by an administrator.
+                </div>
+
+                <!-- User Information -->
+                <div class="row mb-4">
+                    <div class="col-md-3 text-center">
+                        <div class="avatar-lg">
+                            <div class="avatar-initial bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px; font-size: 24px;">
+                                {{ user_to_delete.first_name.0|default:user_to_delete.username.0|upper }}{{ user_to_delete.last_name.0|default:'' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <h4>{{ user_to_delete.first_name }} {{ user_to_delete.last_name }}</h4>
+                        <p class="text-muted mb-2">@{{ user_to_delete.username }}</p>
+                        <p class="mb-1"><strong>Role:</strong> {{ user_to_delete.get_role_display }}</p>
+                        <p class="mb-1"><strong>Email:</strong> {{ user_to_delete.email }}</p>
+                        <p class="mb-1"><strong>Member Since:</strong> {{ user_to_delete.date_joined|date:"F d, Y" }}</p>
+                        <p class="mb-1"><strong>Current Status:</strong> 
+                            {% if user_to_delete.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Already Inactive</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Confirmation Form -->
+                <form method="post" id="deactivateForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="confirmation" class="form-label">
+                            Type <strong>DEACTIVATE</strong> to confirm deactivation:
+                        </label>
+                        <input type="text" class="form-control" id="confirmation" name="confirmation" required 
+                               placeholder="Type DEACTIVATE here">
+                        <div class="form-text">This confirmation is required to prevent accidental deactivation.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="deactivation_reason" class="form-label">
+                            Reason for Deactivation <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-control mb-2" id="reason_category" name="reason_category" required>
+                            <option value="">Select a category</option>
+                            <option value="temporary_leave">Temporary Leave</option>
+                            <option value="disciplinary_action">Disciplinary Action</option>
+                            <option value="role_change">Role Change/Restructuring</option>
+                            <option value="security_concern">Security Concern</option>
+                            <option value="administrative_request">Administrative Request</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <textarea class="form-control" id="deactivation_reason" name="deactivation_reason" rows="3" required
+                                  placeholder="Please provide detailed reason for deactivating this user account..."></textarea>
+                        <div class="form-text">Detailed reason will help with future reactivation decisions.</div>
+                    </div>
+
+
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-warning" id="deactivateBtn" disabled>
+                            <i class="fas fa-user-slash me-1"></i>Deactivate User Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<!-- Final Confirmation Modal -->
+<div class="modal fade" id="finalConfirmModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Confirm Account Deactivation</h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-slash fa-3x text-warning"></i>
+                </div>
+                <h5 class="text-center mb-3">Deactivate User Account?</h5>
+                <p class="text-center">
+                    This will deactivate the account for 
+                    <strong>{{ user_to_delete.first_name }} {{ user_to_delete.last_name }}</strong>.
+                </p>
+                <div class="alert alert-info">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        The user will lose access immediately but the account can be reactivated at any time.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-warning" id="finalDeactivateBtn">
+                    <i class="fas fa-user-slash me-1"></i>Yes, Deactivate Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-initial {
+    font-weight: 600;
+}
+.card-header.bg-warning {
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+}
+.alert ul {
+    padding-left: 1.5rem;
+}
+.form-check {
+    margin-bottom: 0.5rem;
+}
+.alert-success {
+    background-color: #d1f2eb;
+    border-color: #a7e0d4;
+    color: #0f5132;
+}
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #abdde5;
+    color: #0c5460;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deactivateForm = document.getElementById('deactivateForm');
+    const confirmationInput = document.getElementById('confirmation');
+    const deactivateBtn = document.getElementById('deactivateBtn');
+    const finalConfirmModal = new bootstrap.Modal(document.getElementById('finalConfirmModal'));
+    const finalDeactivateBtn = document.getElementById('finalDeactivateBtn');
+    const reasonCategory = document.getElementById('reason_category');
+    const deactivationReason = document.getElementById('deactivation_reason');
+
+    // Update reason placeholder based on category
+    reasonCategory.addEventListener('change', function() {
+        const placeholders = {
+            'temporary_leave': 'e.g., Medical leave, vacation, sabbatical...',
+            'disciplinary_action': 'e.g., Policy violation, pending investigation...',
+            'role_change': 'e.g., Department transfer, position elimination...',
+            'security_concern': 'e.g., Suspected unauthorized access, password compromise...',
+            'administrative_request': 'e.g., Manager request, HR directive...',
+            'other': 'Please specify the reason for deactivation...'
+        };
+        
+        const placeholder = placeholders[this.value] || 'Please provide detailed reason for deactivating this user account...';
+        deactivationReason.placeholder = placeholder;
+    });
+
+    // Enable deactivate button only when "DEACTIVATE" is typed correctly
+    confirmationInput.addEventListener('input', function() {
+        if (this.value.trim().toUpperCase() === 'DEACTIVATE') {
+            deactivateBtn.disabled = false;
+            deactivateBtn.classList.remove('btn-outline-warning');
+            deactivateBtn.classList.add('btn-warning');
+        } else {
+            deactivateBtn.disabled = true;
+            deactivateBtn.classList.remove('btn-warning');
+            deactivateBtn.classList.add('btn-outline-warning');
+        }
+    });
+
+    // Intercept form submission for final confirmation
+    deactivateForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (confirmationInput.value.trim().toUpperCase() === 'DEACTIVATE') {
+            // Validate required fields
+            const reasonCategory = document.getElementById('reason_category').value;
+            const deactivationReason = document.getElementById('deactivation_reason').value.trim();
+            
+            if (!reasonCategory) {
+                alert('Please select a reason category.');
+                document.getElementById('reason_category').focus();
+                return;
+            }
+            
+            if (!deactivationReason) {
+                alert('Please provide a detailed reason for deactivation.');
+                document.getElementById('deactivation_reason').focus();
+                return;
+            }
+            
+            finalConfirmModal.show();
+        } else {
+            alert('Please type DEACTIVATE in the confirmation field.');
+            confirmationInput.focus();
+        }
+    });
+
+    // Handle final confirmation
+    finalDeactivateBtn.addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deactivating...';
+        
+        // Submit the form
+        deactivateForm.submit();
+    });
+
+    // Auto-focus on confirmation input
+    confirmationInput.focus();
+
+    // Set minimum date for reactivation to tomorrow
+    const reactivationDateInput = document.getElementById('reactivation_date');
+    if (reactivationDateInput) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        reactivationDateInput.min = tomorrow.toISOString().split('T')[0];
+    }
+
+    // Prevent accidental page close if form is partially filled
+    let formModified = false;
+    const formInputs = deactivateForm.querySelectorAll('input, textarea, select');
+    formInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            formModified = true;
+        });
+    });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (formModified && confirmationInput.value.trim() !== '') {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Clear modified flag when form is submitted
+    deactivateForm.addEventListener('submit', function() {
+        formModified = false;
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1779 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}{{ action }} User - VeriSior{% endblock %}
+{% block page_title %}{{ action }} User Account{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post" id="userForm">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user me-2"></i>Basic Information
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">
+                                First Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="first_name" id="first_name" 
+                                value="{{ user_obj.first_name|default:'' }}" 
+                                required
+                                pattern="[A-Za-z]{3,15}"
+                                minlength="3"
+                                maxlength="15"
+                                title="Letters only, 3-15 characters">
+                            <div class="invalid-feedback">
+                                First name must contain only letters and be 3-15 characters long.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">
+                                Last Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="last_name" id="last_name" 
+                                value="{{ user_obj.last_name|default:'' }}" 
+                                required
+                                pattern="[A-Za-z]{3,15}"
+                                minlength="3"
+                                maxlength="15"
+                                title="Letters only, 3-15 characters">
+                            <div class="invalid-feedback">
+                                Last name must contain only letters and be 3-15 characters long.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">
+                                Username <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="username" id="username" 
+                                value="{{ user_obj.username|default:'' }}" 
+                                required
+                                pattern="[A-Za-z0-9_.]{3,15}"
+                                minlength="3"
+                                maxlength="15"
+                                title="Alphanumeric, underscore, or dot only, 3-15 characters">
+                            <div class="invalid-feedback">
+                                Username must be alphanumeric with optional underscore or dot, 3-15 characters long.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                Email Address <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" class="form-control" name="email" id="email" 
+                                value="{{ user_obj.email|default:'' }}" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid email address.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone_number" class="form-label">
+                                Phone Number
+                            </label>
+                            <input type="text" class="form-control" name="phone_number" id="phone_number" 
+                                value="{{ user_obj.phone_number|default:'' }}" 
+                                pattern="[0-9]{11}"
+                                minlength="11"
+                                maxlength="11"
+                                title="Exactly 11 digits"
+                                placeholder="09XXXXXXXXX">
+                            <div class="invalid-feedback">
+                                Phone number must be exactly 11 digits (e.g., 09123456789).
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="department" class="form-label">
+                                Department
+                            </label>
+                            <input type="text" class="form-control" name="department" id="department"
+                                value="{{ user_obj.department|default:'' }}" placeholder="e.g. IT Department">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role and Status -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-shield-alt me-2"></i>Role & Status
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="role" class="form-label">
+                                User Role <span class="text-danger">*</span>
+                            </label>
+                            <select name="role" id="role" class="form-control" required>
+                                <option value="">Select Role</option>
+                                {% for role_code, role_display in available_roles %}
+                                    <option value="{{ role_code }}" {% if user_obj.role == role_code %}selected{% endif %}>
+                                        {{ role_display }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                Available roles based on your permissions: 
+                                {% for role in manageable_roles %}{{ role }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Account Status</label>
+                            <div class="mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="is_active" 
+                                           {% if action == 'Create' or user_obj.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        Account is active
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-text">Inactive users cannot log in to the system</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="role-info" class="alert alert-info" style="display: none;">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span id="role-description"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Core Navigation Access Permissions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-sitemap me-2"></i>Core Navigation Access & Permissions
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Core Navigation:</strong> Control access to main system sections and their specific actions.
+                    </div>
+                    
+                    <!-- Dashboard Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-primary border-bottom pb-2">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard Access & Actions
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_dashboard" id="can_access_dashboard"
+                                           {% if user_obj.can_access_dashboard %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_dashboard">
+                                        <strong>Access Dashboard</strong>
+                                    </label>
+                                    <div class="form-text">Main dashboard navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_dashboard_statistics" id="can_view_dashboard_statistics"
+                                           {% if user_obj.can_view_dashboard_statistics %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_dashboard_statistics">
+                                        View Dashboard Statistics
+                                    </label>
+                                    <div class="form-text">View statistics and overview data</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_export_dashboard_reports" id="can_export_dashboard_reports"
+                                           {% if user_obj.can_export_dashboard_reports %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_export_dashboard_reports">
+                                        Export Dashboard Reports
+                                    </label>
+                                    <div class="form-text">Export dashboard analytics and reports</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Records Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-primary border-bottom pb-2">
+                            <i class="fas fa-users me-2"></i>Active Records - CRUD Operations
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_active_records" id="can_access_active_records"
+                                           {% if user_obj.can_access_active_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_active_records">
+                                        <strong>Access Active Records</strong>
+                                    </label>
+                                    <div class="form-text">Active records navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_active_records" id="can_view_active_records"
+                                           {% if user_obj.can_view_active_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_active_records">
+                                        View Active Records
+                                    </label>
+                                    <div class="form-text">Read access to active senior citizen records</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_create_active_records" id="can_create_active_records"
+                                           {% if user_obj.can_create_active_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_create_active_records">
+                                        Create Active Records
+                                    </label>
+                                    <div class="form-text">Create new senior citizen records</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_edit_active_records" id="can_edit_active_records"
+                                           {% if user_obj.can_edit_active_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_edit_active_records">
+                                        Edit Active Records
+                                    </label>
+                                    <div class="form-text">Modify existing active records</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_delete_active_records" id="can_delete_active_records"
+                                           {% if user_obj.can_delete_active_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_delete_active_records">
+                                        Delete Active Records
+                                    </label>
+                                    <div class="form-text">Delete active records</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_approve_active_records" id="can_approve_active_records"
+                                           {% if user_obj.can_approve_active_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_approve_active_records">
+                                        Approve Active Records
+                                    </label>
+                                    <div class="form-text">Approve/reject senior citizen applications</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_export_active_records" id="can_export_active_records"
+                                           {% if user_obj.can_export_active_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_export_active_records">
+                                        Export Active Records
+                                    </label>
+                                    <div class="form-text">Export active records data</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Archived Records Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-primary border-bottom pb-2">
+                            <i class="fas fa-archive me-2"></i>Archived Records Management
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_archived_records" id="can_access_archived_records"
+                                           {% if user_obj.can_access_archived_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_archived_records">
+                                        <strong>Access Archived Records</strong>
+                                    </label>
+                                    <div class="form-text">Archived records navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_archived_records" id="can_view_archived_records"
+                                           {% if user_obj.can_view_archived_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_archived_records">
+                                        View Archived Records
+                                    </label>
+                                    <div class="form-text">View archived/historical records</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_restore_archived_records" id="can_restore_archived_records"
+                                           {% if user_obj.can_restore_archived_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_restore_archived_records">
+                                        Restore Archived Records
+                                    </label>
+                                    <div class="form-text">Restore archived records to active</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_permanently_delete_archived" id="can_permanently_delete_archived"
+                                           {% if user_obj.can_permanently_delete_archived %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_permanently_delete_archived">
+                                        Permanently Delete Archived
+                                    </label>
+                                    <div class="form-text">Permanently delete archived records</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_export_archived_records" id="can_export_archived_records"
+                                           {% if user_obj.can_export_archived_records %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_export_archived_records">
+                                        Export Archived Records
+                                    </label>
+                                    <div class="form-text">Export archived records data</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Batch Upload Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-primary border-bottom pb-2">
+                            <i class="fas fa-file-upload me-2"></i>Batch Upload Operations
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_batch_upload" id="can_access_batch_upload"
+                                           {% if user_obj.can_access_batch_upload %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_batch_upload">
+                                        <strong>Access Batch Upload</strong>
+                                    </label>
+                                    <div class="form-text">Batch upload navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_perform_batch_upload" id="can_perform_batch_upload"
+                                           {% if user_obj.can_perform_batch_upload %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_perform_batch_upload">
+                                        Perform Batch Upload
+                                    </label>
+                                    <div class="form-text">Execute bulk data uploads</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_download_batch_templates" id="can_download_batch_templates"
+                                           {% if user_obj.can_download_batch_templates %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_download_batch_templates">
+                                        Download Batch Templates
+                                    </label>
+                                    <div class="form-text">Download upload templates</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_batch_history" id="can_view_batch_history"
+                                           {% if user_obj.can_view_batch_history %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_batch_history">
+                                        View Batch History
+                                    </label>
+                                    <div class="form-text">View batch upload history</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_manage_batch_operations" id="can_manage_batch_operations"
+                                           {% if user_obj.can_manage_batch_operations %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_manage_batch_operations">
+                                        Manage Batch Operations
+                                    </label>
+                                    <div class="form-text">Manage and monitor batch operations</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Messages Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-primary border-bottom pb-2">
+                            <i class="fas fa-envelope me-2"></i>Messages & Communication
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_messages" id="can_access_messages"
+                                           {% if user_obj.can_access_messages %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_messages">
+                                        <strong>Access Messages</strong>
+                                    </label>
+                                    <div class="form-text">Messages navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_messages" id="can_view_messages"
+                                           {% if user_obj.can_view_messages %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_messages">
+                                        View Messages
+                                    </label>
+                                    <div class="form-text">View contact messages and communications</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_respond_to_messages" id="can_respond_to_messages"
+                                           {% if user_obj.can_respond_to_messages %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_respond_to_messages">
+                                        Respond to Messages
+                                    </label>
+                                    <div class="form-text">Respond to incoming messages</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_delete_messages" id="can_delete_messages"
+                                           {% if user_obj.can_delete_messages %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_delete_messages">
+                                        Delete Messages
+                                    </label>
+                                    <div class="form-text">Delete messages from system</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-primary border-bottom pb-2">
+                            <i class="fas fa-cog me-2"></i>Settings & System Configuration
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_settings" id="can_access_settings"
+                                           {% if user_obj.can_access_settings %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_settings">
+                                        <strong>Access Settings</strong>
+                                    </label>
+                                    <div class="form-text">Settings navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_modify_personal_settings" id="can_modify_personal_settings"
+                                           {% if user_obj.can_modify_personal_settings %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_modify_personal_settings">
+                                        Modify Personal Settings
+                                    </label>
+                                    <div class="form-text">Modify personal account settings</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_modify_system_settings" id="can_modify_system_settings"
+                                           {% if user_obj.can_modify_system_settings %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_modify_system_settings">
+                                        Modify System Settings
+                                    </label>
+                                    <div class="form-text">Modify system-wide settings</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_manage_backup_settings" id="can_manage_backup_settings"
+                                           {% if user_obj.can_manage_backup_settings %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_manage_backup_settings">
+                                        Manage Backup Settings
+                                    </label>
+                                    <div class="form-text">Manage backup and restore settings</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_audit_logs" id="can_view_audit_logs"
+                                           {% if user_obj.can_view_audit_logs %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_audit_logs">
+                                        View Audit Logs
+                                    </label>
+                                    <div class="form-text">View system audit logs</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_export_audit_logs" id="can_export_audit_logs"
+                                           {% if user_obj.can_export_audit_logs %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_export_audit_logs">
+                                        Export Audit Logs
+                                    </label>
+                                    <div class="form-text">Export audit logs for compliance</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Administrative Navigation Access Permissions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-users-cog me-2"></i>Administrative Navigation Access & Permissions
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Administrative Access:</strong> Control access to administrative sections and their specific operations.
+                    </div>
+                    
+                    <!-- Pending Approvals Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-warning border-bottom pb-2">
+                            <i class="fas fa-check-circle me-2"></i>Pending Approvals Management
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_pending_approvals" id="can_access_pending_approvals"
+                                           {% if user_obj.can_access_pending_approvals %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_pending_approvals">
+                                        <strong>Access Pending Approvals</strong>
+                                    </label>
+                                    <div class="form-text">Pending approvals navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_pending_applications" id="can_view_pending_applications"
+                                           {% if user_obj.can_view_pending_applications %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_pending_applications">
+                                        View Pending Applications
+                                    </label>
+                                    <div class="form-text">View applications awaiting approval</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_approve_applications" id="can_approve_applications"
+                                           {% if user_obj.can_approve_applications %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_approve_applications">
+                                        Approve Applications
+                                    </label>
+                                    <div class="form-text">Approve pending applications</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_reject_applications" id="can_reject_applications"
+                                           {% if user_obj.can_reject_applications %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_reject_applications">
+                                        Reject Applications
+                                    </label>
+                                    <div class="form-text">Reject pending applications</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_bulk_process_approvals" id="can_bulk_process_approvals"
+                                           {% if user_obj.can_bulk_process_approvals %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_bulk_process_approvals">
+                                        Bulk Process Approvals
+                                    </label>
+                                    <div class="form-text">Process multiple approvals at once</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_export_approval_reports" id="can_export_approval_reports"
+                                           {% if user_obj.can_export_approval_reports %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_export_approval_reports">
+                                        Export Approval Reports
+                                    </label>
+                                    <div class="form-text">Export approval statistics and reports</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verification Requests Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-warning border-bottom pb-2">
+                            <i class="fas fa-clipboard-check me-2"></i>Verification Requests Management
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_verification_requests" id="can_access_verification_requests"
+                                           {% if user_obj.can_access_verification_requests %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_verification_requests">
+                                        <strong>Access Verification Requests</strong>
+                                    </label>
+                                    <div class="form-text">Verification requests navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_verification_requests" id="can_view_verification_requests"
+                                           {% if user_obj.can_view_verification_requests %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_verification_requests">
+                                        View Verification Requests
+                                    </label>
+                                    <div class="form-text">View public verification requests</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_respond_to_verifications" id="can_respond_to_verifications"
+                                           {% if user_obj.can_respond_to_verifications %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_respond_to_verifications">
+                                        Respond to Verifications
+                                    </label>
+                                    <div class="form-text">Respond to verification requests</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_manage_verification_queue" id="can_manage_verification_queue"
+                                           {% if user_obj.can_manage_verification_queue %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_manage_verification_queue">
+                                        Manage Verification Queue
+                                    </label>
+                                    <div class="form-text">Manage verification request queue</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_export_verification_data" id="can_export_verification_data"
+                                           {% if user_obj.can_export_verification_data %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_export_verification_data">
+                                        Export Verification Data
+                                    </label>
+                                    <div class="form-text">Export verification request data</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Management Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-warning border-bottom pb-2">
+                            <i class="fas fa-users-cog me-2"></i>User Management Operations
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_user_management" id="can_access_user_management"
+                                           {% if user_obj.can_access_user_management %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_user_management">
+                                        <strong>Access User Management</strong>
+                                    </label>
+                                    <div class="form-text">User management navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_users" id="can_view_users"
+                                           {% if user_obj.can_view_users %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_users">
+                                        View Users
+                                    </label>
+                                    <div class="form-text">View user accounts and details</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_create_users" id="can_create_users"
+                                           {% if user_obj.can_create_users %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_create_users">
+                                        Create Users
+                                    </label>
+                                    <div class="form-text">Create new user accounts</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_edit_users" id="can_edit_users"
+                                           {% if user_obj.can_edit_users %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_edit_users">
+                                        Edit Users
+                                    </label>
+                                    <div class="form-text">Edit existing user accounts</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_delete_users" id="can_delete_users"
+                                           {% if user_obj.can_delete_users %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_delete_users">
+                                        Delete Users
+                                    </label>
+                                    <div class="form-text">Delete user accounts</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_manage_user_permissions" id="can_manage_user_permissions"
+                                           {% if user_obj.can_manage_user_permissions %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_manage_user_permissions">
+                                        Manage User Permissions
+                                    </label>
+                                    <div class="form-text">Manage user permissions and roles</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_reset_user_passwords" id="can_reset_user_passwords"
+                                           {% if user_obj.can_reset_user_passwords %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_reset_user_passwords">
+                                        Reset User Passwords
+                                    </label>
+                                    <div class="form-text">Reset passwords for user accounts</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_disable_user_mfa" id="can_disable_user_mfa"
+                                           {% if user_obj.can_disable_user_mfa %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_disable_user_mfa">
+                                        Disable User MFA
+                                    </label>
+                                    <div class="form-text">Disable MFA for user accounts</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Management Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-warning border-bottom pb-2">
+                            <i class="fas fa-edit me-2"></i>Content Management Operations
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_content_management" id="can_access_content_management"
+                                           {% if user_obj.can_access_content_management %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_content_management">
+                                        <strong>Access Content Management</strong>
+                                    </label>
+                                    <div class="form-text">Content management navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_content" id="can_view_content"
+                                           {% if user_obj.can_view_content %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_content">
+                                        View Content Preview
+                                    </label>
+                                    <div class="form-text">View homepage content preview</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_edit_landing_page_content" id="can_edit_landing_page_content"
+                                           {% if user_obj.can_edit_landing_page_content %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_edit_landing_page_content">
+                                        Edit Landing Page Content
+                                    </label>
+                                    <div class="form-text">Edit hero, features, about, contact sections</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_manage_team_members" id="can_manage_team_members"
+                                           {% if user_obj.can_manage_team_members %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_manage_team_members">
+                                        Manage Team Members
+                                    </label>
+                                    <div class="form-text">Add, edit, delete team member profiles</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_manage_faq_items" id="can_manage_faq_items"
+                                           {% if user_obj.can_manage_faq_items %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_manage_faq_items">
+                                        Manage FAQ Items
+                                    </label>
+                                    <div class="form-text">Add, edit, delete FAQ questions and answers</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_manage_privacy_policy" id="can_manage_privacy_policy"
+                                           {% if user_obj.can_manage_privacy_policy %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_manage_privacy_policy">
+                                        Manage Privacy Policy
+                                    </label>
+                                    <div class="form-text">Edit privacy policy content</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_export_content" id="can_export_content"
+                                           {% if user_obj.can_export_content %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_export_content">
+                                        Export Content Data
+                                    </label>
+                                    <div class="form-text">Export content to JSON format</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_backup_restore_content" id="can_backup_restore_content"
+                                           {% if user_obj.can_backup_restore_content %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_backup_restore_content">
+                                        Backup & Restore Content
+                                    </label>
+                                    <div class="form-text">Create and restore content backups</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-warning border-bottom pb-2">
+                            <i class="fas fa-user-circle me-2"></i>Profile Management
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_profile" id="can_access_profile"
+                                           {% if user_obj.can_access_profile %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_profile">
+                                        <strong>Access Profile</strong>
+                                    </label>
+                                    <div class="form-text">Profile navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_edit_personal_profile" id="can_edit_personal_profile"
+                                           {% if user_obj.can_edit_personal_profile %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_edit_personal_profile">
+                                        Edit Personal Profile
+                                    </label>
+                                    <div class="form-text">Edit personal profile information</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_change_password" id="can_change_password"
+                                           {% if user_obj.can_change_password %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_change_password">
+                                        Change Password
+                                    </label>
+                                    <div class="form-text">Change account password</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_setup_mfa" id="can_setup_mfa"
+                                           {% if user_obj.can_setup_mfa %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_setup_mfa">
+                                        Setup MFA
+                                    </label>
+                                    <div class="form-text">Setup/modify multi-factor authentication</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_login_history" id="can_view_login_history"
+                                           {% if user_obj.can_view_login_history %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_login_history">
+                                        View Login History
+                                    </label>
+                                    <div class="form-text">View personal login history</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reports Permissions -->
+                    <div class="permission-category mb-4">
+                        <h6 class="fw-bold text-primary border-bottom pb-2">
+                            <i class="fas fa-chart-bar me-2"></i>Reports & Analytics
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="can_access_reports" id="can_access_reports"
+                                        {% if user_obj.can_access_reports %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_access_reports">
+                                        <strong>Access Reports</strong>
+                                    </label>
+                                    <div class="form-text">Reports navigation access</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_view_reports" id="can_view_reports"
+                                        {% if user_obj.can_view_reports %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_view_reports">
+                                        View Reports
+                                    </label>
+                                    <div class="form-text">View system reports and analytics</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_generate_reports" id="can_generate_reports"
+                                        {% if user_obj.can_generate_reports %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_generate_reports">
+                                        Generate Reports
+                                    </label>
+                                    <div class="form-text">Generate custom reports</div>
+                                </div>
+                                <div class="form-check ms-3">
+                                    <input class="form-check-input" type="checkbox" name="can_export_reports" id="can_export_reports"
+                                        {% if user_obj.can_export_reports %}checked{% endif %}>
+                                    <label class="form-check-label" for="can_export_reports">
+                                        Export Reports
+                                    </label>
+                                    <div class="form-text">Export reports to various formats</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Management -->
+            {% if action == 'Create' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-key me-2"></i>Password
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Automatic Password Generation:</strong> A secure temporary password will be automatically generated and sent to the user's email address.
+                        The user will be required to change this password on first login.
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-key me-2"></i>Password Management
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        To change the user's password, use the "Reset Password" option or the user can change it through their profile.
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="force_password_change" id="force_password_change"
+                               {% if user_obj.must_change_password %}checked{% endif %}>
+                        <label class="form-check-label" for="force_password_change">
+                            Force password change on next login
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Form Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>{{ action }} User
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sidebar Information -->
+    <div class="col-lg-4">
+        {% if action == 'Update' and user_obj %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Current User Information
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="avatar-lg">
+                        <div class="avatar-initial bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px; font-size: 24px;">
+                            {{ user_obj.first_name.0|default:user_obj.username.0|upper }}{{ user_obj.last_name.0|default:'' }}
+                        </div>
+                    </div>
+                    <h5 class="mb-1">{{ user_obj.first_name }} {{ user_obj.last_name }}</h5>
+                    <p class="text-muted">@{{ user_obj.username }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Current Role</label>
+                    <p class="fw-semibold">{{ user_obj.get_role_display }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Member Since</label>
+                    <p class="fw-semibold">{{ user_obj.date_joined|date:"F d, Y" }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Last Login</label>
+                    <p class="fw-semibold">
+                        {% if user_obj.last_login %}
+                            {{ user_obj.last_login|date:"M d, Y g:i A" }}
+                        {% else %}
+                            Never logged in
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Status</label>
+                    <p>
+                        {% if user_obj.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-danger">Inactive</span>
+                        {% endif %}
+                        {% if user_obj.mfa_enabled %}
+                            <span class="badge bg-info ms-1">MFA Enabled</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Role-Based Permissions Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Permission Information
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    <h6 class="alert-heading">Role-Based Access</h6>
+                    <p class="mb-0 small">
+                        Permissions are automatically configured based on the selected role.
+                        Only checkboxes available for the selected role will be displayed below.
+                    </p>
+                    <hr class="my-2">
+                    <p class="mb-0 small">
+                        <strong>Note:</strong> You cannot grant permissions that are not allowed for the selected role.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% if action == 'Create' %}
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-envelope me-2"></i>Account Notifications
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Welcome Email:</strong> A welcome email with login credentials and temporary password will be automatically sent to the user's email address.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-initial {
+    font-weight: 600;
+}
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.form-check {
+    margin-bottom: 0.75rem;
+}
+.form-check .form-text {
+    margin-top: 0.25rem;
+    margin-left: 1.5rem;
+    font-size: 0.875rem;
+}
+.badge.badge-success {
+    background-color: #198754;
+}
+.badge.badge-danger {
+    background-color: #dc3545;
+}
+.permission-category {
+    border: 1px solid var(--gray-200);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: var(--gray-50);
+}
+.permission-category h6 {
+    margin-bottom: 1rem;
+}
+.form-check.ms-3 {
+    margin-left: 1.5rem !important;
+    margin-top: 0.5rem;
+}
+
+.avatar-initial {
+    font-weight: 600;
+}
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.form-check {
+    margin-bottom: 0.75rem;
+}
+.form-check .form-text {
+    margin-top: 0.25rem;
+    margin-left: 1.5rem;
+    font-size: 0.875rem;
+}
+.badge.badge-success {
+    background-color: #198754;
+}
+.badge.badge-danger {
+    background-color: #dc3545;
+}
+.permission-category {
+    border: 1px solid var(--gray-200);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: var(--gray-50);
+}
+.permission-category h6 {
+    margin-bottom: 1rem;
+}
+.form-check.ms-3 {
+    margin-left: 1.5rem !important;
+    margin-top: 0.5rem;
+}
+
+/* Validation feedback styles */
+.form-control.is-valid {
+    border-color: #198754;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: #dc3545;
+}
+
+.form-control.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:valid {
+    border-color: #198754;
+}
+
+.sub-permission-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ==================== INPUT VALIDATION ====================
+    
+    // Real-time validation for First Name
+    const firstNameInput = document.getElementById('first_name');
+    if (firstNameInput) {
+        firstNameInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^A-Za-z]/g, '');
+            if (this.value.length > 15) {
+                this.value = this.value.substring(0, 15);
+            }
+            validateField(this);
+        });
+        
+        firstNameInput.addEventListener('blur', function() {
+            validateField(this);
+        });
+    }
+    
+    // Real-time validation for Last Name
+    const lastNameInput = document.getElementById('last_name');
+    if (lastNameInput) {
+        lastNameInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^A-Za-z]/g, '');
+            if (this.value.length > 15) {
+                this.value = this.value.substring(0, 15);
+            }
+            validateField(this);
+        });
+        
+        lastNameInput.addEventListener('blur', function() {
+            validateField(this);
+        });
+    }
+    
+    // Real-time validation for Username
+    const usernameInput = document.getElementById('username');
+    if (usernameInput) {
+        usernameInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^A-Za-z0-9_.]/g, '');
+            if (this.value.length > 15) {
+                this.value = this.value.substring(0, 15);
+            }
+            validateField(this);
+        });
+        
+        usernameInput.addEventListener('blur', function() {
+            validateField(this);
+        });
+    }
+    
+    // Real-time validation for Phone Number
+    const phoneInput = document.getElementById('phone_number');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 11) {
+                this.value = this.value.substring(0, 11);
+            }
+            validateField(this);
+        });
+        
+        phoneInput.addEventListener('blur', function() {
+            validateField(this);
+        });
+    }
+    
+    // Helper function to validate individual field
+    function validateField(field) {
+        if (field.value.length === 0 && !field.required) {
+            field.classList.remove('is-invalid', 'is-valid');
+            return true;
+        }
+        
+        if (field.checkValidity()) {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            return true;
+        } else {
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
+            return false;
+        }
+    }
+
+    // ==================== ROLE TO PERMISSIONS MAPPING ====================
+    
+    const rolePermissions = {
+        'RA': {
+            description: 'Root Administrator has ultimate control over the system. Only one RA account allowed.',
+            defaults: {
+                'can_access_dashboard': true,
+                'can_view_dashboard_statistics': true,
+                'can_export_dashboard_reports': true,
+                'can_access_active_records': true,
+                'can_view_active_records': true,
+                'can_create_active_records': true,
+                'can_edit_active_records': true,
+                'can_delete_active_records': true,
+                'can_approve_active_records': true,
+                'can_export_active_records': true,
+                'can_access_archived_records': true,
+                'can_view_archived_records': true,
+                'can_restore_archived_records': true,
+                'can_permanently_delete_archived': true,
+                'can_export_archived_records': true,
+                'can_access_batch_upload': true,
+                'can_perform_batch_upload': true,
+                'can_download_batch_templates': true,
+                'can_view_batch_history': true,
+                'can_manage_batch_operations': true,
+                'can_access_messages': true,
+                'can_view_messages': true,
+                'can_respond_to_messages': true,
+                'can_delete_messages': true,
+                'can_access_settings': true,
+                'can_modify_personal_settings': true,
+                'can_modify_system_settings': true,
+                'can_manage_backup_settings': true,
+                'can_view_audit_logs': true,
+                'can_export_audit_logs': true,
+                'can_access_reports': true,
+                'can_view_reports': true,
+                'can_generate_reports': true,
+                'can_export_reports': true,
+                'can_access_pending_approvals': true,
+                'can_view_pending_applications': true,
+                'can_approve_applications': true,
+                'can_reject_applications': true,
+                'can_bulk_process_approvals': true,
+                'can_export_approval_reports': true,
+                'can_access_verification_requests': true,
+                'can_view_verification_requests': true,
+                'can_respond_to_verifications': true,
+                'can_manage_verification_queue': true,
+                'can_export_verification_data': true,
+                'can_access_user_management': true,
+                'can_view_users': true,
+                'can_create_users': true,
+                'can_edit_users': true,
+                'can_delete_users': true,
+                'can_manage_user_permissions': true,
+                'can_reset_user_passwords': true,
+                'can_disable_user_mfa': true,
+                'can_access_content_management': true,
+                'can_view_content': true,
+                'can_edit_landing_page_content': true,
+                'can_manage_team_members': true,
+                'can_manage_faq_items': true,
+                'can_manage_privacy_policy': true,
+                'can_export_content': true,
+                'can_backup_restore_content': true,
+                'can_access_profile': true,
+                'can_edit_personal_profile': true,
+                'can_change_password': true,
+                'can_setup_mfa': true,
+                'can_view_login_history': true
+            }
+        },
+        'SA': {
+            description: 'System Administrator - Full system access identical to Root Admin.',
+            defaults: {
+                'can_access_dashboard': true,
+                'can_view_dashboard_statistics': true,
+                'can_export_dashboard_reports': true,
+                'can_access_active_records': true,
+                'can_view_active_records': true,
+                'can_create_active_records': true,
+                'can_edit_active_records': true,
+                'can_delete_active_records': true,
+                'can_approve_active_records': true,
+                'can_export_active_records': true,
+                'can_access_archived_records': true,
+                'can_view_archived_records': true,
+                'can_restore_archived_records': true,
+                'can_permanently_delete_archived': true,
+                'can_export_archived_records': true,
+                'can_access_batch_upload': true,
+                'can_perform_batch_upload': true,
+                'can_download_batch_templates': true,
+                'can_view_batch_history': true,
+                'can_manage_batch_operations': true,
+                'can_access_messages': true,
+                'can_view_messages': true,
+                'can_respond_to_messages': true,
+                'can_delete_messages': true,
+                'can_access_settings': true,
+                'can_modify_personal_settings': true,
+                'can_modify_system_settings': true,
+                'can_manage_backup_settings': true,
+                'can_view_audit_logs': true,
+                'can_export_audit_logs': true,
+                'can_access_reports': true,
+                'can_view_reports': true,
+                'can_generate_reports': true,
+                'can_export_reports': true,
+                'can_access_pending_approvals': true,
+                'can_view_pending_applications': true,
+                'can_approve_applications': true,
+                'can_reject_applications': true,
+                'can_bulk_process_approvals': true,
+                'can_export_approval_reports': true,
+                'can_access_verification_requests': true,
+                'can_view_verification_requests': true,
+                'can_respond_to_verifications': true,
+                'can_manage_verification_queue': true,
+                'can_export_verification_data': true,
+                'can_access_user_management': true,
+                'can_view_users': true,
+                'can_create_users': true,
+                'can_edit_users': true,
+                'can_delete_users': true,
+                'can_manage_user_permissions': true,
+                'can_reset_user_passwords': true,
+                'can_disable_user_mfa': true,
+                'can_access_content_management': true,
+                'can_view_content': true,
+                'can_edit_landing_page_content': true,
+                'can_manage_team_members': true,
+                'can_manage_faq_items': true,
+                'can_manage_privacy_policy': true,
+                'can_export_content': true,
+                'can_backup_restore_content': true,
+                'can_access_profile': true,
+                'can_edit_personal_profile': true,
+                'can_change_password': true,
+                'can_setup_mfa': true,
+                'can_view_login_history': true
+            }
+        },
+        'AD': {
+            description: 'Administrator - Full access EXCEPT Content Management, System Configuration, and Backup & Data Management.',
+            defaults: {
+                'can_access_dashboard': true,
+                'can_view_dashboard_statistics': true,
+                'can_export_dashboard_reports': true,
+                'can_access_active_records': true,
+                'can_view_active_records': true,
+                'can_create_active_records': true,
+                'can_edit_active_records': true,
+                'can_delete_active_records': true,
+                'can_approve_active_records': true,
+                'can_export_active_records': true,
+                'can_access_archived_records': true,
+                'can_view_archived_records': true,
+                'can_restore_archived_records': true,
+                'can_permanently_delete_archived': true,
+                'can_export_archived_records': true,
+                'can_access_batch_upload': true,
+                'can_perform_batch_upload': true,
+                'can_download_batch_templates': true,
+                'can_view_batch_history': true,
+                'can_manage_batch_operations': true,
+                'can_access_messages': true,
+                'can_view_messages': true,
+                'can_respond_to_messages': true,
+                'can_delete_messages': true,
+                'can_access_settings': true,
+                'can_modify_personal_settings': true,
+                'can_modify_system_settings': false,  // RESTRICTED
+                'can_manage_backup_settings': false,  // RESTRICTED
+                'can_view_audit_logs': true,
+                'can_export_audit_logs': true,
+                'can_access_reports': true,
+                'can_view_reports': true,
+                'can_generate_reports': true,
+                'can_export_reports': true,
+                'can_access_pending_approvals': true,
+                'can_view_pending_applications': true,
+                'can_approve_applications': true,
+                'can_reject_applications': true,
+                'can_bulk_process_approvals': true,
+                'can_export_approval_reports': true,
+                'can_access_verification_requests': true,
+                'can_view_verification_requests': true,
+                'can_respond_to_verifications': true,
+                'can_manage_verification_queue': true,
+                'can_export_verification_data': true,
+                'can_access_user_management': true,
+                'can_view_users': true,
+                'can_create_users': true,
+                'can_edit_users': true,
+                'can_delete_users': true,
+                'can_manage_user_permissions': true,
+                'can_reset_user_passwords': true,
+                'can_disable_user_mfa': true,
+                'can_access_content_management': false,  // RESTRICTED
+                'can_view_content': false,  // RESTRICTED
+                'can_edit_landing_page_content': false,  // RESTRICTED
+                'can_manage_team_members': false,  // RESTRICTED
+                'can_manage_faq_items': false,  // RESTRICTED
+                'can_manage_privacy_policy': false,  // RESTRICTED
+                'can_export_content': false,  // RESTRICTED
+                'can_backup_restore_content': false,  // RESTRICTED
+                'can_access_profile': true,
+                'can_edit_personal_profile': true,
+                'can_change_password': true,
+                'can_setup_mfa': true,
+                'can_view_login_history': true
+            }
+        },
+        'EM': {
+            description: 'Employee - Access to core functions EXCEPT Reports, Approvals, Verifications, User Mgmt, Content Mgmt, System Config, and Backup.',
+            defaults: {
+                'can_access_dashboard': true,
+                'can_view_dashboard_statistics': true,
+                'can_export_dashboard_reports': true,
+                'can_access_active_records': true,
+                'can_view_active_records': true,
+                'can_create_active_records': true,
+                'can_edit_active_records': true,
+                'can_delete_active_records': true,
+                'can_approve_active_records': true,
+                'can_export_active_records': true,
+                'can_access_archived_records': true,
+                'can_view_archived_records': true,
+                'can_restore_archived_records': true,
+                'can_permanently_delete_archived': true,
+                'can_export_archived_records': true,
+                'can_access_batch_upload': true,
+                'can_perform_batch_upload': true,
+                'can_download_batch_templates': true,
+                'can_view_batch_history': true,
+                'can_manage_batch_operations': true,
+                'can_access_messages': true,
+                'can_view_messages': true,
+                'can_respond_to_messages': true,
+                'can_delete_messages': true,
+                'can_access_settings': true,
+                'can_modify_personal_settings': true,
+                'can_modify_system_settings': false,  // RESTRICTED
+                'can_manage_backup_settings': false,  // RESTRICTED
+                'can_view_audit_logs': true,
+                'can_export_audit_logs': true,
+                'can_access_reports': false,  // RESTRICTED
+                'can_view_reports': false,  // RESTRICTED
+                'can_generate_reports': false,  // RESTRICTED
+                'can_export_reports': false,  // RESTRICTED
+                'can_access_pending_approvals': false,  // RESTRICTED
+                'can_view_pending_applications': false,  // RESTRICTED
+                'can_approve_applications': false,  // RESTRICTED
+                'can_reject_applications': false,  // RESTRICTED
+                'can_bulk_process_approvals': false,  // RESTRICTED
+                'can_export_approval_reports': false,  // RESTRICTED
+                'can_access_verification_requests': false,  // RESTRICTED
+                'can_view_verification_requests': false,  // RESTRICTED
+                'can_respond_to_verifications': false,  // RESTRICTED
+                'can_manage_verification_queue': false,  // RESTRICTED
+                'can_export_verification_data': false,  // RESTRICTED
+                'can_access_user_management': false,  // RESTRICTED
+                'can_view_users': false,  // RESTRICTED
+                'can_create_users': false,  // RESTRICTED
+                'can_edit_users': false,  // RESTRICTED
+                'can_delete_users': false,  // RESTRICTED
+                'can_manage_user_permissions': false,  // RESTRICTED
+                'can_reset_user_passwords': false,  // RESTRICTED
+                'can_disable_user_mfa': false,  // RESTRICTED
+                'can_access_content_management': false,  // RESTRICTED
+                'can_view_content': false,  // RESTRICTED
+                'can_edit_landing_page_content': false,  // RESTRICTED
+                'can_manage_team_members': false,  // RESTRICTED
+                'can_manage_faq_items': false,  // RESTRICTED
+                'can_manage_privacy_policy': false,  // RESTRICTED
+                'can_export_content': false,  // RESTRICTED
+                'can_backup_restore_content': false,  // RESTRICTED
+                'can_access_profile': true,
+                'can_edit_personal_profile': true,
+                'can_change_password': true,
+                'can_setup_mfa': true,
+                'can_view_login_history': true
+            }
+        }
+    };
+
+    // Define parent-child permission relationships
+    const permissionHierarchy = {
+        'can_access_dashboard': ['can_view_dashboard_statistics', 'can_export_dashboard_reports'],
+        'can_access_active_records': ['can_view_active_records', 'can_create_active_records', 'can_edit_active_records', 'can_delete_active_records', 'can_approve_active_records', 'can_export_active_records'],
+        'can_access_archived_records': ['can_view_archived_records', 'can_restore_archived_records', 'can_permanently_delete_archived', 'can_export_archived_records'],
+        'can_access_batch_upload': ['can_perform_batch_upload', 'can_download_batch_templates', 'can_view_batch_history', 'can_manage_batch_operations'],
+        'can_access_messages': ['can_view_messages', 'can_respond_to_messages', 'can_delete_messages'],
+        'can_access_settings': ['can_modify_personal_settings', 'can_modify_system_settings', 'can_manage_backup_settings', 'can_view_audit_logs', 'can_export_audit_logs'],
+        'can_access_reports': ['can_view_reports', 'can_generate_reports', 'can_export_reports'],
+        'can_access_pending_approvals': ['can_view_pending_applications', 'can_approve_applications', 'can_reject_applications', 'can_bulk_process_approvals', 'can_export_approval_reports'],
+        'can_access_verification_requests': ['can_view_verification_requests', 'can_respond_to_verifications', 'can_manage_verification_queue', 'can_export_verification_data'],
+        'can_access_user_management': ['can_view_users', 'can_create_users', 'can_edit_users', 'can_delete_users', 'can_manage_user_permissions', 'can_reset_user_passwords', 'can_disable_user_mfa'],
+        'can_access_content_management': ['can_view_content', 'can_edit_landing_page_content', 'can_manage_team_members', 'can_manage_faq_items', 'can_manage_privacy_policy', 'can_export_content', 'can_backup_restore_content'],
+        'can_access_profile': ['can_edit_personal_profile', 'can_change_password', 'can_setup_mfa', 'can_view_login_history']
+    };
+
+    // ==================== HIERARCHICAL PERMISSIONS ====================
+    
+    function initializeHierarchicalPermissions() {
+        Object.keys(permissionHierarchy).forEach(parentId => {
+            const parentCheckbox = document.getElementById(parentId);
+            if (parentCheckbox) {
+                parentCheckbox.addEventListener('change', function(e) {
+                    handleParentCheckboxChange(parentId, this.checked);
+                });
+            }
+        });
+
+        Object.entries(permissionHierarchy).forEach(([parentId, children]) => {
+            children.forEach(childId => {
+                const childCheckbox = document.getElementById(childId);
+                if (childCheckbox) {
+                    childCheckbox.addEventListener('change', function(e) {
+                        handleChildCheckboxChange(parentId, childId, this.checked);
+                    });
+                }
+            });
+        });
+
+        updateAllParentStates();
+    }
+
+    function handleParentCheckboxChange(parentId, isChecked) {
+        const children = permissionHierarchy[parentId];
+        if (!children) return;
+
+        children.forEach(childId => {
+            const childCheckbox = document.getElementById(childId);
+            if (childCheckbox) {
+                if (isChecked) {
+                    childCheckbox.disabled = false;
+                    childCheckbox.checked = true;
+                    childCheckbox.classList.remove('sub-permission-disabled');
+                } else {
+                    childCheckbox.disabled = true;
+                    childCheckbox.checked = false;
+                    childCheckbox.classList.add('sub-permission-disabled');
+                }
+            }
+        });
+    }
+
+    function handleChildCheckboxChange(parentId, childId, isChecked) {
+        const parentCheckbox = document.getElementById(parentId);
+        if (!parentCheckbox) return;
+
+        if (isChecked) {
+            if (!parentCheckbox.checked) {
+                parentCheckbox.checked = true;
+                const children = permissionHierarchy[parentId];
+                children.forEach(siblingId => {
+                    const siblingCheckbox = document.getElementById(siblingId);
+                    if (siblingCheckbox) {
+                        siblingCheckbox.disabled = false;
+                        siblingCheckbox.classList.remove('sub-permission-disabled');
+                    }
+                });
+            }
+        } else {
+            const children = permissionHierarchy[parentId];
+            const anyChildChecked = children.some(siblingId => {
+                const siblingCheckbox = document.getElementById(siblingId);
+                return siblingCheckbox && siblingCheckbox.checked;
+            });
+
+            if (!anyChildChecked) {
+                parentCheckbox.checked = false;
+                children.forEach(siblingId => {
+                    const siblingCheckbox = document.getElementById(siblingId);
+                    if (siblingCheckbox) {
+                        siblingCheckbox.disabled = true;
+                        siblingCheckbox.classList.add('sub-permission-disabled');
+                    }
+                });
+            }
+        }
+    }
+
+    function updateAllParentStates() {
+        Object.entries(permissionHierarchy).forEach(([parentId, children]) => {
+            const parentCheckbox = document.getElementById(parentId);
+            if (!parentCheckbox) return;
+
+            const checkedChildren = children.filter(childId => {
+                const childCheckbox = document.getElementById(childId);
+                return childCheckbox && childCheckbox.checked;
+            });
+
+            if (checkedChildren.length > 0) {
+                parentCheckbox.checked = true;
+                children.forEach(childId => {
+                    const childCheckbox = document.getElementById(childId);
+                    if (childCheckbox) {
+                        childCheckbox.disabled = false;
+                        childCheckbox.classList.remove('sub-permission-disabled');
+                    }
+                });
+            } else {
+                parentCheckbox.checked = false;
+                children.forEach(childId => {
+                    const childCheckbox = document.getElementById(childId);
+                    if (childCheckbox) {
+                        childCheckbox.disabled = true;
+                        childCheckbox.classList.add('sub-permission-disabled');
+                    }
+                });
+            }
+        });
+    }
+
+    // ==================== ROLE SELECTION ====================
+    
+    const roleSelect = document.querySelector('select[name="role"]');
+    const roleInfo = document.getElementById('role-info');
+    const roleDescription = document.getElementById('role-description');
+    
+    if (!roleSelect) {
+        console.error('Role select element not found!');
+        return;
+    }
+
+    function updatePermissionsForRole() {
+        const selectedRole = roleSelect.value;
+
+        if (selectedRole && rolePermissions[selectedRole]) {
+            const roleData = rolePermissions[selectedRole];
+
+            if (roleInfo && roleDescription) {
+                roleDescription.textContent = roleData.description;
+                roleInfo.style.display = 'block';
+            }
+
+            // Get all permission checkboxes
+            const allPermissionCheckboxes = document.querySelectorAll('input[type="checkbox"][name^="can_"]');
+
+            // Apply role defaults but SHOW all checkboxes (don't hide them)
+            // This allows Root Admin to customize any permission for any role
+            allPermissionCheckboxes.forEach(checkbox => {
+                const permissionName = checkbox.name;
+                const formCheckDiv = checkbox.closest('.form-check');
+
+                if (formCheckDiv) {
+                    // Always show the checkbox
+                    formCheckDiv.style.display = '';
+                    checkbox.disabled = false;
+
+                    // Check if this permission is in the role defaults
+                    if (roleData.defaults.hasOwnProperty(permissionName)) {
+                        const isAllowed = roleData.defaults[permissionName];
+                        // Set checkbox state based on default, but keep it visible and enabled
+                        checkbox.checked = isAllowed;
+                    } else {
+                        // If not in defaults, uncheck it but keep it visible
+                        checkbox.checked = false;
+                    }
+                }
+            });
+
+            // Show all permission categories (since all checkboxes are now visible)
+            const permissionCategories = document.querySelectorAll('.permission-category');
+            permissionCategories.forEach(category => {
+                category.style.display = '';
+            });
+
+            setTimeout(() => {
+                updateAllParentStates();
+            }, 50);
+        } else {
+            if (roleInfo) {
+                roleInfo.style.display = 'none';
+            }
+
+            // Show all checkboxes if no role selected
+            const allPermissionCheckboxes = document.querySelectorAll('input[type="checkbox"][name^="can_"]');
+            allPermissionCheckboxes.forEach(checkbox => {
+                const formCheckDiv = checkbox.closest('.form-check');
+                if (formCheckDiv) {
+                    formCheckDiv.style.display = '';
+                }
+            });
+
+            const permissionCategories = document.querySelectorAll('.permission-category');
+            permissionCategories.forEach(category => {
+                category.style.display = '';
+            });
+        }
+    }
+
+    roleSelect.addEventListener('change', function() {
+        updatePermissionsForRole();
+    });
+
+    updatePermissionsForRole();
+    initializeHierarchicalPermissions();
+
+    // ==================== FORM VALIDATION ====================
+    
+    const form = document.getElementById('userForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const inputs = form.querySelectorAll('input[required], input[pattern]');
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (!input.checkValidity()) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                }
+            });
+            
+            const firstName = document.getElementById('first_name').value;
+            const lastName = document.getElementById('last_name').value;
+            const username = document.getElementById('username').value;
+            const phoneNumber = document.getElementById('phone_number').value;
+            
+            if (firstName.length < 3 || firstName.length > 15 || !/^[A-Za-z]+$/.test(firstName)) {
+                alert('First name must contain only letters and be 3-15 characters long.');
+                isValid = false;
+            }
+            
+            if (lastName.length < 3 || lastName.length > 15 || !/^[A-Za-z]+$/.test(lastName)) {
+                alert('Last name must contain only letters and be 3-15 characters long.');
+                isValid = false;
+            }
+            
+            if (username.length < 3 || username.length > 15 || !/^[A-Za-z0-9_.]+$/.test(username)) {
+                alert('Username must be alphanumeric with optional underscore or dot, 3-15 characters long.');
+                isValid = false;
+            }
+            
+            if (phoneNumber && (phoneNumber.length !== 11 || !/^[0-9]{11}$/.test(phoneNumber))) {
+                alert('Phone number must be exactly 11 digits.');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+                form.submit();
+            }
+            
+            form.classList.add('was-validated');
+        });
+    }
+});
+
+// ==================== ROLE-BASED PERMISSION CONTROL ====================
+// Permissions are now controlled entirely by role selection
+// No manual preset functions needed - the form automatically shows/hides
+// checkboxes based on what each role is allowed to access
+</script>
+{% endblock %}

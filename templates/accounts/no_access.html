@@ -1,0 +1,90 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_title %}Access Denied - VeriSior{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Access Denied
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h5>No Permissions Granted</h5>
+                        <p class="mb-0">
+                            Your account <strong>{{ user.username }}</strong> ({{ user.get_role_display }})
+                            does not have permissions to access any system modules.
+                        </p>
+                    </div>
+
+                    <div class="mt-4">
+                        <h6>What you can do:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-user-cog text-primary"></i>
+                                <strong>View/Edit Profile:</strong>
+                                <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-primary ml-2">
+                                    Go to Profile
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-sign-out-alt text-secondary"></i>
+                                <strong>Logout:</strong>
+                                <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-secondary ml-2">
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="text-muted">Need Access?</h6>
+                        <p class="mb-1">{{ contact_admin_message }}</p>
+                        <small class="text-muted">
+                            Your system administrator can grant you permissions to access:
+                            Dashboard, Active Records, Content Management, User Management, Settings, and more.
+                        </small>
+                    </div>
+
+                    {% if permission_summary %}
+                    <div class="mt-4">
+                        <details>
+                            <summary class="text-muted">
+                                <small>Permission Details ({{ permission_summary.granted_count }}/{{ permission_summary.total_permissions }})</small>
+                            </summary>
+                            <div class="mt-2 small">
+                                {% if permission_summary.granted_count > 0 %}
+                                    <p class="text-success mb-1">
+                                        <strong>Granted ({{ permission_summary.granted_count }}):</strong>
+                                    </p>
+                                    <ul class="list-unstyled text-success small">
+                                        {% for permission in permission_summary.granted_permissions %}
+                                            <li>{{ permission }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+
+                                {% if permission_summary.revoked_count > 0 %}
+                                    <p class="text-muted mb-1">
+                                        <strong>Not Granted ({{ permission_summary.revoked_count }}):</strong>
+                                    </p>
+                                    <small class="text-muted">
+                                        {{ permission_summary.revoked_count }} permissions not granted.
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </details>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

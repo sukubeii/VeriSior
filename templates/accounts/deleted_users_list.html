@@ -1,0 +1,186 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Deleted Users - VeriSior{% endblock %}
+{% block page_title %}Deleted Users{% endblock %}
+
+{% block content %}
+<!-- Hidden CSRF token -->
+<form style="display:none;">
+    {% csrf_token %}
+</form>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-7">
+                        <input type="text" class="form-control" name="search" value="{{ current_search }}"
+                               placeholder="Search by username, name, email...">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{% url 'deleted_users_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-refresh me-1"></i>Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="d-flex gap-2 h-100 align-items-center">
+            <a href="{% url 'inactive_users_list' %}" class="btn btn-outline-primary flex-fill">
+                <i class="fas fa-arrow-left me-1"></i>Back to Inactive
+            </a>
+            <div class="badge bg-danger fs-6">
+                {{ users.paginator.count }} deleted
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <strong>Warning:</strong> Users in this list can be permanently deleted with NO confirmation.
+    Permanent deletion cannot be undone.
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="fas fa-trash me-2"></i>Deleted Users
+            <span class="badge bg-danger ms-2">{{ users.paginator.count }} total</span>
+        </span>
+    </div>
+    <div class="card-body p-0">
+        {% if users %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Deleted Date</th>
+                            <th>Deleted By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td><code>{{ user.username }}</code></td>
+                            <td>{{ user.first_name }} {{ user.last_name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td><span class="badge bg-secondary">{{ user.get_role_display }}</span></td>
+                            <td>
+                                {% if user.deleted_at %}
+                                    <small class="text-muted">{{ user.deleted_at|date:"M d, Y H:i" }}</small>
+                                {% else %}
+                                    <small class="text-muted">Unknown</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.deleted_by %}
+                                    <small>{{ user.deleted_by.username }}</small>
+                                {% else %}
+                                    <small class="text-muted">Unknown</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-danger permanent-delete-now"
+                                        data-user-id="{{ user.pk }}"
+                                        data-username="{{ user.username }}"
+                                        title="Permanently Delete (No Confirmation)">
+                                    <i class="fas fa-trash-alt me-1"></i>Permanently Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if users.has_other_pages %}
+            <div class="card-footer">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if users.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.previous_page_number }}&search={{ current_search }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in users.paginator.page_range %}
+                            {% if users.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&search={{ current_search }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if users.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.next_page_number }}&search={{ current_search }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-trash fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Deleted Users Found</h5>
+                <a href="{% url 'inactive_users_list' %}" class="btn btn-primary">View Inactive Users</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle permanent delete - NO CONFIRMATION
+    document.querySelectorAll('.permanent-delete-now').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const userId = this.dataset.userId;
+            const username = this.dataset.username;
+
+            // Disable button immediately
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Deleting...';
+
+            // Submit immediately - NO CONFIRMATION
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/auth/users/${userId}/permanent-delete/`;
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

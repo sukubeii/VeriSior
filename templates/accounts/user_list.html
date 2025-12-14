@@ -1,0 +1,353 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}User Management - VeriSior{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <!-- Search and Filter Form -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="search" value="{{ current_search|default:'' }}" 
+                               placeholder="Search by name, username, email...">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="role" class="form-control">
+                            <option value="">All Roles</option>
+                            {% for role_code, role_display in role_choices %}
+                            <option value="{{ role_code }}" {% if current_role_filter == role_code %}selected{% endif %}>{{ role_display }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-control">
+                            <option value="">All Status</option>
+                            <option value="active" {% if current_status_filter == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if current_status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-1">
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-refresh"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <!-- Action Buttons -->
+        <div class="d-flex h-100 align-items-center flex-column gap-2">
+            {% if can_create_users %}
+            <a href="{% url 'user_create' %}" class="btn btn-primary w-100">
+                <i class="fas fa-plus me-2"></i>Create New User
+            </a>
+            <a href="{% url 'inactive_users_list' %}" class="btn btn-warning w-100">
+                <i class="fas fa-archive me-1"></i>View Inactive Users
+            </a>
+            {% else %}
+            <div class="alert alert-info w-100 mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                Contact your administrator to create new users.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Users List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="fas fa-users me-2"></i>System Users
+            {% if users.paginator.count %}
+            <span class="badge bg-secondary ms-2">{{ users.paginator.count }} total</span>
+            {% endif %}
+        </span>
+        {% if users.paginator.count > 0 %}
+        <small class="text-muted">
+            Showing {{ users.start_index }} to {{ users.end_index }} of {{ users.paginator.count }} users
+        </small>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if users %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_obj in users %}
+                        <tr {% if not user_obj.is_active %}class="table-secondary"{% endif %}>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-md me-3">
+                                        <div class="avatar-initial {% if user_obj.is_active %}bg-primary{% else %}bg-secondary{% endif %} text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            {{ user_obj.first_name.0|default:user_obj.username.0|upper }}{{ user_obj.last_name.0|default:'' }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold">
+                                            {% if user_obj.first_name or user_obj.last_name %}
+                                                {{ user_obj.first_name }} {{ user_obj.last_name }}
+                                            {% else %}
+                                                {{ user_obj.username }}
+                                            {% endif %}
+                                            {% if not user_obj.is_active %}
+                                                <span class="badge bg-secondary ms-1">DEACTIVATED</span>
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">@{{ user_obj.username }}</small>
+                                        {% if user_obj.role == 'RA' %}
+                                        <span class="badge bg-danger ms-1" title="Root Administrator">ROOT</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    {% if user_obj.role == 'RA' %}
+                                        <span class="badge bg-danger">Root Administrator</span>
+                                        <div><small class="text-muted">View + Approve Only</small></div>
+                                    {% elif user_obj.role == 'SA' %}
+                                        <span class="badge bg-warning">System Administrator</span>
+                                        <div><small class="text-muted">View + Approve Only</small></div>
+                                    {% elif user_obj.role == 'AD' %}
+                                        <span class="badge bg-info">Administrator</span>
+                                        <div><small class="text-muted">Full CRUD (Pending Approval)</small></div>
+                                    {% elif user_obj.role == 'EM' %}
+                                        <span class="badge bg-secondary">Employee</span>
+                                        <div><small class="text-muted">Create/Edit Own (Pending)</small></div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ user_obj.email|default:"No email" }}</div>
+                                {% if user_obj.phone_number %}
+                                <small class="text-muted">{{ user_obj.phone_number }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user_obj.is_active %}
+                                    <span class="badge badge-success">Active</span>
+                                    {% if user_obj.is_online %}
+                                    <i class="fas fa-circle text-success ms-1" title="Online" style="font-size: 8px;"></i>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-danger">Inactive</span>
+                                {% endif %}
+                                {% if user_obj.mfa_enabled %}
+                                    <div><small class="text-success"><i class="fas fa-shield-alt me-1"></i>MFA Enabled</small></div>
+                                {% else %}
+                                    <div><small class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>No MFA</small></div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user_obj.last_login %}
+                                    <div>{{ user_obj.last_login|date:"M d, Y" }}</div>
+                                    <small class="text-muted">{{ user_obj.last_login|timesince }} ago</small>
+                                {% else %}
+                                    <span class="text-muted">Never</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'user_detail' user_obj.pk %}" class="btn btn-outline-primary" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    {% if user_obj.can_be_managed_by_current_user and user_obj.is_active %}
+                                        <a href="{% url 'user_update' user_obj.pk %}" class="btn btn-outline-warning" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% if user_obj.is_active %}
+                                        {% if user_obj.pk != user.pk and user_obj.can_be_managed_by_current_user %}
+                                            <a href="{% url 'user_delete' user_obj.pk %}" class="btn btn-outline-danger" title="Deactivate User">
+                                                <i class="fas fa-user-slash"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if user_obj.can_be_managed_by_current_user %}
+                                            <a href="{% url 'user_reactivate' user_obj.pk %}" class="btn btn-outline-success" title="Reactivate User"
+                                               onclick="return confirm('Reactivate user {{ user_obj.username }}?')">
+                                                <i class="fas fa-user-check"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                    
+                                    {% if user.role == 'RA' and user_obj.mfa_enabled and user_obj.pk != user.pk %}
+                                        <a href="{% url 'mfa_disable_user' user_obj.pk %}" class="btn btn-outline-secondary" title="Disable MFA"
+                                           onclick="return confirm('Disable MFA for {{ user_obj.username }}?')">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if users.has_other_pages %}
+            <div class="card-footer">
+                <nav aria-label="Users pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if users.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.previous_page_number }}&search={{ current_search }}&role={{ current_role_filter }}&status={{ current_status_filter }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in users.paginator.page_range %}
+                            {% if users.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&search={{ current_search }}&role={{ current_role_filter }}&status={{ current_status_filter }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if users.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.next_page_number }}&search={{ current_search }}&role={{ current_role_filter }}&status={{ current_status_filter }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                
+                <!-- Page Info -->
+                <div class="text-center mt-2">
+                    <small class="text-muted">
+                        Page {{ users.number }} of {{ users.paginator.num_pages }}
+                        ({{ users.paginator.count }} total users)
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Users Found</h5>
+                {% if current_search or current_role_filter or current_status_filter %}
+                    <p class="text-muted">Try adjusting your search criteria</p>
+                    <a href="{% url 'user_list' %}" class="btn btn-outline-primary">Clear Filters</a>
+                {% else %}
+                    <p class="text-muted">No users are available to manage</p>
+                    {% if can_create_users %}
+                    <a href="{% url 'user_create' %}" class="btn btn-primary">Create First User</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-initial {
+    font-weight: 600;
+}
+.table td {
+    vertical-align: middle;
+}
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+.border {
+    border-color: var(--gray-300) !important;
+}
+.pagination .page-link {
+    color: var(--primary);
+}
+.pagination .page-item.active .page-link {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.badge {
+    font-size: 0.75rem;
+}
+.badge.badge-success {
+    background-color: #198754;
+}
+.badge.badge-danger {
+    background-color: #dc3545;
+}
+.table-secondary {
+    opacity: 0.7;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit search form on Enter
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.closest('form').submit();
+            }
+        });
+    }
+
+    // Auto-submit form when filters change
+    const filterSelects = document.querySelectorAll('select[name="role"], select[name="status"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    });
+
+    // Confirm deactivation actions
+    const deactivateButtons = document.querySelectorAll('a[href*="delete"]');
+    deactivateButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to deactivate this user? They will lose access to the system.')) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Highlight current user row
+    const currentUsername = '{{ user.username }}';
+    const userRows = document.querySelectorAll('tbody tr');
+    userRows.forEach(row => {
+        const usernameCell = row.querySelector('small.text-muted');
+        if (usernameCell && usernameCell.textContent.includes('@' + currentUsername)) {
+            row.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
+            row.style.border = '1px solid rgba(13, 110, 253, 0.3)';
+        }
+    });
+});
+</script>
+{% endblock %}

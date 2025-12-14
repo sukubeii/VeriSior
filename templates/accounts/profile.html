@@ -1,0 +1,377 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block title %}Profile - VeriSior{% endblock %}
+{% block page_title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Profile Settings Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user me-2"></i>Profile Settings
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'profile_update' %}" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="avatar-xl">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" 
+                                         alt="{{ user.get_full_name|default:user.username }}" 
+                                         class="rounded-circle profile-picture-preview"
+                                         id="profilePicturePreview"
+                                         style="width: 120px; height: 120px; object-fit: cover; border: 3px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                                {% else %}
+                                    <div class="avatar-initial bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" 
+                                         id="profilePicturePreview"
+                                         style="width: 120px; height: 120px; font-size: 36px;">
+                                        {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:'' }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-3">
+                                <input type="file" class="form-control" name="profile_picture" accept="image/*" id="profilePictureInput">
+                                <small class="text-muted">Max 5MB (JPG, PNG, GIF)</small>
+                                <div id="imageError" class="text-danger mt-2" style="display: none;"></div>
+                            </div>
+                            {% if user.profile_picture %}
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="removePhotoBtn">
+                                    <i class="fas fa-trash me-1"></i>Remove Photo
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" class="form-control" name="first_name" 
+                                           value="{{ user.first_name }}" 
+                                           placeholder="Enter first name"
+                                           pattern="[A-Za-z]{3,15}"
+                                           minlength="3"
+                                           maxlength="15"
+                                           title="Letters only, 3-15 characters">
+                                    <small class="text-muted">Letters only, 3-15 characters</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" name="last_name" 
+                                           value="{{ user.last_name }}" 
+                                           placeholder="Enter last name"
+                                           pattern="[A-Za-z]{3,15}"
+                                           minlength="3"
+                                           maxlength="15"
+                                           title="Letters only, 3-15 characters">
+                                    <small class="text-muted">Letters only, 3-15 characters</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" name="email" 
+                                           value="{{ user.email }}" 
+                                           placeholder="Enter email address">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                                    <small class="text-muted">Username cannot be changed</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="text" class="form-control" name="phone_number" 
+                                           value="{{ user.phone_number|default:'' }}" 
+                                           placeholder="09XXXXXXXXX"
+                                           pattern="[0-9]{11}"
+                                           minlength="11"
+                                           maxlength="11"
+                                           title="Exactly 11 digits">
+                                    <small class="text-muted">Exactly 11 digits (e.g., 09123456789)</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Department</label>
+                                    <input type="text" class="form-control" name="department" 
+                                           value="{{ user.department|default:'' }}" 
+                                           placeholder="e.g. IT Department">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Current Role</label>
+                                    <input type="text" class="form-control" value="{{ user.get_role_display }}" readonly>
+                                    <small class="text-muted">Contact administrator to change role</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">User Type</label>
+                                    <input type="text" class="form-control" value="{{ user.get_user_type_display }}" readonly>
+                                    <small class="text-muted">User type cannot be changed</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary" id="updateProfileBtn">
+                            <i class="fas fa-save me-1"></i>Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Information -->
+    <div class="col-lg-4">
+        <!-- Account Summary Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Account Summary
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="avatar-lg">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" 
+                                 alt="{{ user.get_full_name|default:user.username }}" 
+                                 class="rounded-circle"
+                                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                        {% else %}
+                            <div class="avatar-initial bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px; font-size: 24px;">
+                                {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|default:'' }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1 mt-2">
+                        {% if user.first_name or user.last_name %}
+                            {{ user.first_name }} {{ user.last_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </h5>
+                    <p class="text-muted">@{{ user.username }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Role</label>
+                    <p class="fw-semibold">
+                        {{ user.get_role_display }}
+                        {% if user.role == 'RA' %}
+                            <span class="badge bg-danger ms-1">ROOT</span>
+                        {% elif user.role == 'SA' %}
+                            <span class="badge bg-warning ms-1">SYSTEM</span>
+                        {% elif user.role == 'AD' %}
+                            <span class="badge bg-info ms-1">ADMIN</span>
+                        {% elif user.role == 'EM' %}
+                            <span class="badge bg-secondary ms-1">EMPLOYEE</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">User Type</label>
+                    <p class="fw-semibold">{{ user.get_user_type_display }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Member Since</label>
+                    <p class="fw-semibold">{{ user.date_joined|date:"F d, Y" }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Last Login</label>
+                    <p class="fw-semibold">
+                        {% if user.last_login %}
+                            {{ user.last_login|date:"M d, Y g:i A" }}
+                        {% else %}
+                            <span class="text-warning">Never logged in</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-initial {
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.profile-picture-preview {
+    transition: all 0.3s ease;
+}
+
+.profile-picture-preview:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3) !important;
+}
+
+.card {
+    border: 1px solid var(--gray-200);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: none;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #1e40af 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.form-control.is-valid {
+    border-color: #198754;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Profile picture preview
+    const profilePictureInput = document.getElementById('profilePictureInput');
+    const profilePicturePreview = document.getElementById('profilePicturePreview');
+    const imageError = document.getElementById('imageError');
+    const removePhotoBtn = document.getElementById('removePhotoBtn');
+    
+    if (profilePictureInput) {
+        profilePictureInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            imageError.style.display = 'none';
+            
+            if (file) {
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    imageError.textContent = 'File size must be less than 5MB';
+                    imageError.style.display = 'block';
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    imageError.textContent = 'Only JPG, PNG, and GIF images are allowed';
+                    imageError.style.display = 'block';
+                    this.value = '';
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (profilePicturePreview.tagName === 'IMG') {
+                        profilePicturePreview.src = e.target.result;
+                    } else {
+                        // Replace div with img
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = 'Preview';
+                        img.className = 'rounded-circle profile-picture-preview';
+                        img.id = 'profilePicturePreview';
+                        img.style.cssText = 'width: 120px; height: 120px; object-fit: cover; border: 3px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);';
+                        profilePicturePreview.parentNode.replaceChild(img, profilePicturePreview);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Remove photo button
+    if (removePhotoBtn) {
+        removePhotoBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to remove your profile picture?')) {
+                // Create a hidden input to indicate photo removal
+                const form = document.getElementById('profileForm');
+                const removeInput = document.createElement('input');
+                removeInput.type = 'hidden';
+                removeInput.name = 'remove_profile_picture';
+                removeInput.value = 'true';
+                form.appendChild(removeInput);
+                form.submit();
+            }
+        });
+    }
+    
+    // Form validation
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        // Real-time validation for First Name
+        const firstNameInput = profileForm.querySelector('input[name="first_name"]');
+        if (firstNameInput) {
+            firstNameInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^A-Za-z]/g, '');
+                if (this.value.length > 15) {
+                    this.value = this.value.substring(0, 15);
+                }
+            });
+        }
+        
+        // Real-time validation for Last Name
+        const lastNameInput = profileForm.querySelector('input[name="last_name"]');
+        if (lastNameInput) {
+            lastNameInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^A-Za-z]/g, '');
+                if (this.value.length > 15) {
+                    this.value = this.value.substring(0, 15);
+                }
+            });
+        }
+        
+        // Real-time validation for Phone Number
+        const phoneInput = profileForm.querySelector('input[name="phone_number"]');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length > 11) {
+                    this.value = this.value.substring(0, 11);
+                }
+            });
+        }
+        
+        // Form submission
+        profileForm.addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('updateProfileBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating Profile...';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
