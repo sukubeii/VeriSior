@@ -1,0 +1,23 @@
+Project Manager
+Beatriz Mae M. Buan
+
+Technical Skills: Project Management, system analysis, graphic/video Editing
+Soft Skills: Leadership, creative thinking, time management, communication skills
+
+Christian Joshua A. Garma
+Quality Assurance
+
+Technical Skills: Microsoft tools, mechanical skills
+Soft Skils: Teamwork and collaboration, resourcefulness
+
+System Analyst
+Reece L. Roque
+
+Technical Skills: C#, Python, web development, experience with encryption techniques such as the Vigenere cipher
+Soft Skills: Honest and adaptability in technical and team environments
+
+Lead Developer
+Cedric Go
+
+Technical Skills: Basic to intermediate PC and network troubleshooting
+Soft Skills: Can work under pressure, willing to work onsite
